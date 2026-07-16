@@ -77,13 +77,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "USE Medical — Sistema Operacional Comercial" },
-      { name: "description", content: "Hub de inteligência comercial para distribuição hospitalar. Inbox universal de cotações, precificação com IA e integração com TOTVS Protheus." },
+      { title: "USE Medical — Inbox de Cotações" },
+      { name: "description", content: "Sistema operacional comercial para distribuidores hospitalares. Inbox universal de cotações, precificação com IA e integração TOTVS Protheus." },
       { name: "author", content: "USE Medical" },
-      { property: "og:title", content: "USE Medical — Sistema Operacional Comercial" },
-      { property: "og:description", content: "Orquestre cotações hospitalares em um único hub: SLA, precificação com IA e integração TOTVS Protheus." },
+      { property: "og:title", content: "USE Medical — Inbox de Cotações" },
+      { property: "og:description", content: "Sistema operacional comercial para distribuidores hospitalares. Inbox universal de cotações, precificação com IA e integração TOTVS Protheus." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "USE Medical — Inbox de Cotações" },
+      { name: "twitter:description", content: "Sistema operacional comercial para distribuidores hospitalares. Inbox universal de cotações, precificação com IA e integração TOTVS Protheus." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/899677d5-506a-46b7-b1f3-85adb325c113/id-preview-9c8c2838--666f7de8-9f99-4182-96af-cc4ef2403440.lovable.app-1784230058651.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/899677d5-506a-46b7-b1f3-85adb325c113/id-preview-9c8c2838--666f7de8-9f99-4182-96af-cc4ef2403440.lovable.app-1784230058651.png" },
     ],
     links: [
       {
