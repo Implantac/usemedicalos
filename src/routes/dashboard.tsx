@@ -22,12 +22,13 @@ import { SOURCE_LABEL } from "@/lib/medical/types";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
-const searchSchema = z.object({
-  period: fallback(z.number(), 30).default(30),
-});
+type DashboardSearch = { period: number };
 
 export const Route = createFileRoute("/dashboard")({
-  validateSearch: zodValidator(searchSchema),
+  validateSearch: (raw: Record<string, unknown>): DashboardSearch => {
+    const n = Number(raw.period);
+    return { period: Number.isFinite(n) && n > 0 ? n : 30 };
+  },
   head: () => ({
     meta: [
       { title: "Dashboard — USE Medical" },
