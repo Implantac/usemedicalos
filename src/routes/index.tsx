@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { fallback, zodValidator } from "@tanstack/zod-adapter";
-import { z } from "zod";
 import { Plus } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { QuoteInbox } from "@/components/medical/quote-inbox";
@@ -12,12 +10,12 @@ import { Button } from "@/components/ui/button";
 import { useQuotes } from "@/hooks/use-quotes";
 import { Toaster } from "@/components/ui/sonner";
 
-const searchSchema = z.object({
-  open: fallback(z.string().optional(), undefined),
-});
+type IndexSearch = { open?: string };
 
 export const Route = createFileRoute("/")({
-  validateSearch: zodValidator(searchSchema),
+  validateSearch: (raw: Record<string, unknown>): IndexSearch => ({
+    open: typeof raw.open === "string" ? raw.open : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "USE Medical — Inbox de Cotações" },
