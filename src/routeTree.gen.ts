@@ -13,6 +13,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VendedorOwnerIdRouteImport } from './routes/vendedor.$ownerId'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -34,18 +35,25 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VendedorOwnerIdRoute = VendedorOwnerIdRouteImport.update({
+  id: '/vendedor/$ownerId',
+  path: '/vendedor/$ownerId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,25 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/produtos' | '/sitemap.xml'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/produtos'
+    | '/sitemap.xml'
+    | '/vendedor/$ownerId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/produtos' | '/sitemap.xml'
-  id: '__root__' | '/' | '/dashboard' | '/produtos' | '/sitemap.xml'
+  to: '/' | '/dashboard' | '/produtos' | '/sitemap.xml' | '/vendedor/$ownerId'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/produtos'
+    | '/sitemap.xml'
+    | '/vendedor/$ownerId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +87,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   ProdutosRoute: typeof ProdutosRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  VendedorOwnerIdRoute: typeof VendedorOwnerIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +120,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vendedor/$ownerId': {
+      id: '/vendedor/$ownerId'
+      path: '/vendedor/$ownerId'
+      fullPath: '/vendedor/$ownerId'
+      preLoaderRoute: typeof VendedorOwnerIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +135,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   ProdutosRoute: ProdutosRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  VendedorOwnerIdRoute: VendedorOwnerIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
