@@ -77,14 +77,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "TaskFlow — Focus on what matters" },
-      { name: "description", content: "TaskFlow is a minimal, fast task management system that helps you organize work and focus on what matters." },
-      { name: "author", content: "TaskFlow" },
-      { property: "og:title", content: "TaskFlow — Focus on what matters" },
-      { property: "og:description", content: "TaskFlow is a minimal, fast task management system that helps you organize work and focus on what matters." },
+      { title: "USE Medical — Sistema Operacional Comercial" },
+      { name: "description", content: "Hub de inteligência comercial para distribuição hospitalar. Inbox universal de cotações, precificação com IA e integração com TOTVS Protheus." },
+      { name: "author", content: "USE Medical" },
+      { property: "og:title", content: "USE Medical — Sistema Operacional Comercial" },
+      { property: "og:description", content: "Orquestre cotações hospitalares em um único hub: SLA, precificação com IA e integração TOTVS Protheus." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@taskflow" },
     ],
     links: [
       {
