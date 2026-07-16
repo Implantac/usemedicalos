@@ -1,30 +1,53 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { QuoteInbox } from "@/components/medical/quote-inbox";
 import { QuoteDrawer } from "@/components/medical/quote-drawer";
 import { QuoteStats } from "@/components/medical/quote-stats";
+import { NewQuoteDialog } from "@/components/medical/new-quote-dialog";
+import { Button } from "@/components/ui/button";
 import { useQuotes } from "@/hooks/use-quotes";
 import { Toaster } from "@/components/ui/sonner";
 
+type IndexSearch = { open?: string };
+
 export const Route = createFileRoute("/")({
+  validateSearch: (raw: Record<string, unknown>): IndexSearch => ({
+    open: typeof raw.open === "string" ? raw.open : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "USE Medical — Inbox de Cotações" },
-      { name: "description", content: "Sistema operacional comercial para distribuidores hospitalares. Inbox universal de cotações, precificação com IA e integração TOTVS Protheus." },
+      { name: "description", content: "Inbox universal de cotações do distribuidor hospitalar: prioridade automática, precificação com IA e integração TOTVS Protheus." },
     ],
   }),
   component: InboxPage,
 });
 
 function InboxPage() {
-  const { quotes, updateQuote, updateItem, removeItem, resetDemo } = useQuotes();
+  const { open } = Route.useSearch();
+  const { quotes, addQuote, updateQuote, updateItem, removeItem, resetDemo } = useQuotes();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [newOpen, setNewOpen] = useState(false);
+
+  useEffect(() => {
+    if (open) setSelectedId(open);
+  }, [open]);
+
   const selected = quotes.find((q) => q.id === selectedId) ?? null;
 
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader onReset={() => { setSelectedId(null); resetDemo(); }} />
+      <AppHeader onReset={() => { setSelectedId(null); resetDemo(); }}>
+        <Button
+          size="sm"
+          onClick={() => setNewOpen(true)}
+          className="h-8 gap-1.5 bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+        >
+          <Plus className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Nova cotação</span>
+        </Button>
+      </AppHeader>
 
       <main className="mx-auto max-w-[1600px] px-3 py-4 sm:px-4">
         <div className="mb-4 space-y-2">
@@ -49,6 +72,7 @@ function InboxPage() {
         onRemoveItem={removeItem}
         onUpdateQuote={updateQuote}
       />
+      <NewQuoteDialog open={newOpen} onOpenChange={setNewOpen} onCreate={addQuote} />
       <Toaster position="top-right" richColors />
     </div>
   );

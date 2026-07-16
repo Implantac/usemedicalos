@@ -1,4 +1,6 @@
 // Data model mirrors the intended Supabase schema so migration is trivial.
+// TODO(cloud): quando Lovable Cloud for ativado, migrar para tabelas com
+// organization_id + RLS via is_org_member.
 
 export type SourceType = "email" | "whatsapp" | "portal" | "telefone" | "edi";
 export type QuoteStatus =
@@ -13,6 +15,13 @@ export interface Tenant {
   id: string;
   name: string;
   cnpj: string;
+}
+
+export interface Owner {
+  id: string;
+  name: string;
+  initials: string;
+  territory: string;
 }
 
 export interface Product {
@@ -36,6 +45,7 @@ export interface QuoteItem {
 export interface Quote {
   id: string;
   tenant_id: string;
+  owner_id: string;
   source_type: SourceType;
   status: QuoteStatus;
   priority: Priority;
