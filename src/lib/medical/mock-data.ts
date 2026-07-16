@@ -1,4 +1,4 @@
-import type { Product, Quote, Tenant } from "./types";
+import type { Owner, Product, Quote, Tenant } from "./types";
 import { classify, slaHoursFor } from "./classifier";
 
 export const TENANT: Tenant = {
@@ -6,6 +6,18 @@ export const TENANT: Tenant = {
   name: "USE Medical Distribuidora",
   cnpj: "12.345.678/0001-90",
 };
+
+export const OWNERS: Owner[] = [
+  { id: "u_ana", name: "Ana Ribeiro", initials: "AR", territory: "SP Capital" },
+  { id: "u_bruno", name: "Bruno Salles", initials: "BS", territory: "SP Interior" },
+  { id: "u_carla", name: "Carla Menezes", initials: "CM", territory: "RJ/ES" },
+  { id: "u_diego", name: "Diego Farias", initials: "DF", territory: "Sul" },
+  { id: "u_eva", name: "Eva Tanaka", initials: "ET", territory: "Nordeste" },
+];
+
+export function ownerById(id: string): Owner {
+  return OWNERS.find((o) => o.id === id) ?? OWNERS[0];
+}
 
 export const PRODUCTS: Product[] = [
   { id: "p1", sku: "SUT-3-0-CT", name: "Fio de Sutura 3-0 c/ Agulha", cost_price: 18.5, last_suggested_price: 27.9, unit: "un" },
@@ -27,7 +39,8 @@ function hoursFromNow(h: number) {
 
 function build(
   id: string,
-  overrides: Partial<Quote> & Pick<Quote, "customer_name" | "customer_segment" | "source_type" | "original_payload" | "items">,
+  overrides: Partial<Quote> &
+    Pick<Quote, "customer_name" | "customer_segment" | "source_type" | "original_payload" | "items" | "owner_id">,
   receivedHoursAgo: number,
 ): Quote {
   const cls = classify(overrides.original_payload);
@@ -48,6 +61,7 @@ function build(
 
 export const INITIAL_QUOTES: Quote[] = [
   build("q1", {
+    owner_id: "u_ana",
     customer_name: "Hospital Santa Clara",
     customer_segment: "Hospital privado",
     source_type: "email",
@@ -59,6 +73,7 @@ export const INITIAL_QUOTES: Quote[] = [
     ],
   }, 1),
   build("q2", {
+    owner_id: "u_bruno",
     customer_name: "Clínica Vida Plena",
     customer_segment: "Clínica",
     source_type: "whatsapp",
@@ -70,6 +85,7 @@ export const INITIAL_QUOTES: Quote[] = [
     ],
   }, 6),
   build("q3", {
+    owner_id: "u_carla",
     customer_name: "Prefeitura de Aracruz",
     customer_segment: "Órgão público",
     source_type: "portal",
@@ -81,6 +97,7 @@ export const INITIAL_QUOTES: Quote[] = [
     ],
   }, 20),
   build("q4", {
+    owner_id: "u_diego",
     customer_name: "Hospital Regional Norte",
     customer_segment: "Hospital público",
     source_type: "email",
@@ -91,6 +108,7 @@ export const INITIAL_QUOTES: Quote[] = [
     ],
   }, 10),
   build("q5", {
+    owner_id: "u_ana",
     customer_name: "Instituto Ortopédico Alpha",
     customer_segment: "Hospital especializado",
     source_type: "email",
@@ -103,6 +121,7 @@ export const INITIAL_QUOTES: Quote[] = [
   }, 3),
   {
     ...build("q6", {
+      owner_id: "u_eva",
       customer_name: "Farmácia Hospitalar Sul",
       customer_segment: "Distribuidor",
       source_type: "edi",
@@ -116,6 +135,7 @@ export const INITIAL_QUOTES: Quote[] = [
   },
   {
     ...build("q7", {
+      owner_id: "u_bruno",
       customer_name: "Hospital São Lucas",
       customer_segment: "Hospital privado",
       source_type: "whatsapp",
@@ -125,5 +145,32 @@ export const INITIAL_QUOTES: Quote[] = [
       ],
     }, 48),
     status: "enviado",
+  },
+  {
+    ...build("q8", {
+      owner_id: "u_carla",
+      customer_name: "Hospital Metropolitano",
+      customer_segment: "Hospital privado",
+      source_type: "email",
+      original_payload: "Fechamos com concorrente por questão de prazo.",
+      items: [
+        { product_id: "p4", sku: "CAT-VEN-20G", name: "Cateter Venoso 20G", quantity: 300, unit_price: 6.5, cost_price: 4.2 },
+      ],
+    }, 96),
+    status: "perdido",
+  },
+  {
+    ...build("q9", {
+      owner_id: "u_ana",
+      customer_name: "Clínica Renascer",
+      customer_segment: "Clínica",
+      source_type: "portal",
+      original_payload: "Pedido aprovado, aguardando NF.",
+      items: [
+        { product_id: "p7", sku: "SOR-FIS-500", name: "Soro Fisiológico 500ml", quantity: 200, unit_price: 7.4, cost_price: 4.8 },
+        { product_id: "p6", sku: "GZE-EST-10", name: "Gaze Estéril 10x10cm", quantity: 400, unit_price: 1.95, cost_price: 1.1 },
+      ],
+    }, 120),
+    status: "ganho",
   },
 ];

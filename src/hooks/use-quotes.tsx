@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Quote, QuoteItem, QuoteStatus } from "@/lib/medical/types";
-import { INITIAL_QUOTES } from "@/lib/medical/mock-data";
+import type { Priority, Quote, QuoteItem, QuoteStatus, SourceType } from "@/lib/medical/types";
+import { INITIAL_QUOTES, TENANT } from "@/lib/medical/mock-data";
+import { classify, slaHoursFor } from "@/lib/medical/classifier";
 
-const STORAGE_KEY = "use-medical:quotes:v1";
+const STORAGE_KEY = "use-medical:quotes:v2";
 
 function load(): Quote[] {
   if (typeof window === "undefined") return INITIAL_QUOTES;
@@ -14,6 +15,16 @@ function load(): Quote[] {
   } catch {
     return INITIAL_QUOTES;
   }
+}
+
+export interface NewQuoteInput {
+  owner_id: string;
+  customer_name: string;
+  customer_segment: string;
+  source_type: SourceType;
+  original_payload: string;
+  items: QuoteItem[];
+  priority_override?: Priority;
 }
 
 export function useQuotes() {
@@ -55,9 +66,35 @@ export function useQuotes() {
     [updateQuote],
   );
 
+  const addQuote = useCallback((input: NewQuoteInput): Quote => {
+    const cls = classify(input.original_payload);
+    const priority = input.priority_override ?? cls.priority;
+    const sla = slaHoursFor(priority);
+    const now = new Date();
+    const q: Quote = {
+      id: `q${Date.now().toString().slice(-6)}`,
+      tenant_id: TENANT.id,
+      owner_id: input.owner_id,
+      source_type: input.source_type,
+      status: "aguardando_precificacao",
+      priority,
+      customer_name: input.customer_name,
+      customer_segment: input.customer_segment,
+      received_at: now.toISOString(),
+      sla_deadline: new Date(now.getTime() + sla * 3_600_000).toISOString(),
+      original_payload: input.original_payload,
+      keywords: cls.keywords,
+      items: input.items,
+      notes: "",
+      totvs_synced: false,
+    };
+    setQuotes((qs) => [q, ...qs]);
+    return q;
+  }, []);
+
   const resetDemo = useCallback(() => {
     setQuotes(INITIAL_QUOTES);
   }, []);
 
-  return { quotes, hydrated, updateQuote, updateItem, removeItem, setStatus, resetDemo };
+  return { quotes, hydrated, addQuote, updateQuote, updateItem, removeItem, setStatus, resetDemo };
 }
