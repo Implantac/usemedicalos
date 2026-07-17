@@ -445,8 +445,19 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
 
       <ul className="flex-1 divide-y overflow-y-auto">
         {filtered.length === 0 && (
-          <li className="p-8 text-center text-sm text-muted-foreground">
-            Nenhuma cotação encontrada com esses filtros.
+          <li className="flex flex-col items-center gap-2 p-10 text-center">
+            <div className="grid h-10 w-10 place-items-center rounded-full bg-muted text-muted-foreground">
+              <Search className="h-4 w-4" />
+            </div>
+            <p className="text-sm font-medium text-foreground">Nenhuma cotação encontrada</p>
+            <p className="max-w-xs text-xs text-muted-foreground">
+              Ajuste os filtros ou limpe a busca para ver todas as cotações do pipeline.
+            </p>
+            {activeCount > 0 && (
+              <Button size="sm" variant="outline" className="mt-1 h-7 gap-1 text-xs" onClick={clearFilters}>
+                <X className="h-3 w-3" /> Limpar filtros
+              </Button>
+            )}
           </li>
         )}
         {filtered.map((qt) => {
@@ -464,8 +475,9 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
                 onClick={() => onSelect(qt.id)}
                 onKeyDown={(e) => (e.key === "Enter" ? onSelect(qt.id) : null)}
                 className={cn(
-                  "w-full cursor-pointer px-3 py-1.5 text-left transition-colors hover:bg-accent/40",
-                  active && "bg-accent/60",
+                  "relative w-full cursor-pointer px-3 py-1.5 pl-3.5 text-left transition-colors hover:bg-accent/40",
+                  "before:pointer-events-none before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r-full before:bg-transparent before:transition-colors",
+                  active && "bg-accent/60 before:bg-brand",
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
