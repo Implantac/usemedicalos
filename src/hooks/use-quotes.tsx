@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Priority, Quote, QuoteItem, QuoteStatus, SourceType } from "@/lib/medical/types";
 import { INITIAL_QUOTES, TENANT } from "@/lib/medical/mock-data";
 import { classify, slaHoursFor } from "@/lib/medical/classifier";
+import { appendActivity } from "@/lib/medical/activity";
 
 const STORAGE_KEY = "use-medical:quotes:v2";
 
