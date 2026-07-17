@@ -431,8 +431,10 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
               size="sm"
               className="ml-auto h-6 gap-1 px-2 text-[11px]"
               onClick={clearFilters}
+              aria-label={`Limpar ${activeCount} filtro(s) ativos`}
+              title="Limpar filtros"
             >
-              <X className="h-3 w-3" /> Limpar ({activeCount})
+              <X className="h-3 w-3" aria-hidden="true" /> Limpar filtros ({activeCount})
             </Button>
           )}
           <Badge variant="outline" className="ml-auto text-[11px] font-medium">
