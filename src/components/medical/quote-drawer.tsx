@@ -516,3 +516,25 @@ function BenchmarkMini({
   );
 }
 
+const ENGINE_CHIP_TONE: Record<PricingStatus, string> = {
+  OPTIMAL: "bg-success/15 text-success border-success/30",
+  MARKET_MISSING: "bg-muted text-muted-foreground border-muted-foreground/20",
+  WARNING: "bg-warning/15 text-warning border-warning/30",
+  COMPLIANCE_LIMIT: "bg-warning/15 text-warning border-warning/30",
+  BLOCKED: "bg-danger/15 text-danger border-danger/30",
+};
+
+function EngineStatusChip({ status }: { status: PricingStatus }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider",
+        ENGINE_CHIP_TONE[status],
+      )}
+    >
+      {PRICING_STATUS_LABEL[status]}
+    </span>
+  );
+}
+
+
