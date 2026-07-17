@@ -43,16 +43,11 @@ export function ProductHistoryDrawer({
     <Sheet open onOpenChange={(o) => !o && onClose()}>
       <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
         <SheetHeader className="space-y-1 border-b bg-card p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <SheetTitle className="truncate text-base font-bold">{product.name}</SheetTitle>
-              <SheetDescription className="text-xs">
-                SKU {product.sku} · unidade {product.unit}
-              </SheetDescription>
-            </div>
-            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
-              <X className="h-4 w-4" />
-            </Button>
+          <div className="min-w-0 pr-8">
+            <SheetTitle className="truncate text-base font-bold">{product.name}</SheetTitle>
+            <SheetDescription className="text-xs">
+              SKU {product.sku} · unidade {product.unit}
+            </SheetDescription>
           </div>
         </SheetHeader>
 
