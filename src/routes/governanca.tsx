@@ -53,6 +53,7 @@ export const Route = createFileRoute("/governanca")({
 const ROLES: GovRole[] = ["viewer", "vendedor", "gestor", "admin"];
 
 function GovernancePage() {
+  const { resetDemo } = useQuotes();
   const { tenant, scope, setActiveTenant, tenants } = useActiveTenant();
   const activeTenantId = tenant?.id ?? TENANTS[0].id;
   const { memberships, setRole, toggleOverride, reset } = useGovernance(activeTenantId);
