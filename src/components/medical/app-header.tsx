@@ -56,11 +56,9 @@ export function AppHeader({ onReset, children }: { onReset: () => void; children
           })}
         </nav>
 
-        <div className="ml-4 hidden min-w-0 items-center gap-1.5 text-xs opacity-80 lg:flex">
-          <Building2 className="h-3.5 w-3.5 shrink-0" />
-          <span className="truncate font-medium">{TENANT.name}</span>
-          <span className="hidden truncate opacity-60 xl:inline">· CNPJ {TENANT.cnpj}</span>
-        </div>
+        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+          <TenantSwitcher />
+
 
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           {children}
