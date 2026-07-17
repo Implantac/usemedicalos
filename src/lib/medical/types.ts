@@ -4,12 +4,24 @@
 
 export type SourceType = "email" | "whatsapp" | "portal" | "telefone" | "edi";
 export type QuoteStatus =
+  | "pending_review"
   | "aguardando_precificacao"
   | "em_negociacao"
   | "enviado"
   | "ganho"
   | "perdido";
 export type Priority = "baixa" | "normal" | "alta" | "urgente";
+
+export type SourcePlatform = "bionexo" | "apoio" | "clickmed" | "portal_gov" | "outro";
+
+export interface PortalMeta {
+  source_platform: SourcePlatform;
+  portal_reference: string;
+  portal_opened_at: string; // quando a RFQ apareceu no portal
+  ingested_at: string;      // quando nosso engine capturou
+  response_at?: string;     // primeira resposta do vendedor
+}
+
 
 export type ErpType = "use_sistemas" | "totvs_protheus" | "sankhya" | "senior" | "none";
 
