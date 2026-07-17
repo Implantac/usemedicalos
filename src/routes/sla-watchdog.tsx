@@ -121,8 +121,7 @@ function SlaWatchdogPage() {
 
         {tenantHydrated && rows.length === 0 && (
           <EmptyState
-            title="Nenhuma RFQ de portal capturada"
-            description={
+            message={
               tenant
                 ? `Nenhuma cotação de portal no escopo de ${tenant.name}. Use o simulador em Integrações para gerar eventos.`
                 : "Ative um conector de portal em Integrações e envie um payload de teste."
