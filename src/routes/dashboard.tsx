@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Activity, DollarSign, Percent, ShieldCheck, Ticket, TrendingUp } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
+import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { KpiCard } from "@/components/medical/kpi-card";
 import { SlaTimeline } from "@/components/medical/sla-timeline";
 import { StatusDonut } from "@/components/medical/status-donut";
@@ -59,6 +60,7 @@ function DashboardPage() {
       <AppHeader onReset={resetDemo} />
 
       <main className="mx-auto max-w-[1600px] space-y-4 px-3 py-4 sm:px-4">
+        <TenantScopeBanner hint={`Últimos ${safePeriod} dias`} />
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-lg font-bold tracking-tight text-foreground">Dashboard comercial</h1>

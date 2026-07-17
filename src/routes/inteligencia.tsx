@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { AppHeader } from "@/components/medical/app-header";
+import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { BenchmarkPanel } from "@/components/medical/benchmark-panel";
 import { useQuotes } from "@/hooks/use-quotes";
 import { compareByRegion, consolidatedBenchmark } from "@/lib/medical/benchmarks";
@@ -29,6 +30,7 @@ function BiPage() {
     <div className="min-h-screen bg-background">
       <AppHeader onReset={resetDemo} />
       <main className="mx-auto max-w-[1600px] space-y-4 px-3 py-4 sm:px-4">
+        <TenantScopeBanner hint="Benchmarks anonimizados" />
         <div>
           <h1 className="text-lg font-bold tracking-tight text-foreground">
             Inteligência de mercado
