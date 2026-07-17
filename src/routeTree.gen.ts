@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ProdutosRouteImport } from './routes/produtos'
+import { Route as InteligenciaRouteImport } from './routes/inteligencia'
+import { Route as IntegracoesRouteImport } from './routes/integracoes'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VendedorOwnerIdRouteImport } from './routes/vendedor.$ownerId'
@@ -24,6 +26,16 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ProdutosRoute = ProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InteligenciaRoute = InteligenciaRouteImport.update({
+  id: '/inteligencia',
+  path: '/inteligencia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntegracoesRoute = IntegracoesRouteImport.update({
+  id: '/integracoes',
+  path: '/integracoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -50,6 +62,8 @@ const ApiPublicUseSistemasRoute = ApiPublicUseSistemasRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/integracoes': typeof IntegracoesRoute
+  '/inteligencia': typeof InteligenciaRoute
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
@@ -58,6 +72,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/integracoes': typeof IntegracoesRoute
+  '/inteligencia': typeof InteligenciaRoute
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
@@ -67,6 +83,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/integracoes': typeof IntegracoesRoute
+  '/inteligencia': typeof InteligenciaRoute
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
@@ -77,6 +95,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/integracoes'
+    | '/inteligencia'
     | '/produtos'
     | '/sitemap.xml'
     | '/vendedor/$ownerId'
@@ -85,6 +105,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard'
+    | '/integracoes'
+    | '/inteligencia'
     | '/produtos'
     | '/sitemap.xml'
     | '/vendedor/$ownerId'
@@ -93,6 +115,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/integracoes'
+    | '/inteligencia'
     | '/produtos'
     | '/sitemap.xml'
     | '/vendedor/$ownerId'
@@ -102,6 +126,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
+  IntegracoesRoute: typeof IntegracoesRoute
+  InteligenciaRoute: typeof InteligenciaRoute
   ProdutosRoute: typeof ProdutosRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VendedorOwnerIdRoute: typeof VendedorOwnerIdRoute
@@ -122,6 +148,20 @@ declare module '@tanstack/react-router' {
       path: '/produtos'
       fullPath: '/produtos'
       preLoaderRoute: typeof ProdutosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inteligencia': {
+      id: '/inteligencia'
+      path: '/inteligencia'
+      fullPath: '/inteligencia'
+      preLoaderRoute: typeof InteligenciaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/integracoes': {
+      id: '/integracoes'
+      path: '/integracoes'
+      fullPath: '/integracoes'
+      preLoaderRoute: typeof IntegracoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -158,6 +198,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
+  IntegracoesRoute: IntegracoesRoute,
+  InteligenciaRoute: InteligenciaRoute,
   ProdutosRoute: ProdutosRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VendedorOwnerIdRoute: VendedorOwnerIdRoute,
