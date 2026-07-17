@@ -9,8 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import type { Quote, QuoteStatus } from "@/lib/medical/types";
-import { STATUS_LABEL } from "@/lib/medical/types";
+import type { ClientTier, Quote, QuoteStatus } from "@/lib/medical/types";
+import { CLIENT_TIER_DISCOUNT, STATUS_LABEL } from "@/lib/medical/types";
 import { basePrice, formatBRL, formatPct, itemMargin, itemTotal, pricingSignal, quoteTotals, suggestPrice } from "@/lib/medical/pricing";
 import { useTenantConfig } from "@/hooks/use-tenant-config";
 import { useProductOverrides } from "@/hooks/use-product-overrides";
@@ -165,6 +165,19 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
         <div className="flex-1 overflow-y-auto">
           <section className="space-y-3 border-b p-4">
             <CommissionBadge quote={quote} />
+            <ClientTierSelector
+              value={quote.client_tier ?? "B"}
+              onChange={(tier) => {
+                onUpdateQuote(quote.id, { client_tier: tier });
+                appendActivity({
+                  quote_id: quote.id,
+                  type: "client_tier_changed",
+                  message: `Tier do cliente ajustado para ${tier}`,
+                  meta: { tier },
+                });
+                bumpActivity();
+              }}
+            />
             <ComplianceAlert
               report={compliance}
               confirmed={complianceConfirmed}
@@ -218,7 +231,7 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
                 const m = itemMargin(it);
                 const catalogProduct = productBySku.get(it.sku);
                 const engine = catalogProduct
-                  ? calculateSuggestedPrice(catalogProduct, { tier: "B" })
+                  ? calculateSuggestedPrice(catalogProduct, { tier: quote.client_tier ?? "B", quantity: it.quantity })
                   : null;
                 const suggested = engine ? engine.suggested_price : suggestPrice(it, tenantConfig.target_margin);
                 const base = basePrice(it.cost_price);
@@ -536,5 +549,48 @@ function EngineStatusChip({ status }: { status: PricingStatus }) {
     </span>
   );
 }
+
+const TIER_TONE: Record<ClientTier, string> = {
+  A: "bg-primary/15 text-primary border-primary/30",
+  B: "bg-muted text-foreground border-border",
+  C: "bg-warning/15 text-warning-foreground border-warning/30",
+};
+
+function ClientTierSelector({ value, onChange }: { value: ClientTier; onChange: (t: ClientTier) => void }) {
+  const tiers: ClientTier[] = ["A", "B", "C"];
+  return (
+    <div className="flex items-center justify-between rounded-lg border bg-card px-2.5 py-2">
+      <div className="min-w-0">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          Tier do cliente
+        </div>
+        <div className="text-[11px] text-muted-foreground">
+          Aplica desconto estratégico do motor de precificação.
+        </div>
+      </div>
+      <div className="flex items-center gap-1">
+        {tiers.map((t) => {
+          const active = value === t;
+          const discount = CLIENT_TIER_DISCOUNT[t];
+          return (
+            <button
+              key={t}
+              type="button"
+              onClick={() => onChange(t)}
+              className={cn(
+                "inline-flex flex-col items-center rounded border px-2 py-1 text-[10px] font-bold uppercase transition",
+                active ? TIER_TONE[t] : "border-border/60 text-muted-foreground hover:bg-muted",
+              )}
+            >
+              <span className="text-xs leading-none">{t}</span>
+              <span className="mt-0.5 num text-[9px] leading-none">-{(discount * 100).toFixed(0)}%</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 
 
