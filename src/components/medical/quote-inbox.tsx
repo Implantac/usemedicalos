@@ -125,6 +125,55 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
     if (v) toast(`Visualização "${v.name}" removida`);
   };
 
+  const handleShare = async () => {
+    const encoded = encodeViewState(currentState());
+    const url = new URL(window.location.href);
+    url.searchParams.set("view", encoded);
+    const link = url.toString();
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success("Link copiado — abra em outro dispositivo para carregar os filtros");
+    } catch {
+      toast(link);
+    }
+  };
+
+  const handleExport = () => {
+    const blob = new Blob([JSON.stringify(views, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `inbox-views-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast.success(`${views.length} visualização(ões) exportada(s)`);
+  };
+
+  const handleImport = async (file: File) => {
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const list = Array.isArray(parsed) ? parsed : [];
+      let n = 0;
+      for (const v of list) {
+        if (v && typeof v.name === "string" && v.state) {
+          saveView(v.name, v.state as InboxViewState);
+          n++;
+        }
+      }
+      if (n === 0) toast.error("Nenhuma visualização válida no arquivo");
+      else toast.success(`${n} visualização(ões) importada(s)`);
+    } catch {
+      toast.error("Arquivo JSON inválido");
+    } finally {
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+
+
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     const list = quotes
