@@ -39,6 +39,18 @@ export const ERP_CONNECTORS: ErpConnector[] = [
       { key: "hmac_secret", label: "Secret HMAC", placeholder: "chave compartilhada", secret: true },
     ],
     defaultEndpoint: "/api/public/use-sistemas",
+    mappingTemplate: {
+      quote: {
+        customer_name: "cliente.razao_social",
+        customer_segment: "cliente.segmento",
+        source_type: "'use-sistemas'",
+        original_payload: "id_pedido",
+      },
+      items: {
+        path: "itens",
+        fields: { sku: "codigo", name: "descricao", quantity: "qtd", unit_price: "preco", cost_price: "custo" },
+      },
+    },
   },
   {
     id: "totvs-protheus",
