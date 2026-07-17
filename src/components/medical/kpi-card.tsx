@@ -22,15 +22,15 @@ export function KpiCard({
     primary: "text-primary",
   }[tone];
   return (
-    <div className="rounded-lg border bg-card p-3 card-shadow">
+    <div className="group relative overflow-hidden rounded-lg border bg-card p-3 card-shadow hover-lift">
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
           {label}
         </span>
-        <Icon className={cn("h-4 w-4", toneCls)} />
+        <Icon className={cn("h-4 w-4 transition-smooth group-hover:scale-110", toneCls)} />
       </div>
-      <div className={cn("mt-1 num text-xl font-bold", toneCls)}>{value}</div>
-      {hint && <div className="mt-0.5 text-[11px] text-muted-foreground">{hint}</div>}
+      <div className={cn("mt-1.5 num text-2xl font-bold leading-none tracking-tight", toneCls)}>{value}</div>
+      {hint && <div className="mt-1.5 text-[11px] text-muted-foreground">{hint}</div>}
     </div>
   );
 }
