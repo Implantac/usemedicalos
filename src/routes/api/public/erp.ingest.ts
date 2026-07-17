@@ -19,6 +19,14 @@ export const Route = createFileRoute("/api/public/erp/ingest")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const rl = rateLimit(clientKey(request, "erp"), { max: 30, windowMs: 60_000 });
+        const rlHeaders = rateLimitHeaders(rl);
+        if (!rl.ok) {
+          return new Response("Rate limit exceeded", {
+            status: 429,
+            headers: { ...rlHeaders, "Retry-After": "60" },
+          });
+        }
         const secret = process.env.ERP_INGEST_SECRET;
         const rawBody = await request.text();
 
