@@ -1,6 +1,24 @@
 import type { QuoteItem } from "./types";
 import { MIN_MARGIN } from "./types";
 
+// Piso comercial simples: custo * 1.25 (margem bruta ~20%).
+// Serve como guarda-corpo visual antes da sugestão da IA.
+export const BASE_MARKUP = 1.25;
+export function basePrice(cost: number): number {
+  return Math.round(cost * BASE_MARKUP * 100) / 100;
+}
+
+export type PricingSignal = "negative" | "below_base" | "below_min" | "ok";
+
+export function pricingSignal(item: QuoteItem): PricingSignal {
+  if (item.unit_price <= 0) return "negative";
+  if (item.unit_price < item.cost_price) return "negative";
+  if (item.unit_price < basePrice(item.cost_price)) return "below_base";
+  if (itemMargin(item) < MIN_MARGIN) return "below_min";
+  return "ok";
+}
+
+
 export function itemMargin(item: QuoteItem): number {
   if (!item.unit_price) return 0;
   return (item.unit_price - item.cost_price) / item.unit_price;
