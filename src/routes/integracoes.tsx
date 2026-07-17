@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Copy, KeyRound, Plug, PlayCircle, Save, ShieldAlert, Sliders, Trash2, Send } from "lucide-react";
+import { AlertCircle, Bell, CheckCircle2, Copy, Gauge, KeyRound, Plug, PlayCircle, Power, Save, ShieldAlert, Sliders, Trash2, Send, Zap } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,15 @@ import { quarantine } from "@/lib/medical/quarantine";
 import { useActiveTenant } from "@/hooks/use-active-tenant";
 import { useTenantConfig } from "@/hooks/use-tenant-config";
 import { DEFAULT_TENANT_CONFIG } from "@/lib/medical/tenant-config";
+import { useOutboundWebhooks } from "@/hooks/use-outbound-webhooks";
+import {
+  addSubscription,
+  removeSubscription,
+  toggleSubscription,
+  type OutboundChannel,
+} from "@/lib/medical/outbound-webhooks";
+import { getCachedSuggestion, getPriceCacheStats, resetPriceCache } from "@/lib/medical/price-cache";
+import { INITIAL_QUOTES } from "@/lib/medical/mock-data";
 import { cn } from "@/lib/utils";
 
 
@@ -225,6 +234,10 @@ function IntegrationsPage() {
 
         <TenantConfigCard tenantId={tenant?.id ?? null} tenantName={tenant?.name ?? null} />
 
+        <div className="grid gap-3 lg:grid-cols-2">
+          <OutboundWebhooksCard />
+          <PriceCacheCard />
+        </div>
 
         <SignatureHelper payload={payload} mapping={mapping} disabled={!!payloadErr || !!mappingErr} />
 
@@ -519,3 +532,174 @@ function ConnectorsGrid({ onApplyPreset }: { onApplyPreset: (c: ErpConnector) =>
   );
 }
 
+
+function OutboundWebhooksCard() {
+  const { subs, logs, test } = useOutboundWebhooks();
+  const [channel, setChannel] = useState<OutboundChannel>("slack");
+  const [url, setUrl] = useState("");
+  const [label, setLabel] = useState("");
+
+  function add() {
+    if (!url.trim() || !/^https?:\/\//.test(url)) return toast.error("Informe uma URL http(s) válida.");
+    if (!label.trim()) return toast.error("Dê um rótulo (ex.: #vendas-critico).");
+    addSubscription({ channel, url, label });
+    setUrl(""); setLabel("");
+    toast.success("Webhook cadastrado. Disparos automáticos a cada 30s.");
+  }
+
+  async function runTest() {
+    const n = await test();
+    if (n === 0) toast.info("Sem inscrições ativas ou sem cotações para disparar.");
+    else toast.success(`${n} push disparado(s).`);
+  }
+
+  return (
+    <div className="rounded-lg border bg-card p-3 card-shadow">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-sm font-semibold">
+          <Bell className="h-4 w-4 text-brand" /> SLA push externo
+        </div>
+        <Button size="sm" variant="outline" className="h-7 gap-1.5" onClick={runTest}>
+          <Zap className="h-3.5 w-3.5" /> Testar disparo
+        </Button>
+      </div>
+      <p className="mb-3 text-[11px] leading-snug text-muted-foreground">
+        Envia mensagem para Slack/Teams/WhatsApp quando uma cotação Tier A ficar atrasada.
+        Dedupe por cotação; polling a cada 30s enquanto a aba estiver aberta.
+      </p>
+
+      <div className="grid gap-2 sm:grid-cols-[100px_1fr_1fr_auto]">
+        <select
+          value={channel}
+          onChange={(e) => setChannel(e.target.value as OutboundChannel)}
+          className="h-8 rounded border bg-background px-2 text-xs"
+        >
+          <option value="slack">Slack</option>
+          <option value="teams">Teams</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="webhook">Webhook</option>
+        </select>
+        <Input placeholder="URL do webhook" value={url} onChange={(e) => setUrl(e.target.value)} className="h-8 text-xs" />
+        <Input placeholder="Rótulo (ex: #vendas-critico)" value={label} onChange={(e) => setLabel(e.target.value)} className="h-8 text-xs" />
+        <Button size="sm" onClick={add} className="gap-1.5"><Save className="h-3.5 w-3.5" /> Adicionar</Button>
+      </div>
+
+      {subs.length > 0 && (
+        <ul className="mt-3 space-y-1">
+          {subs.map((s) => (
+            <li key={s.id} className="flex items-center justify-between gap-2 rounded border bg-background px-2 py-1 text-xs">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold uppercase">{s.channel}</span>
+                  <span className="truncate font-medium text-foreground">{s.label}</span>
+                </div>
+                <div className="truncate text-[10px] text-muted-foreground">{s.url}</div>
+              </div>
+              <button
+                onClick={() => toggleSubscription(s.id, !s.enabled)}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold",
+                  s.enabled ? "bg-success/15 text-success" : "bg-muted text-muted-foreground",
+                )}
+                aria-label={s.enabled ? "Desativar" : "Ativar"}
+              >
+                <Power className="h-3 w-3" /> {s.enabled ? "ON" : "OFF"}
+              </button>
+              <button onClick={() => removeSubscription(s.id)} className="text-muted-foreground hover:text-destructive" aria-label="Remover">
+                <Trash2 className="h-3 w-3" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {logs.length > 0 && (
+        <div className="mt-3">
+          <div className="mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Últimos disparos</div>
+          <ul className="max-h-32 space-y-0.5 overflow-auto text-[10px] text-muted-foreground">
+            {logs.slice(0, 6).map((l) => (
+              <li key={l.id} className="flex items-center gap-2">
+                <span className={cn("h-1.5 w-1.5 rounded-full", l.status === "success" ? "bg-success" : "bg-destructive")} />
+                <span className="tabular-nums">{new Date(l.at).toLocaleTimeString("pt-BR")}</span>
+                <span className="truncate">quote {l.quote_id} · {l.info}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PriceCacheCard() {
+  const [stats, setStats] = useState(() => getPriceCacheStats());
+  const [busy, setBusy] = useState(false);
+
+  function refresh() { setStats(getPriceCacheStats()); }
+
+  async function warm() {
+    setBusy(true);
+    try {
+      // Roda 2x: 1º passa popula, 2º demonstra hits.
+      for (let pass = 0; pass < 2; pass++) {
+        for (const q of INITIAL_QUOTES) {
+          for (const it of q.items) {
+            await getCachedSuggestion(q.tenant_id, it, 0.28);
+          }
+        }
+      }
+      refresh();
+      toast.success("Cache aquecido. Veja a taxa de acerto.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const hitPct = (stats.hitRate * 100).toFixed(1);
+  return (
+    <div className="rounded-lg border bg-card p-3 card-shadow">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-sm font-semibold">
+          <Gauge className="h-4 w-4 text-brand" /> Cache de precificação
+        </div>
+        <div className="flex gap-1">
+          <Button size="sm" variant="outline" className="h-7 gap-1.5" onClick={warm} disabled={busy}>
+            <Zap className="h-3.5 w-3.5" /> {busy ? "Aquecendo..." : "Aquecer"}
+          </Button>
+          <Button size="sm" variant="ghost" className="h-7 gap-1.5" onClick={() => { resetPriceCache(); refresh(); }}>
+            <Trash2 className="h-3.5 w-3.5" /> Limpar
+          </Button>
+        </div>
+      </div>
+      <p className="mb-3 text-[11px] leading-snug text-muted-foreground">
+        Proxy em memória para sugestões de preço. SLO: hits &lt; 5ms; misses simulam &lt;100ms para
+        aproximar o comportamento do Redis planejado.
+      </p>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <Stat label="Hit rate" value={`${hitPct}%`} tone={stats.hitRate >= 0.7 ? "success" : stats.hitRate >= 0.4 ? "brand" : "muted"} />
+        <Stat label="Hits" value={String(stats.hits)} />
+        <Stat label="Misses" value={String(stats.misses)} />
+        <Stat label="Miss médio" value={`${stats.avgMissMs.toFixed(0)}ms`} tone={stats.avgMissMs < 100 ? "success" : "destructive"} />
+      </div>
+      <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
+        <span>Entradas em cache: <strong className="text-foreground">{stats.size}</strong></span>
+        <span>Evicções: {stats.evictions}</span>
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value, tone = "muted" }: { label: string; value: string; tone?: "success" | "destructive" | "brand" | "muted" }) {
+  const styles: Record<string, string> = {
+    success: "text-success",
+    destructive: "text-destructive",
+    brand: "text-brand",
+    muted: "text-foreground",
+  };
+  return (
+    <div className="rounded border bg-background p-2">
+      <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className={cn("text-sm font-bold tabular-nums", styles[tone])}>{value}</div>
+    </div>
+  );
+}
