@@ -10,6 +10,8 @@ export interface ErpAuthField {
   secret?: boolean;
 }
 
+import type { ErpMappingConfig } from "./erp-mapping";
+
 export interface ErpConnector {
   id: string;
   name: string;
@@ -20,6 +22,8 @@ export interface ErpConnector {
   authFields: ErpAuthField[];
   docsUrl?: string;
   defaultEndpoint?: string;
+  /** Template de mapping pré-configurado para este ERP. */
+  mappingTemplate?: ErpMappingConfig;
 }
 
 export const ERP_CONNECTORS: ErpConnector[] = [
