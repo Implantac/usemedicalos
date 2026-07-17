@@ -182,7 +182,11 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
                           size="sm"
                           variant="outline"
                           className="h-6 px-2 text-[11px]"
-                          onClick={() => onUpdateItem(quote.id, idx, { unit_price: suggested })}
+                          onClick={() => {
+                            onUpdateItem(quote.id, idx, { unit_price: suggested });
+                            appendActivity({ quote_id: quote.id, type: "price_suggested", message: `Sugestão IA aplicada em ${it.sku}: ${formatBRL(suggested)}`, meta: { sku: it.sku } });
+                            bumpActivity();
+                          }}
                         >
                           Aplicar
                         </Button>
