@@ -13,6 +13,7 @@ const NAV = [
   { to: "/produtos", label: "Produtos", icon: Package },
   { to: "/inteligencia", label: "Inteligência", icon: LineChart },
   { to: "/integracoes", label: "Integrações", icon: Plug },
+  { to: "/excecoes", label: "Exceções", icon: ShieldCheck },
 ] as const;
 
 export function AppHeader({ onReset, children }: { onReset: () => void; children?: ReactNode }) {
