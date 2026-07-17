@@ -137,7 +137,7 @@ function OwnerPage() {
         </div>
 
         <div className="overflow-hidden rounded-lg border bg-card card-shadow">
-          <div className="border-b bg-muted/40 px-3 py-2">
+          <div className="border-b bg-muted/40 px-2 py-1">
             <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
               Cotações do vendedor ({sorted.length})
             </h3>
@@ -151,13 +151,13 @@ function OwnerPage() {
               <table className="w-full text-xs">
                 <thead className="border-b bg-muted/20 text-[10px] uppercase text-muted-foreground">
                   <tr>
-                    <th className="px-3 py-2 text-left font-semibold">Cliente</th>
-                    <th className="px-2 py-2 text-left font-semibold">Prioridade</th>
-                    <th className="px-2 py-2 text-left font-semibold">Status</th>
-                    <th className="px-2 py-2 text-right font-semibold">Itens</th>
-                    <th className="px-2 py-2 text-right font-semibold">Valor</th>
-                    <th className="px-2 py-2 text-right font-semibold">Margem</th>
-                    <th className="px-2 py-2 text-right font-semibold">SLA</th>
+                    <th className="px-2 py-1 text-left font-semibold">Cliente</th>
+                    <th className="px-2 py-1 text-left font-semibold">Prioridade</th>
+                    <th className="px-2 py-1 text-left font-semibold">Status</th>
+                    <th className="px-2 py-1 text-right font-semibold">Itens</th>
+                    <th className="px-2 py-1 text-right font-semibold">Valor</th>
+                    <th className="px-2 py-1 text-right font-semibold">Margem</th>
+                    <th className="px-2 py-1 text-right font-semibold">SLA</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -165,7 +165,7 @@ function OwnerPage() {
                     const t = quoteTotals(q.items);
                     return (
                       <tr key={q.id} className="hover:bg-accent/40">
-                        <td className="px-3 py-2">
+                        <td className="px-2 py-1">
                           <Link
                             to="/"
                             search={{ open: q.id }}
@@ -177,13 +177,13 @@ function OwnerPage() {
                             {q.customer_segment} · #{q.id.toUpperCase()}
                           </div>
                         </td>
-                        <td className="px-2 py-2"><PriorityBadge priority={q.priority} /></td>
-                        <td className="px-2 py-2"><StatusBadge status={q.status} /></td>
-                        <td className="px-2 py-2 text-right num">{q.items.length}</td>
-                        <td className="px-2 py-2 text-right num font-semibold">{formatBRL(t.revenue)}</td>
+                        <td className="px-2 py-1"><PriorityBadge priority={q.priority} /></td>
+                        <td className="px-2 py-1"><StatusBadge status={q.status} /></td>
+                        <td className="px-2 py-1 text-right num">{q.items.length}</td>
+                        <td className="px-2 py-1 text-right num font-semibold">{formatBRL(t.revenue)}</td>
                         <td
                           className={
-                            "px-2 py-2 text-right num font-semibold " +
+                            "px-2 py-1 text-right num font-semibold " +
                             (t.margin < 0.12 ? "text-danger" : "text-success")
                           }
                         >
