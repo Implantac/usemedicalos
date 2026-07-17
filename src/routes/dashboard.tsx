@@ -66,14 +66,18 @@ function DashboardPage() {
               Visão executiva de SLA, pipeline e performance nos últimos {safePeriod} dias.
             </p>
           </div>
-          <div className="inline-flex rounded-md border bg-card p-0.5">
+          <div className="inline-flex rounded-lg border bg-card p-0.5 card-shadow" role="tablist" aria-label="Período">
             {PERIODS.map((p) => (
               <button
                 key={p}
+                role="tab"
+                aria-selected={p === safePeriod}
                 onClick={() => navigate({ search: { period: p } })}
                 className={cn(
-                  "h-7 rounded px-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground",
-                  p === safePeriod && "bg-primary text-primary-foreground hover:text-primary-foreground",
+                  "h-7 rounded-md px-3 text-xs font-semibold transition-smooth press",
+                  p === safePeriod
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
                 )}
               >
                 {p}d
