@@ -260,6 +260,7 @@ export function EmptyState({
 }: BaseProps & { action?: ReactNode }) {
   const dict = useDict();
   const ref = useManagedFocus<HTMLDivElement>(autoFocus);
+  useFocusReturn(true);
   const label = message ?? dict.empty;
   return (
     <FadeIn>
