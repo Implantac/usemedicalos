@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, PlayCircle, Save, Trash2, Send } from "lucide-react";
+import { AlertCircle, CheckCircle2, Copy, KeyRound, PlayCircle, Save, Trash2, Send } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import { signPayload } from "@/lib/medical/webhook-signature";
 import {
   applyMapping,
   SAMPLE_ERP_PAYLOAD,
@@ -174,10 +175,13 @@ function IntegrationsPage() {
           </div>
         )}
 
+        <SignatureHelper payload={payload} mapping={mapping} disabled={!!payloadErr || !!mappingErr} />
+
         <div className="rounded-lg border bg-card p-3 text-xs text-muted-foreground card-shadow">
           <strong className="text-foreground">Endpoint público:</strong>{" "}
           <code>POST /api/public/erp/ingest</code> — body{" "}
-          <code>{`{ tenant_token, mapping, payload }`}</code>. Retorna draft validado.
+          <code>{`{ tenant_token, mapping, payload }`}</code>. Header{" "}
+          <code>x-use-signature: sha256=&lt;HMAC&gt;</code> (use o helper acima).
         </div>
       </main>
       <Toaster position="top-right" richColors />
@@ -208,6 +212,55 @@ function Editor({
         )}
       />
       {error && <p className="mt-1 text-[10px] text-destructive">{error}</p>}
+    </div>
+  );
+}
+
+function SignatureHelper({ payload, mapping, disabled }: { payload: string; mapping: string; disabled: boolean }) {
+  const [secret, setSecret] = useState("");
+  const [token, setToken] = useState("tenant-demo-token");
+  const [sig, setSig] = useState<string | null>(null);
+  const [body, setBody] = useState<string | null>(null);
+
+  async function generate() {
+    if (disabled) return toast.error("Corrija o JSON antes de gerar a assinatura.");
+    if (!secret.trim()) return toast.error("Informe o ERP_INGEST_SECRET.");
+    const b = JSON.stringify({
+      tenant_token: token,
+      mapping: JSON.parse(mapping),
+      payload: JSON.parse(payload),
+    });
+    const s = await signPayload(secret, b);
+    setBody(b);
+    setSig(s);
+    toast.success("Assinatura gerada.");
+  }
+
+  async function copyCurl() {
+    if (!sig || !body) return;
+    const cmd = `curl -X POST "$BASE_URL/api/public/erp/ingest" \\\n  -H "content-type: application/json" \\\n  -H "x-use-signature: ${sig}" \\\n  -d '${body.replace(/'/g, "'\\''")}'`;
+    await navigator.clipboard.writeText(cmd);
+    toast.success("cURL copiado.");
+  }
+
+  return (
+    <div className="rounded-lg border bg-card p-3 card-shadow">
+      <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+        <KeyRound className="h-4 w-4 text-brand" /> Gerador de assinatura HMAC
+      </div>
+      <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+        <Input placeholder="ERP_INGEST_SECRET" value={secret} onChange={(e) => setSecret(e.target.value)} className="h-8 text-xs" />
+        <Input placeholder="tenant_token" value={token} onChange={(e) => setToken(e.target.value)} className="h-8 text-xs" />
+        <Button size="sm" onClick={generate} className="gap-1.5"><KeyRound className="h-4 w-4" /> Gerar</Button>
+      </div>
+      {sig && (
+        <div className="mt-2 space-y-1">
+          <code className="block break-all rounded bg-background p-2 text-[11px]">{sig}</code>
+          <Button size="sm" variant="outline" onClick={copyCurl} className="gap-1.5">
+            <Copy className="h-3 w-3" /> Copiar cURL
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
