@@ -325,7 +325,7 @@ function SignatureHelper({ payload, mapping, disabled }: { payload: string; mapp
   );
 }
 
-function ConnectorsGrid() {
+function ConnectorsGrid({ onApplyPreset }: { onApplyPreset: (c: ErpConnector) => void }) {
   const [selected, setSelected] = useState<ErpConnector | null>(null);
   const statusStyle: Record<ErpConnector["status"], string> = {
     estavel: "bg-success/15 text-success",
