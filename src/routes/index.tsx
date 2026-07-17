@@ -61,7 +61,7 @@ function InboxPage() {
         </div>
 
         <div className="overflow-hidden rounded-lg border bg-card card-shadow">
-          <QuoteInbox quotes={quotes} selectedId={selectedId} onSelect={setSelectedId} />
+          <QuoteInbox quotes={quotes} selectedId={selectedId} onSelect={setSelectedId} onAdvance={setStatus} />
         </div>
       </main>
 
