@@ -59,13 +59,30 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
   });
 
   const applyState = (s: InboxViewState) => {
-    setQ(s.q);
-    setTenant(s.tenant);
-    setOwner(s.owner);
-    setSla(s.sla);
-    setStatuses(new Set(s.statuses));
-    setSort(s.sort);
+    setQ(s.q ?? "");
+    setTenant(s.tenant ?? "todos");
+    setOwner(s.owner ?? "todos");
+    setSla(s.sla ?? "todos");
+    setStatuses(new Set(s.statuses ?? []));
+    setSort(s.sort ?? "priority");
   };
+
+  // Aplica ?view=<base64> ao montar (compartilhamento entre dispositivos)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const encoded = url.searchParams.get("view");
+    if (!encoded) return;
+    const state = decodeViewState(encoded);
+    if (!state) { toast.error("Link de visualização inválido"); return; }
+    applyState(state);
+    url.searchParams.delete("view");
+    window.history.replaceState(null, "", url.toString());
+    toast("Visualização carregada do link");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
 
   const toggleStatus = (s: QuoteStatus) => {
     setActiveViewId(null);
