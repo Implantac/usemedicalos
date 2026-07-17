@@ -10,7 +10,9 @@ export type ActivityType =
   | "price_suggested"
   | "notes_updated"
   | "pdf_generated"
-  | "sent_use_sistemas";
+  | "sent_use_sistemas"
+  | "compliance_override"
+  | "compliance_override_revoked";
 
 export interface Activity {
   id: string;
@@ -23,6 +25,7 @@ export interface Activity {
     to?: QuoteStatus;
     sku?: string;
     order_id?: string;
+    reason?: string;
   };
 }
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Activity as ActivityIcon, CheckCircle2, FileText, MessageSquare, Package, Send, Sparkles, TrendingUp } from "lucide-react";
+import { Activity as ActivityIcon, CheckCircle2, FileText, MessageSquare, Package, Send, ShieldCheck, ShieldOff, Sparkles, TrendingUp } from "lucide-react";
 import { getActivitiesFor, type Activity, type ActivityType } from "@/lib/medical/activity";
 
 const ICONS: Record<ActivityType, typeof ActivityIcon> = {
@@ -11,6 +11,8 @@ const ICONS: Record<ActivityType, typeof ActivityIcon> = {
   notes_updated: MessageSquare,
   pdf_generated: FileText,
   sent_use_sistemas: Send,
+  compliance_override: ShieldCheck,
+  compliance_override_revoked: ShieldOff,
 };
 
 function formatRelative(iso: string): string {
