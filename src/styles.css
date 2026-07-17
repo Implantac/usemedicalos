@@ -125,10 +125,19 @@
   * {
     border-color: var(--color-border);
   }
+  html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Mínimo de 16px em inputs para o iOS não fazer zoom */
+  @media (max-width: 640px) {
+    input, select, textarea { font-size: 16px; }
   }
 }
 
