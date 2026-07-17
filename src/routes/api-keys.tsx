@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Copy, KeyRound, Plus, Trash2, XCircle } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
+import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Toaster } from "@/components/ui/sonner";
@@ -65,6 +66,7 @@ function ApiKeysPage() {
     <div className="min-h-screen bg-background">
       <AppHeader onReset={() => {}} />
       <main className="mx-auto max-w-[1200px] space-y-4 px-3 py-4 sm:px-4">
+        <TenantScopeBanner hint={scope === "all" ? "Selecione um tenant para escopar chaves" : undefined} />
         <div>
           <h1 className="text-lg font-bold tracking-tight text-foreground">API Keys</h1>
           <p className="text-xs text-muted-foreground">

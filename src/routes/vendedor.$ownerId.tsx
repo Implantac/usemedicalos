@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Activity, ArrowDown, ArrowLeft, ArrowUp, Award, Coins, DollarSign, Minus, Percent, Ticket, TrendingUp } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
+import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { KpiCard } from "@/components/medical/kpi-card";
 import { PriorityBadge, StatusBadge } from "@/components/medical/badges";
 import { SlaIndicator } from "@/components/medical/sla-indicator";
@@ -61,6 +62,7 @@ function OwnerPage() {
     <div className="min-h-screen bg-background">
       <AppHeader onReset={resetDemo} />
       <main className="mx-auto max-w-[1600px] space-y-4 px-3 py-4 sm:px-4">
+        <TenantScopeBanner hint="Filtra cotações do vendedor pelo escopo ativo" />
         <div className="flex flex-wrap items-center gap-3">
           <Link
             to="/dashboard"

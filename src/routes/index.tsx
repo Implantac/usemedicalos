@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
+import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { QuoteInbox } from "@/components/medical/quote-inbox";
 import { QuoteDrawer } from "@/components/medical/quote-drawer";
 import { QuoteStats } from "@/components/medical/quote-stats";
