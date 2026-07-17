@@ -39,7 +39,7 @@ export function buildClientProfiles(quotes: Quote[]): Map<string, ClientProfile>
   for (const q of quotes) {
     const key = normalize(q.customer_name);
     if (!key) continue;
-    const cur = buckets.get(key) ?? { name: q.customer_name, quotes: [], platforms: new Map() };
+    const cur: Bucket = buckets.get(key) ?? { name: q.customer_name, quotes: [], platforms: new Map() };
     cur.quotes.push(q);
     const p = q.portal_meta?.source_platform;
     if (p) cur.platforms.set(p, (cur.platforms.get(p) ?? 0) + 1);
