@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 export function SlaAlertBell() {
   const [open, setOpen] = useState(false);
   const { quotes } = useQuotes();
+  const notif = useSlaNotifications();
 
   const alerts = useMemo(() => {
     const rows = quotes
