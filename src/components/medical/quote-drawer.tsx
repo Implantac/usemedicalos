@@ -143,10 +143,19 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto">
-          <section className="space-y-2 border-b p-4">
-            <ComplianceAlert report={compliance} onOverride={handleOverride} onRevoke={handleRevoke} />
+          <section className="space-y-3 border-b p-4">
             <CommissionBadge quote={quote} />
+            <ComplianceAlert
+              report={compliance}
+              confirmed={complianceConfirmed}
+              onConfirmedChange={setComplianceConfirmed}
+              onOverride={handleOverride}
+              onRevoke={handleRevoke}
+            />
           </section>
+
+
+
 
 
           {/* Payload original + IA classification */}
