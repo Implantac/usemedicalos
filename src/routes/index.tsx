@@ -27,7 +27,7 @@ export const Route = createFileRoute("/")({
 
 function InboxPage() {
   const { open } = Route.useSearch();
-  const { quotes, addQuote, updateQuote, updateItem, removeItem, resetDemo } = useQuotes();
+  const { quotes, addQuote, updateQuote, updateItem, removeItem, setStatus, resetDemo } = useQuotes();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [newOpen, setNewOpen] = useState(false);
 
