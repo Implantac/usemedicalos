@@ -216,7 +216,11 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
             <div className="space-y-2">
               {quote.items.map((it, idx) => {
                 const m = itemMargin(it);
-                const suggested = suggestPrice(it, tenantConfig.target_margin);
+                const catalogProduct = productBySku.get(it.sku);
+                const engine = catalogProduct
+                  ? calculateSuggestedPrice(catalogProduct, { tier: "B" })
+                  : null;
+                const suggested = engine ? engine.suggested_price : suggestPrice(it, tenantConfig.target_margin);
                 const base = basePrice(it.cost_price);
                 const signal = pricingSignal(it, minMargin);
 
