@@ -35,6 +35,9 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
   if (!quote) return null;
   const totals = quoteTotals(quote.items);
   const marginOk = totals.margin >= MIN_MARGIN;
+  const compliance = checkQuote(quote);
+  const complianceBlocked = compliance.status === "blocked";
+  const canSend = marginOk && !complianceBlocked;
   const bumpActivity = () => setActivityVersion((v) => v + 1);
 
   const handleGenerateProposal = async () => {
