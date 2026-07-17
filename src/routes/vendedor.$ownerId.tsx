@@ -95,7 +95,7 @@ function OwnerPage() {
                 </span>
               </div>
               <div className="mt-1 text-xs text-muted-foreground">
-                {commission.won_count} ganha(s) · margem média{" "}
+                {commission.quote_count} cotação(ões) no mês · margem média{" "}
                 <span className={kpis.avgMargin >= 0.15 ? "font-bold text-success" : kpis.avgMargin >= 0.12 ? "font-bold text-warning-foreground" : "font-bold text-danger"}>
                   {formatPct(kpis.avgMargin)}
                 </span>
