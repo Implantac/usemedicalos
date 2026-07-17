@@ -28,9 +28,11 @@ interface Props {
 
 export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpdateQuote }: Props) {
   const [submitting, setSubmitting] = useState(false);
+  const [activityVersion, setActivityVersion] = useState(0);
   if (!quote) return null;
   const totals = quoteTotals(quote.items);
   const marginOk = totals.margin >= MIN_MARGIN;
+  const bumpActivity = () => setActivityVersion((v) => v + 1);
 
   const handleGenerateProposal = async () => {
     if (!marginOk) {
@@ -41,6 +43,8 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
     try {
       const res = await sendToUseSistemas(quote);
       onUpdateQuote(quote.id, { status: "enviado", use_sistemas_synced: true, use_sistemas_order_id: res.order_id });
+      appendActivity({ quote_id: quote.id, type: "sent_use_sistemas", message: `Enviado ao Use Sistemas`, meta: { order_id: res.order_id } });
+      bumpActivity();
       toast.success(res.message);
     } catch {
       toast.error("Falha ao integrar com Use Sistemas.");
