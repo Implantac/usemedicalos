@@ -132,15 +132,30 @@ export function useQuotes() {
   }, [tenant]);
 
   const ingestPortalQuote = useCallback((quote: Quote) => {
-    setAllQuotes((qs) => [quote, ...qs]);
-    appendActivity({
-      quote_id: quote.id,
-      type: "ingested_from_portal",
-      message: `RFQ capturada do portal ${quote.portal_meta?.source_platform ?? "externo"} — ${quote.customer_name}`,
-      meta: {
-        source_platform: quote.portal_meta?.source_platform,
-        portal_reference: quote.portal_meta?.portal_reference,
-      },
+    setAllQuotes((qs) => {
+      // Auto-draft: pré-precifica itens via engine e sugere tier via histórico.
+      // Import dinâmico evita ciclo com pricing-engine/products no boot.
+      let drafted = quote;
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { buildAutoDraft } = require("@/lib/medical/auto-draft") as typeof import("@/lib/medical/auto-draft");
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { PRODUCTS } = require("@/lib/medical/mock-data") as typeof import("@/lib/medical/mock-data");
+        drafted = buildAutoDraft(quote, PRODUCTS, qs).quote;
+      } catch (err) {
+        console.warn("[auto-draft] falhou, seguindo com quote original", err);
+      }
+      appendActivity({
+        quote_id: drafted.id,
+        type: "ingested_from_portal",
+        message: `RFQ capturada do portal ${drafted.portal_meta?.source_platform ?? "externo"} — ${drafted.customer_name}`,
+        meta: {
+          source_platform: drafted.portal_meta?.source_platform,
+          portal_reference: drafted.portal_meta?.portal_reference,
+          tier: drafted.client_tier,
+        },
+      });
+      return [drafted, ...qs];
     });
   }, []);
 
