@@ -1,4 +1,4 @@
-import { AlertOctagon, CheckCircle2, ShieldAlert } from "lucide-react";
+import { AlertOctagon, CheckCircle2, ShieldAlert, ShieldCheck } from "lucide-react";
 import type { ComplianceReport, ComplianceStatus } from "@/lib/medical/compliance";
 import { cn } from "@/lib/utils";
 
@@ -6,6 +6,7 @@ const CFG: Record<ComplianceStatus, { icon: typeof CheckCircle2; label: string; 
   ok: { icon: CheckCircle2, label: "Compliance ANVISA/CMED OK", cls: "border-success/30 bg-success/10 text-success" },
   warning: { icon: ShieldAlert, label: "Atenção regulatória", cls: "border-warning/40 bg-warning/10 text-warning-foreground" },
   blocked: { icon: AlertOctagon, label: "Bloqueio regulatório", cls: "border-danger/40 bg-danger/10 text-danger" },
+  overridden: { icon: ShieldCheck, label: "Liberado por gestor", cls: "border-primary/40 bg-primary/10 text-primary" },
 };
 
 export function ComplianceAlert({ report }: { report: ComplianceReport }) {
