@@ -1,5 +1,5 @@
 import { Bell, BellOff, BellRing } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useQuotes } from "@/hooks/use-quotes";
@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 
 export function SlaAlertBell() {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const { quotes } = useQuotes();
   const notif = useSlaNotifications();
 
