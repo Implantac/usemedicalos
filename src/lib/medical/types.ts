@@ -57,8 +57,8 @@ export interface Quote {
   keywords: string[];
   items: QuoteItem[];
   notes?: string;
-  totvs_synced?: boolean;
-  totvs_order_id?: string;
+  use_sistemas_synced?: boolean;
+  use_sistemas_order_id?: string;
 }
 
 export interface SlaTracking {

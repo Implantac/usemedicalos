@@ -60,7 +60,7 @@ function build(
     received_at: hoursAgo(receivedHoursAgo),
     sla_deadline: hoursFromNow(sla - receivedHoursAgo),
     notes: "",
-    totvs_synced: false,
+    use_sistemas_synced: false,
     ...overrides,
   };
 }

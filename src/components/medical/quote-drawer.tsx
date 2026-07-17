@@ -13,7 +13,7 @@ import { STATUS_LABEL, MIN_MARGIN } from "@/lib/medical/types";
 import { formatBRL, formatPct, itemMargin, itemTotal, quoteTotals, suggestPrice } from "@/lib/medical/pricing";
 import { PriorityBadge, SourceTag, StatusBadge } from "./badges";
 import { SlaIndicator } from "./sla-indicator";
-import { sendToTotvs } from "@/lib/medical/totvs-mock";
+import { sendToUseSistemas } from "@/lib/medical/use-sistemas-mock";
 
 interface Props {
   quote: Quote | null;
@@ -36,11 +36,11 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
     }
     setSubmitting(true);
     try {
-      const res = await sendToTotvs(quote);
-      onUpdateQuote(quote.id, { status: "enviado", totvs_synced: true, totvs_order_id: res.order_id });
+      const res = await sendToUseSistemas(quote);
+      onUpdateQuote(quote.id, { status: "enviado", use_sistemas_synced: true, use_sistemas_order_id: res.order_id });
       toast.success(res.message);
     } catch {
-      toast.error("Falha ao integrar com TOTVS Protheus.");
+      toast.error("Falha ao integrar com Use Sistemas.");
     } finally {
       setSubmitting(false);
     }
@@ -66,9 +66,9 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
             <StatusBadge status={quote.status} />
             <SourceTag source={quote.source_type} />
             <SlaIndicator deadline={quote.sla_deadline} />
-            {quote.totvs_synced && (
+            {quote.use_sistemas_synced && (
               <span className="inline-flex items-center gap-1 rounded-md bg-success/15 px-2 py-0.5 text-[11px] font-semibold text-success">
-                <CheckCircle2 className="h-3 w-3" /> TOTVS {quote.totvs_order_id}
+                <CheckCircle2 className="h-3 w-3" /> Use Sistemas {quote.use_sistemas_order_id}
               </span>
             )}
           </div>
@@ -240,7 +240,7 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
               onClick={handleGenerateProposal}
             >
               <FileText className="mr-2 h-4 w-4" />
-              {submitting ? "Enviando ao TOTVS…" : "Gerar Proposta & Enviar TOTVS"}
+              {submitting ? "Enviando ao Use Sistemas…" : "Gerar Proposta & Enviar Use Sistemas"}
             </Button>
           </div>
         </div>
