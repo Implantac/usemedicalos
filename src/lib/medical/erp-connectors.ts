@@ -85,6 +85,13 @@ export const ERP_CONNECTORS: ErpConnector[] = [
       { key: "token", label: "Bearer token", secret: true },
     ],
     docsUrl: "https://developer.sankhya.com.br/",
+    mappingTemplate: {
+      quote: { customer_name: "Parceiro.NOMEPARC", customer_segment: "Parceiro.CLASSIFICMS", source_type: "'sankhya'", original_payload: "NotaVenda.NUNOTA" },
+      items: {
+        path: "NotaVenda.Itens",
+        fields: { sku: "CODPROD", name: "DESCRPROD", quantity: "QTDNEG", unit_price: "VLRUNIT", cost_price: "VLRCUSTO" },
+      },
+    },
   },
   {
     id: "senior",
