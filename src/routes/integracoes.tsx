@@ -405,7 +405,7 @@ function ConnectorsGrid({ onApplyPreset }: { onApplyPreset: (c: ErpConnector) =>
             <Button
               size="sm"
               disabled={selected.status === "planejado"}
-              onClick={() => toast.success(`Preset "${selected.name}" preparado. Configure o mapping abaixo.`)}
+              onClick={() => onApplyPreset(selected)}
               className="gap-1.5"
             >
               <Save className="h-3 w-3" /> Salvar preset
