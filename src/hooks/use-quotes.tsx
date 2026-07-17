@@ -90,6 +90,7 @@ export function useQuotes() {
       use_sistemas_synced: false,
     };
     setQuotes((qs) => [q, ...qs]);
+    appendActivity({ quote_id: q.id, type: "created", message: `Cotação criada para ${q.customer_name}` });
     return q;
   }, []);
 
