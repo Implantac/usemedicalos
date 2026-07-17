@@ -59,6 +59,16 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
   const marginOk = totals.margin >= minMargin;
   const hasNegative = quote.items.some((it) => pricingSignal(it, minMargin) === "negative");
 
+  // Motor de precificação 4 camadas: catálogo enriquecido pelo flywheel + overrides do gestor.
+  const { quotes: allQuotes } = useQuotes();
+  const { applyTo: applyProductOverride } = useProductOverrides();
+  const productBySku = useMemo(() => {
+    const enriched = enrichProductsWithMarket(PRODUCTS, allQuotes).map(applyProductOverride);
+    const m = new Map<string, (typeof enriched)[number]>();
+    for (const p of enriched) m.set(p.sku, p);
+    return m;
+  }, [allQuotes, applyProductOverride]);
+
 
   const compliance = checkQuote(quote, overriddenSkus);
   const complianceBlocked = compliance.status === "blocked";
