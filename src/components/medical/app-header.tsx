@@ -19,9 +19,9 @@ const NAV = [
 
 export function AppHeader({ onReset, children }: { onReset: () => void; children?: ReactNode }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-primary-foreground/10 bg-primary text-primary-foreground">
-      <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-2 sm:gap-3 sm:px-4">
-        <Link to="/" className="flex min-w-0 items-center gap-2 sm:gap-2.5">
+    <header className="sticky top-0 z-30 border-b border-primary-foreground/10 gradient-navy text-primary-foreground backdrop-blur supports-[backdrop-filter]:bg-primary/95">
+      <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-3 sm:gap-4 sm:px-4">
+        <Link to="/" className="flex min-w-0 items-center gap-2 sm:gap-2.5 press">
           <img
             src={logoAsset.url}
             alt="USE Medical"
