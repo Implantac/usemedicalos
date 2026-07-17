@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as QuarentenaRouteImport } from './routes/quarentena'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as InteligenciaRouteImport } from './routes/inteligencia'
 import { Route as IntegracoesRouteImport } from './routes/integracoes'
@@ -25,6 +26,11 @@ import { Route as ApiPublicErpIngestRouteImport } from './routes/api/public/erp.
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuarentenaRoute = QuarentenaRouteImport.update({
+  id: '/quarentena',
+  path: '/quarentena',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProdutosRoute = ProdutosRouteImport.update({
@@ -91,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
   '/produtos': typeof ProdutosRoute
+  '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
@@ -105,6 +112,7 @@ export interface FileRoutesByTo {
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
   '/produtos': typeof ProdutosRoute
+  '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
@@ -120,6 +128,7 @@ export interface FileRoutesById {
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
   '/produtos': typeof ProdutosRoute
+  '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/integracoes'
     | '/inteligencia'
     | '/produtos'
+    | '/quarentena'
     | '/sitemap.xml'
     | '/vendedor/$ownerId'
     | '/api/public/catalog'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/integracoes'
     | '/inteligencia'
     | '/produtos'
+    | '/quarentena'
     | '/sitemap.xml'
     | '/vendedor/$ownerId'
     | '/api/public/catalog'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/integracoes'
     | '/inteligencia'
     | '/produtos'
+    | '/quarentena'
     | '/sitemap.xml'
     | '/vendedor/$ownerId'
     | '/api/public/catalog'
@@ -179,6 +191,7 @@ export interface RootRouteChildren {
   IntegracoesRoute: typeof IntegracoesRoute
   InteligenciaRoute: typeof InteligenciaRoute
   ProdutosRoute: typeof ProdutosRoute
+  QuarentenaRoute: typeof QuarentenaRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VendedorOwnerIdRoute: typeof VendedorOwnerIdRoute
   ApiPublicCatalogRoute: typeof ApiPublicCatalogRoute
@@ -193,6 +206,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quarentena': {
+      id: '/quarentena'
+      path: '/quarentena'
+      fullPath: '/quarentena'
+      preLoaderRoute: typeof QuarentenaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/produtos': {
@@ -283,6 +303,7 @@ const rootRouteChildren: RootRouteChildren = {
   IntegracoesRoute: IntegracoesRoute,
   InteligenciaRoute: InteligenciaRoute,
   ProdutosRoute: ProdutosRoute,
+  QuarentenaRoute: QuarentenaRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VendedorOwnerIdRoute: VendedorOwnerIdRoute,
   ApiPublicCatalogRoute: ApiPublicCatalogRoute,
