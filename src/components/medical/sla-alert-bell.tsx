@@ -67,7 +67,7 @@ export function SlaAlertBell() {
               <Link
                 key={q.id}
                 to="/"
-                search={{ quoteId: q.id } as never}
+                search={{ open: q.id }}
                 onClick={() => setOpen(false)}
                 className="block border-b px-3 py-2 text-left transition-colors hover:bg-muted"
               >

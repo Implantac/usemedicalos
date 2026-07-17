@@ -102,17 +102,18 @@ export function NewQuoteDialog({ open, onOpenChange, onCreate }: Props) {
         onOpenChange(v);
       }}
     >
-      <DialogContent className="max-w-2xl p-0">
-        <DialogHeader className="border-b px-5 py-3">
+      <DialogContent className="flex max-h-[92vh] w-[calc(100vw-1rem)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:w-full">
+        <DialogHeader className="border-b px-4 py-3 sm:px-5">
           <DialogTitle className="text-base">Nova cotação</DialogTitle>
           <DialogDescription className="text-xs">
             Passo {step} de 2 · {step === 1 ? "captura e classificação" : "itens e precificação"}
           </DialogDescription>
         </DialogHeader>
 
+        <div className="flex-1 overflow-y-auto">
         {step === 1 ? (
-          <div className="space-y-3 p-5">
-            <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-3 p-4 sm:p-5">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <Label className="text-[10px] uppercase text-muted-foreground">Origem</Label>
                 <Select value={source} onValueChange={(v) => setSource(v as SourceType)}>
@@ -175,7 +176,7 @@ export function NewQuoteDialog({ open, onOpenChange, onCreate }: Props) {
             </div>
           </div>
         ) : (
-          <div className="space-y-3 p-5">
+          <div className="space-y-3 p-4 sm:p-5">
             <div>
               <Label className="text-[10px] uppercase text-muted-foreground">Adicionar produto</Label>
               <Input value={search} onChange={(e) => setSearch(e.target.value)} className="h-9" placeholder="Buscar por SKU ou nome…" />
@@ -284,8 +285,9 @@ export function NewQuoteDialog({ open, onOpenChange, onCreate }: Props) {
             )}
           </div>
         )}
+        </div>
 
-        <div className="flex items-center justify-between gap-2 border-t bg-muted/30 px-5 py-3">
+        <div className="flex items-center justify-between gap-2 border-t bg-muted/30 px-4 py-3 sm:px-5">
           {step === 1 ? (
             <>
               <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Cancelar</Button>

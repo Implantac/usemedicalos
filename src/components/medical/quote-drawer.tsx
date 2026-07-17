@@ -267,7 +267,7 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
             </div>
           )}
 
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <Select
               value={quote.status}
               onValueChange={(v) => {
@@ -283,7 +283,7 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
                 bumpActivity();
               }}
             >
-              <SelectTrigger className="h-9 sm:w-48"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-9 w-full sm:w-48"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {(Object.keys(STATUS_LABEL) as QuoteStatus[]).map((s) => (
                   <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>
@@ -292,7 +292,7 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
             </Select>
             <Button
               variant="outline"
-              className="h-9 gap-1.5"
+              className="h-9 w-full gap-1.5 sm:w-auto"
               onClick={() => {
                 try {
                   generateProposalPdf(quote);
@@ -308,16 +308,18 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
               <Download className="h-4 w-4" /> PDF
             </Button>
             <Button
-              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+              className="h-9 w-full flex-1 bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto"
               disabled={submitting || !canSend}
               onClick={handleGenerateProposal}
             >
-              <FileText className="mr-2 h-4 w-4" />
-              {submitting
-                ? "Enviando ao Use Sistemas…"
-                : complianceBlocked
-                  ? "Bloqueado (Compliance)"
-                  : "Gerar Proposta & Enviar Use Sistemas"}
+              <FileText className="mr-2 h-4 w-4 shrink-0" />
+              <span className="truncate">
+                {submitting
+                  ? "Enviando ao Use Sistemas…"
+                  : complianceBlocked
+                    ? "Bloqueado (Compliance)"
+                    : "Gerar Proposta & Enviar"}
+              </span>
             </Button>
           </div>
         </div>
