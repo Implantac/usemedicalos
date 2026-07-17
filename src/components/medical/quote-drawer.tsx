@@ -306,25 +306,42 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
                       </div>
                     )}
 
-                    <div className="mt-2 flex items-center justify-between rounded-md border border-dashed border-primary/30 bg-primary/5 px-2 py-1.5">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary">
-                        <Sparkles className="h-3 w-3" /> Sugestão IA
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="num text-xs font-bold text-foreground">{formatBRL(suggested)}</span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-6 px-2 text-[11px]"
-                          onClick={() => {
-                            onUpdateItem(quote.id, idx, { unit_price: suggested });
-                            appendActivity({ quote_id: quote.id, type: "price_suggested", message: `Sugestão IA aplicada em ${it.sku}: ${formatBRL(suggested)}`, meta: { sku: it.sku } });
-                            bumpActivity();
-                          }}
-                        >
-                          Aplicar
-                        </Button>
+                    <div className="mt-2 rounded-md border border-dashed border-primary/30 bg-primary/5 px-2 py-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary">
+                          <Sparkles className="h-3 w-3" />
+                          {engine ? "Motor 4 camadas" : "Sugestão IA"}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          {engine && <EngineStatusChip status={engine.status} />}
+                          <span className="num text-xs font-bold text-foreground">{formatBRL(suggested)}</span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 px-2 text-[11px]"
+                            disabled={engine?.status === "BLOCKED"}
+                            onClick={() => {
+                              onUpdateItem(quote.id, idx, { unit_price: suggested });
+                              appendActivity({
+                                quote_id: quote.id,
+                                type: "price_suggested",
+                                message: `${engine ? "Motor" : "Sugestão IA"} aplicado em ${it.sku}: ${formatBRL(suggested)}`,
+                                meta: { sku: it.sku, engine_status: engine?.status },
+                              });
+                              bumpActivity();
+                            }}
+                          >
+                            Aplicar
+                          </Button>
+                        </div>
                       </div>
+                      {engine && (
+                        <div className="mt-1 grid grid-cols-3 gap-1 text-[10px] text-muted-foreground num">
+                          <span>Floor {formatBRL(engine.floor_price)}</span>
+                          <span>CMED {engine.compliance_cap ? formatBRL(engine.compliance_cap) : "—"}</span>
+                          <span>Mercado {engine.market_target ? formatBRL(engine.market_target) : "—"}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
