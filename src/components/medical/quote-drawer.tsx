@@ -17,6 +17,9 @@ import { SlaIndicator } from "./sla-indicator";
 import { sendToUseSistemas } from "@/lib/medical/use-sistemas-mock";
 import { appendActivity } from "@/lib/medical/activity";
 import { QuoteTimeline } from "./quote-timeline";
+import { checkQuote } from "@/lib/medical/compliance";
+import { ComplianceAlert } from "./compliance-alert";
+import { CommissionBadge } from "./commission-badge";
 
 interface Props {
   quote: Quote | null;
