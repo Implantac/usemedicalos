@@ -51,6 +51,9 @@ function InboxPage() {
       </AppHeader>
 
       <main className="mx-auto max-w-[1600px] px-3 py-4 sm:px-4">
+        <div className="mb-3">
+          <TenantScopeBanner hint="Inbox filtrada pelo escopo" />
+        </div>
         <div className="mb-4 space-y-2">
           <div>
             <h1 className="text-lg font-bold tracking-tight text-foreground">Inbox Universal</h1>

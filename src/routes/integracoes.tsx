@@ -96,6 +96,7 @@ function IntegrationsPage() {
     <div className="min-h-screen bg-background">
       <AppHeader onReset={() => {}} />
       <main className="mx-auto max-w-[1600px] space-y-4 px-3 py-4 sm:px-4">
+        <TenantScopeBanner hint="Cotações ingeridas entram no tenant ativo" />
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-lg font-bold tracking-tight text-foreground">Portal de integrações</h1>
