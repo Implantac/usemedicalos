@@ -201,9 +201,19 @@ function IntegrationsPage() {
               )}
             </div>
             {!result.ok && (
-              <ul className="mt-2 list-disc pl-5 text-xs text-destructive">
-                {result.errors.map((e, i) => <li key={i}>{e}</li>)}
-              </ul>
+              <>
+                <ul className="mt-2 list-disc pl-5 text-xs text-destructive">
+                  {result.errors.map((e, i) => <li key={i}>{e}</li>)}
+                </ul>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Button size="sm" variant="outline" className="gap-1.5" onClick={sendToQuarantine}>
+                    <ShieldAlert className="h-3.5 w-3.5" /> Enviar para Quarentena
+                  </Button>
+                  <Link to="/quarentena" className="text-xs font-medium text-primary underline-offset-2 hover:underline">
+                    Ver fila de quarentena
+                  </Link>
+                </div>
+              </>
             )}
             {result.ok && result.draft && (
               <pre className="mt-2 max-h-72 overflow-auto rounded bg-card p-2 text-[11px] leading-snug">
@@ -212,6 +222,9 @@ function IntegrationsPage() {
             )}
           </div>
         )}
+
+        <TenantConfigCard tenantId={tenant?.id ?? null} tenantName={tenant?.name ?? null} />
+
 
         <SignatureHelper payload={payload} mapping={mapping} disabled={!!payloadErr || !!mappingErr} />
 
