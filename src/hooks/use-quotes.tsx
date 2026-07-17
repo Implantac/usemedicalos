@@ -35,6 +35,8 @@ export function useQuotes() {
   const [allQuotes, setAllQuotes] = useState<Quote[]>(INITIAL_QUOTES);
   const [hydrated, setHydrated] = useState(false);
   const { scope, tenant } = useActiveTenant();
+  const scopeRef = useRef<ActiveScope>(scope);
+  scopeRef.current = scope;
 
   useEffect(() => {
     setAllQuotes(load());
@@ -51,30 +53,55 @@ export function useQuotes() {
     [allQuotes, scope],
   );
 
-  const updateQuote = useCallback((id: string, patch: Partial<Quote>) => {
-    setAllQuotes((qs) => qs.map((q) => (q.id === id ? { ...q, ...patch } : q)));
+  // Guard central: bloqueia mutação em quote de outro tenant (RLS mock).
+  const guard = useCallback((quoteId: string, all: Quote[]) => {
+    const target = all.find((q) => q.id === quoteId);
+    if (!target) return null;
+    try {
+      assertSameTenant(target, scopeRef.current);
+    } catch (err) {
+      if (err instanceof CrossTenantWriteError) {
+        console.warn("[tenant-guard]", err.message);
+        appendActivity({
+          quote_id: quoteId,
+          type: "compliance_override",
+          message: `Bloqueio anti-cross-tenant: escopo ${err.activeScope} tentou mutar ${err.attemptedTenant}`,
+        });
+      }
+      return null;
+    }
+    return target;
   }, []);
+
+  const updateQuote = useCallback((id: string, patch: Partial<Quote>) => {
+    setAllQuotes((qs) => (guard(id, qs) ? qs.map((q) => (q.id === id ? { ...q, ...patch } : q)) : qs));
+  }, [guard]);
 
   const updateItem = useCallback((quoteId: string, index: number, patch: Partial<QuoteItem>) => {
     setAllQuotes((qs) =>
-      qs.map((q) =>
-        q.id !== quoteId
-          ? q
-          : { ...q, items: q.items.map((it, i) => (i === index ? { ...it, ...patch } : it)) },
-      ),
+      !guard(quoteId, qs)
+        ? qs
+        : qs.map((q) =>
+            q.id !== quoteId
+              ? q
+              : { ...q, items: q.items.map((it, i) => (i === index ? { ...it, ...patch } : it)) },
+          ),
     );
-  }, []);
+  }, [guard]);
 
   const removeItem = useCallback((quoteId: string, index: number) => {
     setAllQuotes((qs) =>
-      qs.map((q) => (q.id !== quoteId ? q : { ...q, items: q.items.filter((_, i) => i !== index) })),
+      !guard(quoteId, qs)
+        ? qs
+        : qs.map((q) => (q.id !== quoteId ? q : { ...q, items: q.items.filter((_, i) => i !== index) })),
     );
-  }, []);
+  }, [guard]);
 
   const setStatus = useCallback(
     (id: string, status: QuoteStatus) => updateQuote(id, { status }),
     [updateQuote],
   );
+
 
   const addQuote = useCallback((input: NewQuoteInput): Quote => {
     const cls = classify(input.original_payload);
