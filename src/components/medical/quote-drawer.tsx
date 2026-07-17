@@ -13,6 +13,10 @@ import type { Quote, QuoteStatus } from "@/lib/medical/types";
 import { STATUS_LABEL } from "@/lib/medical/types";
 import { basePrice, formatBRL, formatPct, itemMargin, itemTotal, pricingSignal, quoteTotals, suggestPrice } from "@/lib/medical/pricing";
 import { useTenantConfig } from "@/hooks/use-tenant-config";
+import { useProductOverrides } from "@/hooks/use-product-overrides";
+import { useQuotes } from "@/hooks/use-quotes";
+import { enrichProductsWithMarket } from "@/lib/medical/pricing-flywheel";
+import { calculateSuggestedPrice, PRICING_STATUS_LABEL, type PricingStatus } from "@/lib/medical/pricing-engine";
 
 import { PriorityBadge, SourceTag, StatusBadge } from "./badges";
 import { SlaIndicator } from "./sla-indicator";
@@ -28,7 +32,7 @@ import {
   revokeOverride,
 } from "@/lib/medical/compliance-override";
 import { benchmarkFor, type Region } from "@/lib/medical/benchmarks";
-import { ownerById } from "@/lib/medical/mock-data";
+import { ownerById, PRODUCTS } from "@/lib/medical/mock-data";
 import { ArrowDown, ArrowUp, Minus } from "lucide-react";
 
 interface Props {
