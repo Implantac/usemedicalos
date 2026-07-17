@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Priority, Quote, QuoteItem, QuoteStatus, SourceType } from "@/lib/medical/types";
-import { INITIAL_QUOTES, TENANTS } from "@/lib/medical/mock-data";
+import { INITIAL_QUOTES, PRODUCTS, TENANTS } from "@/lib/medical/mock-data";
+import { buildAutoDraft } from "@/lib/medical/auto-draft";
 import { classify, slaHoursFor } from "@/lib/medical/classifier";
 import { appendActivity } from "@/lib/medical/activity";
 import { useActiveTenant } from "@/hooks/use-active-tenant";
@@ -132,15 +133,25 @@ export function useQuotes() {
   }, [tenant]);
 
   const ingestPortalQuote = useCallback((quote: Quote) => {
-    setAllQuotes((qs) => [quote, ...qs]);
-    appendActivity({
-      quote_id: quote.id,
-      type: "ingested_from_portal",
-      message: `RFQ capturada do portal ${quote.portal_meta?.source_platform ?? "externo"} — ${quote.customer_name}`,
-      meta: {
-        source_platform: quote.portal_meta?.source_platform,
-        portal_reference: quote.portal_meta?.portal_reference,
-      },
+    setAllQuotes((qs) => {
+      // Auto-draft: pré-precifica itens via engine e sugere tier via histórico.
+      let drafted = quote;
+      try {
+        drafted = buildAutoDraft(quote, PRODUCTS, qs).quote;
+      } catch (err) {
+        console.warn("[auto-draft] falhou, seguindo com quote original", err);
+      }
+      appendActivity({
+        quote_id: drafted.id,
+        type: "ingested_from_portal",
+        message: `RFQ capturada do portal ${drafted.portal_meta?.source_platform ?? "externo"} — ${drafted.customer_name}`,
+        meta: {
+          source_platform: drafted.portal_meta?.source_platform,
+          portal_reference: drafted.portal_meta?.portal_reference,
+          tier: drafted.client_tier,
+        },
+      });
+      return [drafted, ...qs];
     });
   }, []);
 

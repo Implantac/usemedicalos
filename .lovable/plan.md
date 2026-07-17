@@ -1,86 +1,83 @@
-## Ingestion Engine — Monitoramento de Cotações em Tempo Real
+## Revisão dos Planos — USE Medical Commercial OS
 
-Vamos transformar o USE Medical de "sistema passivo" em "sistema ativo" adicionando um motor de ingestão que recebe cotações capturadas de portais externos (Bionexo, Apoio, ClickMed, etc.) via API autenticada, gera alertas imediatos e mede o SLA "portal → resposta".
-
-Continua tudo no mock localStorage (fase B da tese multi-tenant). O endpoint público já é HTTP real — pronto para receber requests de uma extensão de navegador ou scraper headless quando o Cloud for ativado.
+Depois de mapear o estado atual (Ingestion Engine + Pricing Engine 4 camadas + Multi-tenant simulado + Compliance ANVISA/CMED + Gamificação já entregues), os próximos passos são consolidar o "Commercial OS" em três frentes: **fechar o loop ativo** (portal → resposta → aprendizado), **profissionalizar a governança** e **preparar terreno para Cloud**.
 
 ---
 
-### 1. Endpoint público `POST /api/v1/ingest`
+### Sprint A — Fechar o Loop Ativo (Portal → Resposta → Aprendizado)
 
-Novo arquivo `src/routes/api/v1/ingest.ts` (server route TanStack, prefixo `/api/public` via alias interno para bypassar auth em produção):
+Objetivo: transformar RFQs capturadas em respostas rápidas com aprendizado automático.
 
-- Payload validado com Zod:
-  ```
-  {
-    source_platform: "bionexo" | "apoio" | "clickmed" | "portal_gov" | "outro",
-    portal_reference: string,       // ID da RFQ no portal externo
-    portal_opened_at: string,       // ISO — quando a cotação apareceu no portal
-    customer_name: string,
-    customer_segment?: string,
-    raw_data: unknown,              // JSON bruto do portal (auditoria)
-    items: Array<{ sku, name, quantity, unit?, target_price? }>
-  }
-  ```
-- Autenticação: header `x-api-key` obrigatório, validado contra as chaves geradas em `/api-keys` (reuso do `src/lib/medical/api-keys.ts`, escopado por tenant).
-- Rate limit: reuso de `src/lib/medical/rate-limit.ts` (60 req/min por chave).
-- Resposta 201 com `{ quote_id, status: "pending_review" }` ou 4xx com erro estruturado.
-- CORS aberto (`OPTIONS` + headers) — a extensão vai chamar de origem externa.
+1. **Auto-Draft de Resposta** (`src/lib/medical/auto-draft.ts`)
+   - Ao ingerir uma RFQ `pending_review`, pré-calcular preço via `pricing-engine` para cada item, atribuir tier default do cliente (histórico) e criar rascunho.
+   - Botão "Aceitar rascunho" no Watchdog → move para `em_negociacao` e grava `response_at`.
 
-### 2. Novo status `pending_review` + campos de portal
+2. **Histórico de Cliente → Tier Automático** (`src/lib/medical/client-intel.ts`)
+   - Agregar wins/losses por `customer_name` (fuzzy match), sugerir tier A/B/C.
+   - Exibir card "Perfil do Cliente" no `QuoteDrawer` (win-rate, ticket médio, portais preferidos).
 
-Extensão do modelo `Quote` em `src/lib/medical/types.ts`:
-- Adiciona `"pending_review"` ao union `QuoteStatus`.
-- Novo bloco opcional `portal_meta`: `{ source_platform, portal_reference, portal_opened_at, ingested_at, response_at? }`.
-
-Ajusta labels (`STATUS_LABEL`), badges (`badges.tsx`) e pipeline (`pipeline.ts`) para reconhecer o novo status como "início do funil ativo".
-
-### 3. Ingestion service (compartilhado entre API real e simulador)
-
-Novo `src/lib/medical/ingestion.ts`:
-- `ingestQuote(payload, apiKey)`: valida tenant via chave, cria a quote com status `pending_review`, popula `portal_meta`, aplica `classify()` no `raw_data`, empurra `appendActivity({type:"ingested_from_portal"})` e dispara notificação SLA via `outbound-webhooks`.
-- Reaproveitado tanto pelo endpoint HTTP quanto por um "botão simulador" na UI (para demo sem extensão instalada).
-
-### 4. Painel Conectores → aba "Portais em tempo real"
-
-Em `src/routes/integracoes.tsx`, nova seção `PortalMonitorCard`:
-- **Live log**: lista das últimas 50 cotações ingeridas (source_platform, cliente, itens, tempo desde o portal, status). Auto-refresh a cada 5s via `useEffect` + polling.
-- **Simulador**: dropdown de portal + botão "Simular RFQ recebida" que chama `ingestQuote()` localmente com um payload fake (útil enquanto a extensão não existe).
-- **Snippet de integração**: bloco copiável mostrando `curl` de exemplo com a API Key ativa e a URL `https://<preview>/api/v1/ingest`.
-
-### 5. Dashboard "SLA Watchdog"
-
-Novo route `src/routes/sla-watchdog.tsx` (aparece no header entre "Inteligência" e "Exceções"):
-- **Hero KPI**: tempo médio "portal → primeira resposta" nas últimas 24h/7d/30d, colorido pelo SLA config do tenant.
-- **Ranking de portais**: qual portal está com maior atraso, quantas RFQs pendentes.
-- **Tabela de RFQs em risco**: cotações `pending_review` ou `aguardando_precificacao` com origem portal, ordenadas por `portal_opened_at` ASC, com botão "Assumir" (muda status → `aguardando_precificacao` e grava `response_at`).
-- Reuso de `KpiCard`, `SlaIndicator` e utilitários de `analytics.ts`.
-
-### 6. Notificação ativa
-
-- `SlaAlertBell` já existe; estende com badge extra para `pending_review` (tom laranja "Nova RFQ do portal").
-- Ao ingerir, dispara `notifyPushSubscribers()` (native Notification API) com título "Nova RFQ Bionexo · margem estimada X%" quando o usuário permitiu push.
-
-### 7. Testes
-
-- `src/lib/medical/ingestion.test.ts`: valida payload, rejeita API key inválida, cria quote com status correto, grava `portal_meta`, aciona activity log.
-- Update do smoke Playwright para abrir `/sla-watchdog` e verificar render.
-
-### 8. Documentação
-
-- `docs/ingestion-api.md`: contrato do endpoint, exemplos de payload por portal (Bionexo, Apoio), header de autenticação, códigos de erro, rate limit.
-- Referência à futura extensão em `docs/roadmap/browser-agent.md` (esqueleto do manifest MV3, comunicação com o endpoint, roadmap fase B: scraper headless).
+3. **Feedback Loop no Flywheel**
+   - Quando quote vira `ganho`/`perdido`, atualizar `market_avg` do produto com peso baseado em recência.
+   - Registrar `price_delta_vs_suggestion` para calibrar futuras sugestões.
 
 ---
 
-## Fora do escopo desta sprint
+### Sprint B — Governança & Auditoria Enterprise
 
-- Código real da extensão Chrome (MV3) — fica como esqueleto documentado; podemos gerar em sprint separada.
-- Scraper headless (Playwright/Puppeteer server-side) — requer Cloud + worker dedicado.
-- "Resposta automática" com preço pré-preenchido — depende de tier do cliente + histórico. Sprint seguinte, depois que o watchdog validar volume.
+Objetivo: preparar para venda B2B com LGPD/SOC2 mindset.
 
-## Depois desta sprint (ordem sugerida)
+1. **Audit Trail imutável** (`src/lib/medical/audit-log.ts`)
+   - Estender `activity.ts` com hash encadeado (prev_hash → hash) para detectar adulteração.
+   - Página `/auditoria` (admin-only via `RoleSwitcher`) com filtros por tenant/usuário/tipo.
 
-1. Gerar a extensão Chrome MV3 (`extension/` + zip em `public/`) com content-script para Bionexo.
-2. Ativar Lovable Cloud e migrar `ingestQuote` para persistir em `quotes` real (com trigger de notificação via `pg_net`).
-3. Fase 2 — resposta automática para clientes tier A com histórico ≥ 3 wins.
+2. **Painel de Compliance por Tenant** (`/compliance`)
+   - Score consolidado: % de quotes com override, quantas travadas, produtos sem `cmed_ceiling`.
+   - Export CSV do log de overrides (evidência para auditoria ANVISA).
+
+3. **Data Residency & Retenção**
+   - Config por tenant: `retention_days` para quotes perdidas.
+   - Job simulado (localStorage cleanup) que roda no boot e purga dados vencidos.
+
+---
+
+### Sprint C — Preparação para Cloud (fase C da tese multi-tenant)
+
+Objetivo: pavimentar migração sem retrabalho.
+
+1. **Consolidar migrations SQL** (`docs/migrations/`)
+   - Unificar `commissions_trigger.sql` + `inbox_views.sql` + schema completo do `docs/supabase-schema.md`.
+   - Adicionar tabelas novas: `portal_ingest_events`, `client_intelligence`, `audit_log`, `tenant_configs`.
+   - Todas com GRANTs + RLS por `tenant_id` + `has_role()` security definer.
+
+2. **Repository pattern** (`src/lib/medical/repo/`)
+   - Interface `QuoteRepo`, `ProductRepo`, `TenantRepo` com implementação `LocalStorageRepo` atual.
+   - Stub `SupabaseRepo` que os hooks já consomem via `useRepo()` — trocar backend = trocar 1 provider.
+
+3. **Feature flag `USE_CLOUD`**
+   - Env `VITE_USE_CLOUD=false` mantém mock; `true` liga stubs Supabase (ainda vazios até o Cloud ser ativado).
+
+---
+
+### Sprint D — Extensão Chrome (Browser Agent)
+
+Objetivo: capturar RFQs reais dos portais.
+
+1. **Manifest MV3** (`extension/manifest.json`) com host_permissions para bionexo.com.br, apoiocotacao.com.br.
+2. **Content-script Bionexo** — parser DOM + POST para `/api/v1/ingest` com API key salva em `chrome.storage.sync`.
+3. **Popup de configuração** — colar API key + selecionar tenant + toggle por portal.
+4. **Empacotamento** — `bun run build:extension` gera `public/use-medical-extension.zip` linkado em `/integracoes`.
+
+---
+
+### Ordem sugerida
+
+**Agora:** Sprint A (auto-draft + client intel) — completa a tese do "Sistema Ativo".
+**Depois:** Sprint B (governança) — destrava conversas enterprise.
+**Antes de ativar Cloud:** Sprint C (repository pattern).
+**Quando houver tempo dedicado:** Sprint D (extensão).
+
+### Fora de escopo (mantido para depois)
+
+- IA generativa real (LLM) para redação de e-mail de resposta — depende de Cloud + Lovable AI Gateway.
+- App mobile nativo — PWA atual cobre 95% dos casos.
+- Integração real com ERPs (Use Sistemas, TOTVS, Sankhya) — hoje é mock; requer credenciais reais dos clientes.

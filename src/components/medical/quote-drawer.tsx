@@ -26,6 +26,7 @@ import { QuoteTimeline } from "./quote-timeline";
 import { checkQuote } from "@/lib/medical/compliance";
 import { ComplianceAlert } from "./compliance-alert";
 import { CommissionBadge } from "./commission-badge";
+import { ClientIntelCard } from "./client-intel-card";
 import {
   addOverride,
   listOverrides,
@@ -170,6 +171,7 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
         <div className="flex-1 overflow-y-auto">
           <section className="space-y-3 border-b p-4">
             <CommissionBadge quote={quote} />
+            <ClientIntelCard quotes={allQuotes} customerName={quote.customer_name} />
             <ClientTierSelector
               value={quote.client_tier ?? "B"}
               onChange={(tier) => {

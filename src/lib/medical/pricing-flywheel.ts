@@ -11,14 +11,23 @@ export interface MarketSample {
   last_updated: string;
 }
 
+const HALF_LIFE_DAYS = 30;
+
+function recencyWeight(iso: string, now = Date.now()): number {
+  const ageDays = Math.max(0, (now - new Date(iso).getTime()) / 86_400_000);
+  return Math.pow(0.5, ageDays / HALF_LIFE_DAYS);
+}
+
 export function computeMarketAverages(quotes: Quote[]): Map<string, MarketSample> {
-  const map = new Map<string, { sum: number; qty: number; count: number; latest: string }>();
+  type Agg = { weightedSum: number; weightedQty: number; count: number; latest: string };
+  const map = new Map<string, Agg>();
   for (const q of quotes) {
     if (q.status !== "ganho") continue;
+    const w = recencyWeight(q.received_at);
     for (const it of q.items) {
-      const cur = map.get(it.sku) ?? { sum: 0, qty: 0, count: 0, latest: q.received_at };
-      cur.sum += it.unit_price * it.quantity;
-      cur.qty += it.quantity;
+      const cur: Agg = map.get(it.sku) ?? { weightedSum: 0, weightedQty: 0, count: 0, latest: q.received_at };
+      cur.weightedSum += it.unit_price * it.quantity * w;
+      cur.weightedQty += it.quantity * w;
       cur.count += 1;
       if (q.received_at > cur.latest) cur.latest = q.received_at;
       map.set(it.sku, cur);
@@ -28,7 +37,7 @@ export function computeMarketAverages(quotes: Quote[]): Map<string, MarketSample
   for (const [sku, s] of map) {
     out.set(sku, {
       sku,
-      avg_price: Math.round((s.sum / s.qty) * 100) / 100,
+      avg_price: s.weightedQty > 0 ? Math.round((s.weightedSum / s.weightedQty) * 100) / 100 : 0,
       sample_size: s.count,
       last_updated: s.latest,
     });
@@ -41,7 +50,6 @@ export function enrichProductsWithMarket(products: Product[], quotes: Quote[]): 
   const samples = computeMarketAverages(quotes);
   return products.map((p) => {
     const s = samples.get(p.sku);
-    // Sample mínimo = 2 fechamentos para não ancorar em outlier
     if (s && s.sample_size >= 2) {
       return { ...p, market_avg: s.avg_price };
     }
