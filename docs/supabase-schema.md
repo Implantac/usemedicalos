@@ -98,8 +98,8 @@ create table public.quotes (
   original_payload_json jsonb not null default '{}'::jsonb,
   keywords text[] not null default '{}',
   notes text,
-  totvs_synced boolean not null default false,
-  totvs_order_id text
+  use_sistemas_synced boolean not null default false,
+  use_sistemas_order_id text
 );
 create index quotes_tenant_status_idx on public.quotes (tenant_id, status);
 create index quotes_tenant_owner_idx on public.quotes (tenant_id, owner_id);
@@ -190,5 +190,5 @@ create policy "sla_tracking: escrita por membro" on public.sla_tracking
    server functions `createServerFn` com `.middleware([requireSupabaseAuth])`.
 3. Semear `tenants` + `tenant_members` para o usuário logado antes do
    primeiro `SELECT` em `quotes`/`products`.
-4. Manter o mock TOTVS: virar server route em `src/routes/api/public/totvs.ts`
+4. Manter o mock Use Sistemas: virar server route em `src/routes/api/public/use-sistemas.ts`
    com verificação HMAC.

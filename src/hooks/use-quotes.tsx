@@ -86,7 +86,7 @@ export function useQuotes() {
       keywords: cls.keywords,
       items: input.items,
       notes: "",
-      totvs_synced: false,
+      use_sistemas_synced: false,
     };
     setQuotes((qs) => [q, ...qs]);
     return q;

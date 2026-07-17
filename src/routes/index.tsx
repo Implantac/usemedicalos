@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "USE Medical — Inbox de Cotações" },
-      { name: "description", content: "Inbox universal de cotações do distribuidor hospitalar: prioridade automática, precificação com IA e integração TOTVS Protheus." },
+      { name: "description", content: "Inbox universal de cotações do distribuidor hospitalar: prioridade automática, precificação com IA e integração Use Sistemas." },
     ],
   }),
   component: InboxPage,
