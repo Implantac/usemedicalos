@@ -36,6 +36,8 @@ interface Props {
   onConfirmedChange?: (v: boolean) => void;
   onOverride?: (sku: string) => void;
   onRevoke?: (sku: string) => void;
+  /** Quando false, botões de liberação/revogação ficam ocultos (usuário sem permissão). */
+  canOverride?: boolean;
 }
 
 export function ComplianceAlert({
@@ -44,7 +46,9 @@ export function ComplianceAlert({
   onConfirmedChange,
   onOverride,
   onRevoke,
+  canOverride = true,
 }: Props) {
+
   const cfg = CFG[report.status];
   const Icon = cfg.icon;
   const isBlocked = report.status === "blocked";
@@ -121,7 +125,7 @@ export function ComplianceAlert({
                       </div>
                     </div>
                     <div className="shrink-0">
-                      {isBad && onOverride && (
+                      {isBad && onOverride && canOverride && (
                         <button
                           type="button"
                           onClick={() => onOverride(c.sku)}
@@ -130,7 +134,12 @@ export function ComplianceAlert({
                           Liberar (gestor)
                         </button>
                       )}
-                      {isOver && onRevoke && (
+                      {isBad && !canOverride && (
+                        <span className="rounded border border-dashed border-muted-foreground/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+                          Requer gestor
+                        </span>
+                      )}
+                      {isOver && onRevoke && canOverride && (
                         <button
                           type="button"
                           onClick={() => onRevoke(c.sku)}
@@ -139,6 +148,7 @@ export function ComplianceAlert({
                           Revogar
                         </button>
                       )}
+
                     </div>
                   </li>
                 );

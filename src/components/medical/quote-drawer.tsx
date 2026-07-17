@@ -34,7 +34,9 @@ import {
 } from "@/lib/medical/compliance-override";
 import { benchmarkFor, type Region } from "@/lib/medical/benchmarks";
 import { ownerById, PRODUCTS } from "@/lib/medical/mock-data";
+import { usePermissions } from "@/hooks/use-permissions";
 import { ArrowDown, ArrowUp, Minus } from "lucide-react";
+
 
 interface Props {
   quote: Quote | null;
@@ -54,11 +56,14 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
   const [activityVersion, setActivityVersion] = useState(0);
   const [overrideVersion, setOverrideVersion] = useState(0);
   const [complianceConfirmed, setComplianceConfirmed] = useState(false);
+  const { can } = usePermissions();
+  const canComplianceOverride = can("compliance.override");
   const overriddenSkus = useMemo(
     () => new Set(listOverrides(quote.id).map((o) => o.sku)),
     [quote.id, overrideVersion],
   );
   const { config: tenantConfig } = useTenantConfig(quote.tenant_id);
+
 
   const minMargin = tenantConfig.min_margin;
   const totals = quoteTotals(quote.items);
@@ -189,9 +194,11 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
               report={compliance}
               confirmed={complianceConfirmed}
               onConfirmedChange={setComplianceConfirmed}
-              onOverride={handleOverride}
-              onRevoke={handleRevoke}
+              onOverride={canComplianceOverride ? handleOverride : undefined}
+              onRevoke={canComplianceOverride ? handleRevoke : undefined}
+              canOverride={canComplianceOverride}
             />
+
             <BenchmarkMini
               region={ownerById(quote.owner_id).territory as Region}
               selfMargin={totals.margin}
