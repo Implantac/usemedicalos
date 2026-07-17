@@ -340,6 +340,7 @@ export function SuccessState({
 }: BaseProps) {
   const dict = useDict();
   const ref = useManagedFocus<HTMLDivElement>(autoFocus);
+  useFocusReturn(true);
   const label = message ?? dict.success;
   return (
     <FadeIn>
