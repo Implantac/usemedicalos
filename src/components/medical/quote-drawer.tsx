@@ -122,16 +122,11 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
     <Sheet open onOpenChange={(open) => { if (!open) onClose(); }}>
       <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl">
         <SheetHeader className="space-y-2 border-b bg-card p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <SheetTitle className="truncate text-base font-bold">{quote.customer_name}</SheetTitle>
-              <SheetDescription className="mt-0.5 text-xs">
-                #{quote.id.toUpperCase()} · {quote.customer_segment}
-              </SheetDescription>
-            </div>
-            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
-              <X className="h-4 w-4" />
-            </Button>
+          <div className="min-w-0 pr-8">
+            <SheetTitle className="truncate text-base font-bold">{quote.customer_name}</SheetTitle>
+            <SheetDescription className="mt-0.5 text-xs">
+              #{quote.id.toUpperCase()} · {quote.customer_segment}
+            </SheetDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <PriorityBadge priority={quote.priority} />
