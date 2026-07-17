@@ -240,6 +240,69 @@ function IntegrationsPage() {
   );
 }
 
+function TenantConfigCard({ tenantId, tenantName }: { tenantId: string | null; tenantName: string | null }) {
+  const { config, update, reset } = useTenantConfig(tenantId);
+  const [minPct, setMinPct] = useState(() => (config.min_margin * 100).toFixed(1));
+  const [tgtPct, setTgtPct] = useState(() => (config.target_margin * 100).toFixed(1));
+
+  if (!tenantId) {
+    return (
+      <div className="rounded-lg border border-dashed bg-card p-3 text-xs text-muted-foreground card-shadow">
+        <div className="flex items-center gap-2 font-semibold text-foreground">
+          <Sliders className="h-4 w-4 text-brand" /> Config por tenant
+        </div>
+        <p className="mt-1">Selecione um tenant no switcher do header para editar o piso de margem e o alvo da IA.</p>
+      </div>
+    );
+  }
+
+  function save() {
+    const mn = Number(minPct) / 100;
+    const tg = Number(tgtPct) / 100;
+    if (!Number.isFinite(mn) || mn < 0 || mn > 0.9) return toast.error("Margem mínima inválida (0–90%).");
+    if (!Number.isFinite(tg) || tg < mn) return toast.error("Alvo deve ser ≥ ao piso.");
+    update({ min_margin: mn, target_margin: tg });
+    toast.success("Config atualizada.");
+  }
+
+  return (
+    <div className="rounded-lg border bg-card p-3 card-shadow">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-sm font-semibold">
+          <Sliders className="h-4 w-4 text-brand" /> Margem — {tenantName}
+        </div>
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          padrão {(DEFAULT_TENANT_CONFIG.min_margin * 100).toFixed(0)}% / {(DEFAULT_TENANT_CONFIG.target_margin * 100).toFixed(0)}%
+        </span>
+      </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <label className="block text-xs">
+          <span className="mb-1 block font-medium text-muted-foreground">Piso duro (bloqueia envio) %</span>
+          <Input value={minPct} onChange={(e) => setMinPct(e.target.value)} inputMode="decimal" className="h-8 text-xs" />
+        </label>
+        <label className="block text-xs">
+          <span className="mb-1 block font-medium text-muted-foreground">Alvo da IA %</span>
+          <Input value={tgtPct} onChange={(e) => setTgtPct(e.target.value)} inputMode="decimal" className="h-8 text-xs" />
+        </label>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button size="sm" variant="outline" className="gap-1.5" onClick={save}>
+          <Save className="h-3.5 w-3.5" /> Salvar
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="gap-1.5"
+          onClick={() => { reset(); setMinPct((DEFAULT_TENANT_CONFIG.min_margin * 100).toFixed(1)); setTgtPct((DEFAULT_TENANT_CONFIG.target_margin * 100).toFixed(1)); toast.success("Restaurado ao padrão."); }}
+        >
+          Restaurar padrão
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+
 function Editor({
   title, value, onChange, error,
 }: { title: string; value: string; onChange: (v: string) => void; error: string | null }) {
