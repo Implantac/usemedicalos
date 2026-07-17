@@ -171,7 +171,7 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
         <div className="flex-1 overflow-y-auto">
           <section className="space-y-3 border-b p-4">
             <CommissionBadge quote={quote} />
-            <ClientIntelCard quotes={useQuotes().quotes} customerName={quote.customer_name} />
+            <ClientIntelCard quotes={allQuotes} customerName={quote.customer_name} />
             <ClientTierSelector
               value={quote.client_tier ?? "B"}
               onChange={(tier) => {
