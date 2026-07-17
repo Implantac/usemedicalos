@@ -4,6 +4,7 @@ import { PRIORITY_LABEL, SOURCE_LABEL, STATUS_LABEL, type Priority, type QuoteSt
 
 export function StatusBadge({ status }: { status: QuoteStatus }) {
   const map: Record<QuoteStatus, string> = {
+    pending_review: "bg-brand/15 text-brand border-brand/30",
     aguardando_precificacao: "bg-warning/15 text-warning-foreground border-warning/30",
     em_negociacao: "bg-primary/10 text-primary border-primary/25",
     enviado: "bg-success/15 text-success border-success/30",
