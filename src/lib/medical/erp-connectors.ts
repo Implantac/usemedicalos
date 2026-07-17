@@ -65,6 +65,13 @@ export const ERP_CONNECTORS: ErpConnector[] = [
       { key: "password", label: "Senha", secret: true },
     ],
     docsUrl: "https://tdn.totvs.com/display/public/framework/REST",
+    mappingTemplate: {
+      quote: { customer_name: "SA1.A1_NOME", customer_segment: "SA1.A1_GRPVEN", source_type: "'totvs-protheus'", original_payload: "SC5.C5_NUM" },
+      items: {
+        path: "SC6",
+        fields: { sku: "C6_PRODUTO", name: "C6_DESCRI", quantity: "C6_QTDVEN", unit_price: "C6_PRCVEN", cost_price: "C6_CUSTO" },
+      },
+    },
   },
   {
     id: "sankhya",
