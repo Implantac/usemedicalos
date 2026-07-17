@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Copy, KeyRound, PlayCircle, Save, Trash2, Send } from "lucide-react";
+import { AlertCircle, CheckCircle2, Copy, KeyRound, Plug, PlayCircle, Save, Trash2, Send } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,10 +13,12 @@ import {
   SAMPLE_MAPPING,
   type ErpMappingConfig,
 } from "@/lib/medical/erp-mapping";
+import { ERP_CONNECTORS, type ErpConnector } from "@/lib/medical/erp-connectors";
 import { useErpMappings } from "@/hooks/use-erp-mappings";
 import { useQuotes } from "@/hooks/use-quotes";
 import { OWNERS } from "@/lib/medical/mock-data";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/integracoes")({
   head: () => ({
@@ -109,6 +111,9 @@ function IntegrationsPage() {
             </Button>
           </div>
         </div>
+
+        <ConnectorsGrid />
+
 
         {mappings.length > 0 && (
           <div className="rounded-lg border bg-card p-3 card-shadow">
