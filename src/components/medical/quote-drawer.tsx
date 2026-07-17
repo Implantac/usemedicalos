@@ -254,7 +254,18 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
           <div className="flex flex-col gap-2 sm:flex-row">
             <Select
               value={quote.status}
-              onValueChange={(v) => onUpdateQuote(quote.id, { status: v as QuoteStatus })}
+              onValueChange={(v) => {
+                const to = v as QuoteStatus;
+                if (to === quote.status) return;
+                appendActivity({
+                  quote_id: quote.id,
+                  type: "status_changed",
+                  message: `Status: ${STATUS_LABEL[quote.status]} → ${STATUS_LABEL[to]}`,
+                  meta: { from: quote.status, to },
+                });
+                onUpdateQuote(quote.id, { status: to });
+                bumpActivity();
+              }}
             >
               <SelectTrigger className="h-9 sm:w-48"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -269,6 +280,8 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
               onClick={() => {
                 try {
                   generateProposalPdf(quote);
+                  appendActivity({ quote_id: quote.id, type: "pdf_generated", message: "Proposta PDF gerada" });
+                  bumpActivity();
                   toast.success("Proposta PDF gerada.");
                 } catch (e) {
                   console.error(e);
