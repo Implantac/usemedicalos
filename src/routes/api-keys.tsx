@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Copy, KeyRound, Plus, Trash2, XCircle } from "lucide-react";
+import { Copy, KeyRound, Lock, Plus, Trash2, XCircle } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,9 @@ import { useApiKeys } from "@/hooks/use-api-keys";
 import { TIER_LIMITS, type ApiScope, type RateTier } from "@/lib/medical/api-keys";
 import { useActiveTenant } from "@/hooks/use-active-tenant";
 import { TENANTS } from "@/lib/medical/mock-data";
+import { usePermissions } from "@/hooks/use-permissions";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/api-keys")({
   head: () => ({
@@ -39,12 +41,15 @@ function ApiKeysPage() {
   const { scope, tenant } = useActiveTenant();
   const tenantId = tenant?.id ?? TENANTS[0].id;
   const { keys, create, revoke, remove } = useApiKeys(tenantId);
+  const { can } = usePermissions();
+  const canManage = can("api_keys.manage");
   const [label, setLabel] = useState("");
   const [scopes, setScopes] = useState<ApiScope[]>(["catalog:read"]);
   const [tier, setTier] = useState<RateTier>("standard");
   const [revealed, setRevealed] = useState<string | null>(null);
 
   function submit() {
+    if (!canManage) return toast.error("Sem permissão api_keys.manage.");
     if (!label.trim()) return toast.error("Informe um rótulo.");
     if (scopes.length === 0) return toast.error("Selecione ao menos um escopo.");
     const k = create({ label, scopes, tier });
@@ -52,6 +57,7 @@ function ApiKeysPage() {
     setLabel("");
     toast.success("Chave criada. Copie o secret agora — não será exibido novamente.");
   }
+
 
   async function copy(text: string, msg: string) {
     await navigator.clipboard.writeText(text);
@@ -77,6 +83,18 @@ function ApiKeysPage() {
           </p>
         </div>
 
+        {!canManage && (
+          <div className="flex items-start gap-2 rounded-md border border-warn/40 bg-warn/10 p-3 text-xs text-warn-foreground">
+            <Lock className="mt-0.5 h-4 w-4 shrink-0 text-warn" />
+            <div>
+              <div className="font-semibold text-foreground">Modo leitura</div>
+              Você não tem a permissão <code className="font-mono">api_keys.manage</code>. Peça a um admin
+              para conceder o papel adequado em <strong>Governança</strong>.
+            </div>
+          </div>
+        )}
+
+
         <div className="rounded-lg border bg-card p-3 card-shadow">
           <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
             <Plus className="h-4 w-4 text-brand" /> Nova chave
@@ -88,9 +106,10 @@ function ApiKeysPage() {
               onChange={(e) => setLabel(e.target.value)}
               className="h-8 text-xs"
             />
-            <Button size="sm" onClick={submit} className="gap-1.5">
+            <Button size="sm" onClick={submit} disabled={!canManage} className="gap-1.5">
               <KeyRound className="h-4 w-4" /> Gerar
             </Button>
+
           </div>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div>
@@ -170,13 +189,14 @@ function ApiKeysPage() {
                       </div>
                       <div className="flex shrink-0 gap-1">
                         {!revoked && (
-                          <Button size="sm" variant="outline" onClick={() => revoke(k.id)} className="h-7 gap-1 px-2 text-[10px]">
+                          <Button size="sm" variant="outline" disabled={!canManage} onClick={() => revoke(k.id)} className="h-7 gap-1 px-2 text-[10px]">
                             <XCircle className="h-3 w-3" /> Revogar
                           </Button>
                         )}
-                        <Button size="sm" variant="ghost" onClick={() => remove(k.id)} className="h-7 gap-1 px-2 text-[10px] text-destructive">
+                        <Button size="sm" variant="ghost" disabled={!canManage} onClick={() => remove(k.id)} className="h-7 gap-1 px-2 text-[10px] text-destructive">
                           <Trash2 className="h-3 w-3" /> Excluir
                         </Button>
+
                       </div>
                     </div>
                     <div className="mt-2 grid gap-1 sm:grid-cols-2">

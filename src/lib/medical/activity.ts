@@ -1,6 +1,8 @@
 // Activity log for quotes - persisted in localStorage.
 // TODO(cloud): migrar para tabela quote_activities (quote_id, actor_id, type, meta jsonb, created_at)
 import type { ClientTier, QuoteStatus } from "./types";
+import { GENESIS_HASH, hashActivity } from "./audit-chain";
+
 
 export type ActivityType =
   | "created"
@@ -34,7 +36,12 @@ export interface Activity {
     source_platform?: string;
     portal_reference?: string;
   };
+  /** Hash-chain: hash da atividade anterior (imutabilidade auditável). */
+  prev_hash?: string;
+  /** SHA-256 do payload canônico + prev_hash. */
+  hash?: string;
 }
+
 
 const KEY = "use-medical:activities:v1";
 
@@ -54,17 +61,23 @@ export function saveActivities(list: Activity[]) {
 }
 
 export function appendActivity(entry: Omit<Activity, "id" | "created_at">): Activity {
+  const list = loadActivities();
+  const prev = list[0]; // DESC
+  const prev_hash = prev?.hash ?? GENESIS_HASH;
   const activity: Activity = {
     ...entry,
     id: `act_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
     created_at: new Date().toISOString(),
+    prev_hash,
   };
-  const list = loadActivities();
+  activity.hash = hashActivity(activity, prev_hash);
   const next = [activity, ...list];
   saveActivities(next);
   return activity;
 }
 
+
 export function getActivitiesFor(quoteId: string): Activity[] {
   return loadActivities().filter((a) => a.quote_id === quoteId);
 }
+
