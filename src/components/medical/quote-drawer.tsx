@@ -25,6 +25,9 @@ import {
   listOverrides,
   revokeOverride,
 } from "@/lib/medical/compliance-override";
+import { benchmarkFor, type Region } from "@/lib/medical/benchmarks";
+import { ownerById } from "@/lib/medical/mock-data";
+import { ArrowDown, ArrowUp, Minus } from "lucide-react";
 
 interface Props {
   quote: Quote | null;
@@ -152,7 +155,13 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
               onOverride={handleOverride}
               onRevoke={handleRevoke}
             />
+            <BenchmarkMini
+              region={ownerById(quote.owner_id).territory as Region}
+              selfMargin={totals.margin}
+              selfTicket={totals.revenue}
+            />
           </section>
+
 
 
 
@@ -389,3 +398,54 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
     </Sheet>
   );
 }
+
+function BenchmarkMini({
+  region,
+  selfMargin,
+  selfTicket,
+}: {
+  region: Region;
+  selfMargin: number;
+  selfTicket: number;
+}) {
+  const mk = benchmarkFor(region);
+  const marginDelta = selfMargin - mk.avgMargin;
+  const ticketDelta = mk.avgTicket ? (selfTicket - mk.avgTicket) / mk.avgTicket : 0;
+  const Row = ({ label, value, delta, kind }: { label: string; value: string; delta: number; kind: "pp" | "pct" }) => {
+    const zero = Math.abs(delta) < 0.001;
+    const up = delta > 0;
+    const Icon = zero ? Minus : up ? ArrowUp : ArrowDown;
+    const tone = zero ? "text-muted-foreground" : up ? "text-success" : "text-destructive";
+    const deltaLabel = kind === "pp" ? `${(delta * 100).toFixed(1)}pp` : formatPct(delta);
+    return (
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">{label}</span>
+        <div className="flex items-center gap-2">
+          <span className="num font-semibold text-foreground">{value}</span>
+          <span className={cn("inline-flex items-center gap-0.5 num text-[11px] font-semibold", tone)}>
+            <Icon className="h-3 w-3" />
+            {deltaLabel}
+          </span>
+        </div>
+      </div>
+    );
+  };
+  return (
+    <div className="rounded-lg border border-dashed bg-muted/30 p-2.5">
+      <div className="mb-1.5 flex items-center justify-between">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          Comparativo de mercado
+        </span>
+        <span className="text-[10px] text-muted-foreground">{region} · n={mk.sampleSize}</span>
+      </div>
+      <div className="space-y-1">
+        <Row label="Margem vs mercado" value={formatPct(selfMargin)} delta={marginDelta} kind="pp" />
+        <Row label="Ticket vs mercado" value={formatBRL(selfTicket)} delta={ticketDelta} kind="pct" />
+      </div>
+      <p className="mt-1.5 text-[10px] text-muted-foreground">
+        Amostras anonimizadas por região (LGPD).
+      </p>
+    </div>
+  );
+}
+
