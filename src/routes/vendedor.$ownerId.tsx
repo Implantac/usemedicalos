@@ -6,6 +6,7 @@ import { KpiCard } from "@/components/medical/kpi-card";
 import { PriorityBadge, StatusBadge } from "@/components/medical/badges";
 import { SlaIndicator } from "@/components/medical/sla-indicator";
 import { DailyGoalRing } from "@/components/medical/daily-goal-ring";
+import { CommissionBadge } from "@/components/medical/commission-badge";
 import { useQuotes } from "@/hooks/use-quotes";
 import { OWNERS, ownerById } from "@/lib/medical/mock-data";
 import { computeKpis } from "@/lib/medical/analytics";
