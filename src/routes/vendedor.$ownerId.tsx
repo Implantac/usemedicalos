@@ -49,6 +49,7 @@ function OwnerPage() {
 
   const mine = useMemo(() => quotes.filter((q) => q.owner_id === ownerId), [quotes, ownerId]);
   const kpis = useMemo(() => computeKpis(mine), [mine]);
+  const commission = useMemo(() => summarizeForOwner(mine), [mine]);
   const sorted = useMemo(
     () => [...mine].sort((a, b) => (a.received_at < b.received_at ? 1 : -1)),
     [mine],
