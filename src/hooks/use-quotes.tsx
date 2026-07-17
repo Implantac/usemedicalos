@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Priority, Quote, QuoteItem, QuoteStatus, SourceType } from "@/lib/medical/types";
 import { INITIAL_QUOTES, TENANTS } from "@/lib/medical/mock-data";
 import { classify, slaHoursFor } from "@/lib/medical/classifier";
 import { appendActivity } from "@/lib/medical/activity";
 import { useActiveTenant } from "@/hooks/use-active-tenant";
+import { assertSameTenant, CrossTenantWriteError, type ActiveScope } from "@/lib/medical/tenant-guard";
+
 
 const STORAGE_KEY = "use-medical:quotes:v2";
 
