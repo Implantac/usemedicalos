@@ -136,6 +136,14 @@ function OwnerPage() {
           <KpiCard label="Ganhas (mês)" value={formatBRL(commission.mtd_won)} icon={Award} tone="primary" />
           <KpiCard label="Pipeline comissão" value={formatBRL(commission.mtd_pipeline)} icon={TrendingUp} />
         </div>
+        <RegionBenchmarkCard
+          region={owner.territory as Region}
+          quotes={mine}
+          selfAvgMargin={kpis.avgMargin}
+          selfAvgTicket={kpis.avgTicket}
+          selfWinRate={kpis.winRate}
+        />
+
 
         <div className="overflow-hidden rounded-lg border bg-card card-shadow">
           <div className="border-b bg-muted/40 px-2 py-1">
