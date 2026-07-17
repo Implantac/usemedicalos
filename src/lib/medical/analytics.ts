@@ -1,6 +1,7 @@
 import type { Quote, QuoteStatus, SourceType } from "./types";
 import { OWNERS, ownerById } from "./mock-data";
 import { quoteTotals } from "./pricing";
+import { computeCommission } from "./commission";
 import { slaState } from "@/components/medical/sla-indicator";
 
 export function filterByDays(quotes: Quote[], days: number): Quote[] {
@@ -92,6 +93,8 @@ export interface OwnerRow {
   avgResponseHours: number;
   avgMargin: number;
   conversion: number; // ganho / fechadas
+  commissionWon: number;
+  commissionPipeline: number;
 }
 
 export function leaderboard(quotes: Quote[]): OwnerRow[] {
@@ -100,12 +103,17 @@ export function leaderboard(quotes: Quote[]): OwnerRow[] {
     const totals = mine.map((q) => quoteTotals(q.items));
     const closed = mine.filter((q) => CLOSED.includes(q.status));
     const won = closed.filter((q) => q.status === "ganho");
-    // aproximação: horas desde recebido (pendentes) ou tempo do SLA (fechadas)
+    let commissionWon = 0;
+    let commissionPipeline = 0;
+    for (const q of mine) {
+      const c = computeCommission(q);
+      if (q.status === "ganho") commissionWon += c.total;
+      else if (q.status !== "perdido") commissionPipeline += c.total;
+    }
     const now = Date.now();
     const responses = mine.map((q) => {
       const received = new Date(q.received_at).getTime();
       if (q.status === "aguardando_precificacao") return (now - received) / 3_600_000;
-      // supõe que respondeu antes do deadline; usa metade do intervalo
       const deadline = new Date(q.sla_deadline).getTime();
       const window = deadline - received;
       return Math.max(0, window * 0.5) / 3_600_000;
@@ -119,8 +127,10 @@ export function leaderboard(quotes: Quote[]): OwnerRow[] {
       avgResponseHours: responses.length ? responses.reduce((a, b) => a + b, 0) / responses.length : 0,
       avgMargin: totals.length ? totals.reduce((s, t) => s + t.margin, 0) / totals.length : 0,
       conversion: closed.length ? won.length / closed.length : 0,
+      commissionWon,
+      commissionPipeline,
     };
-  }).sort((a, b) => b.pipeline - a.pipeline);
+  }).sort((a, b) => b.commissionWon + b.commissionPipeline - (a.commissionWon + a.commissionPipeline));
 }
 
 export function exceptions(quotes: Quote[]): Quote[] {
