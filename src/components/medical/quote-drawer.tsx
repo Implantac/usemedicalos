@@ -129,7 +129,11 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 text-muted-foreground hover:text-danger"
-                        onClick={() => onRemoveItem(quote.id, idx)}
+                        onClick={() => {
+                          appendActivity({ quote_id: quote.id, type: "item_removed", message: `Item removido: ${it.name}`, meta: { sku: it.sku } });
+                          onRemoveItem(quote.id, idx);
+                          bumpActivity();
+                        }}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
