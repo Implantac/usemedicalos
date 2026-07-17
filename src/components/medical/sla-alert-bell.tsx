@@ -1,8 +1,9 @@
-import { Bell } from "lucide-react";
+import { Bell, BellOff, BellRing } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useQuotes } from "@/hooks/use-quotes";
+import { useSlaNotifications } from "@/hooks/use-sla-notifications";
 import { slaBucketOf } from "@/lib/medical/pipeline";
 import { formatBRL, quoteTotals } from "@/lib/medical/pricing";
 import { cn } from "@/lib/utils";
@@ -10,6 +11,7 @@ import { cn } from "@/lib/utils";
 export function SlaAlertBell() {
   const [open, setOpen] = useState(false);
   const { quotes } = useQuotes();
+  const notif = useSlaNotifications();
 
   const alerts = useMemo(() => {
     const rows = quotes
@@ -47,13 +49,38 @@ export function SlaAlertBell() {
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
-        <div className="border-b p-3">
-          <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-            Alertas de SLA
+        <div className="flex items-start justify-between gap-2 border-b p-3">
+          <div>
+            <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              Alertas de SLA
+            </div>
+            <div className="mt-0.5 text-xs text-foreground">
+              {alerts.overdue} atrasada(s) · {alerts.risk} em risco
+            </div>
           </div>
-          <div className="mt-0.5 text-xs text-foreground">
-            {alerts.overdue} atrasada(s) · {alerts.risk} em risco
-          </div>
+          {notif.permission !== "unsupported" && (
+            <button
+              type="button"
+              onClick={() => (notif.enabled ? notif.disable() : notif.request())}
+              className={cn(
+                "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold transition-colors",
+                notif.enabled
+                  ? "border-success/30 bg-success/10 text-success"
+                  : "border-border text-muted-foreground hover:bg-muted",
+              )}
+              title={notif.enabled ? "Notificações ativas" : "Ativar notificações"}
+            >
+              {notif.enabled ? (
+                <>
+                  <BellRing className="h-3 w-3" /> Ativo
+                </>
+              ) : (
+                <>
+                  <BellOff className="h-3 w-3" /> Notificar
+                </>
+              )}
+            </button>
+          )}
         </div>
         <div className="max-h-80 overflow-y-auto">
           {alerts.rows.length === 0 && (
