@@ -140,3 +140,21 @@ function Kpi({ label, value, tone = "default" }: { label: string; value: string;
     </div>
   );
 }
+
+function PricingSection({ product, suggestedLegacy, totalQty }: { product: Product; suggestedLegacy: number; totalQty: number }) {
+  const { isGestor } = useUserRole();
+  return (
+    <section className="space-y-3 border-b p-4">
+      <div>
+        <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-primary">
+          <Sparkles className="h-3 w-3" /> Motor de precificação
+        </div>
+        <PricingEnginePanel product={product} />
+        <p className="mt-1.5 text-[10px] text-muted-foreground">
+          Sugestão markup-alvo legado: <span className="num font-semibold">{formatBRL(suggestedLegacy)}</span> · vol. histórico {totalQty.toLocaleString("pt-BR")} un
+        </p>
+      </div>
+      {isGestor && <ProductGovernanceForm product={product} />}
+    </section>
+  );
+}
