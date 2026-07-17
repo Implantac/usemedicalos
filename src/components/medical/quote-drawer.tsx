@@ -140,7 +140,7 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
 
         <div className="flex-1 overflow-y-auto">
           <section className="space-y-2 border-b p-4">
-            <ComplianceAlert report={compliance} />
+            <ComplianceAlert report={compliance} onOverride={handleOverride} onRevoke={handleRevoke} />
             <CommissionBadge quote={quote} />
           </section>
 
