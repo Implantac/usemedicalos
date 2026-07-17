@@ -112,7 +112,17 @@ function IntegrationsPage() {
           </div>
         </div>
 
-        <ConnectorsGrid />
+        <ConnectorsGrid
+          onApplyPreset={(c) => {
+            if (c.mappingTemplate) {
+              setMapping(JSON.stringify(c.mappingTemplate, null, 2));
+              setName(`${c.name} — preset`);
+              toast.success(`Template do ${c.name} carregado no editor abaixo.`);
+            } else {
+              toast.info(`${c.name} ainda não tem template. Configure manualmente.`);
+            }
+          }}
+        />
 
 
         {mappings.length > 0 && (
