@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Priority, Quote, QuoteItem, QuoteStatus, SourceType } from "@/lib/medical/types";
-import { INITIAL_QUOTES, TENANTS } from "@/lib/medical/mock-data";
+import { INITIAL_QUOTES, PRODUCTS, TENANTS } from "@/lib/medical/mock-data";
+import { buildAutoDraft } from "@/lib/medical/auto-draft";
 import { classify, slaHoursFor } from "@/lib/medical/classifier";
 import { appendActivity } from "@/lib/medical/activity";
 import { useActiveTenant } from "@/hooks/use-active-tenant";
@@ -134,13 +135,8 @@ export function useQuotes() {
   const ingestPortalQuote = useCallback((quote: Quote) => {
     setAllQuotes((qs) => {
       // Auto-draft: pré-precifica itens via engine e sugere tier via histórico.
-      // Import dinâmico evita ciclo com pricing-engine/products no boot.
       let drafted = quote;
       try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { buildAutoDraft } = require("@/lib/medical/auto-draft") as typeof import("@/lib/medical/auto-draft");
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const { PRODUCTS } = require("@/lib/medical/mock-data") as typeof import("@/lib/medical/mock-data");
         drafted = buildAutoDraft(quote, PRODUCTS, qs).quote;
       } catch (err) {
         console.warn("[auto-draft] falhou, seguindo com quote original", err);
