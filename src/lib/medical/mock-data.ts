@@ -1,11 +1,17 @@
 import type { Owner, Product, Quote, Tenant } from "./types";
 import { classify, slaHoursFor } from "./classifier";
 
-export const TENANT: Tenant = {
-  id: "tnt_use_medical",
-  name: "USE Medical Distribuidora",
-  cnpj: "12.345.678/0001-90",
-};
+export const TENANTS: Tenant[] = [
+  { id: "tnt_use_medical", name: "USE Medical Distribuidora", cnpj: "12.345.678/0001-90" },
+  { id: "tnt_med_sul", name: "MedSul Hospitalar", cnpj: "23.456.789/0001-11" },
+  { id: "tnt_bio_norte", name: "BioNorte Distribuição", cnpj: "34.567.890/0001-22" },
+];
+
+export const TENANT: Tenant = TENANTS[0];
+
+export function tenantById(id: string): Tenant {
+  return TENANTS.find((t) => t.id === id) ?? TENANTS[0];
+}
 
 export const OWNERS: Owner[] = [
   { id: "u_ana", name: "Ana Ribeiro", initials: "AR", territory: "SP Capital" },
