@@ -33,11 +33,8 @@ export function suggestTier(winRate: number, sampleSize: number): ClientTier {
 }
 
 export function buildClientProfiles(quotes: Quote[]): Map<string, ClientProfile> {
-  const buckets = new Map<string, {
-    name: string;
-    quotes: Quote[];
-    platforms: Map<SourcePlatform, number>;
-  }>();
+  type Bucket = { name: string; quotes: Quote[]; platforms: Map<SourcePlatform, number> };
+  const buckets = new Map<string, Bucket>();
 
   for (const q of quotes) {
     const key = normalize(q.customer_name);
