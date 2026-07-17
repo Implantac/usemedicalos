@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { useQuotes } from "@/hooks/use-quotes";
 import { listAllActiveOverrides, revokeOverride, type ComplianceOverride } from "@/lib/medical/compliance-override";
-import { logActivity } from "@/lib/medical/activity";
+import { appendActivity } from "@/lib/medical/activity";
 
 export const Route = createFileRoute("/excecoes")({
   head: () => ({
