@@ -285,8 +285,9 @@ export function NewQuoteDialog({ open, onOpenChange, onCreate }: Props) {
             )}
           </div>
         )}
+        </div>
 
-        <div className="flex items-center justify-between gap-2 border-t bg-muted/30 px-5 py-3">
+        <div className="flex items-center justify-between gap-2 border-t bg-muted/30 px-4 py-3 sm:px-5">
           {step === 1 ? (
             <>
               <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Cancelar</Button>
