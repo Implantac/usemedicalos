@@ -37,7 +37,7 @@ function ExceptionsPage() {
     appendActivity({
       quote_id: o.quote_id,
       type: "compliance_override_revoked",
-      actor: o.manager_id,
+      message: `Exceção revogada para SKU ${o.sku} (gestor ${o.manager_id})`,
       meta: { sku: o.sku, reason: "Revogado via auditoria" },
     });
     toast.success("Exceção revogada.");
