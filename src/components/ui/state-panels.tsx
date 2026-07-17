@@ -91,11 +91,90 @@ function useManagedFocus<T extends HTMLElement>(enabled: boolean) {
     if (!enabled) return;
     const el = ref.current;
     if (!el) return;
-    // Aguarda a transição de entrada para não roubar foco antes do paint.
     const id = requestAnimationFrame(() => el.focus({ preventScroll: false }));
     return () => cancelAnimationFrame(id);
   }, [enabled]);
   return ref;
+}
+
+/* ------------------------------------------------------------------ */
+/* Retorno de foco — pilha global de triggers                          */
+/* ------------------------------------------------------------------ */
+
+/** Pilha global de triggers ativos. O último a montar é o primeiro a
+ *  devolver foco — cobre múltiplos painéis simultâneos. */
+const focusReturnStack: HTMLElement[] = [];
+
+const FOCUSABLE_SELECTOR = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+  '[contenteditable="true"]',
+].join(",");
+
+function isVisible(el: HTMLElement): boolean {
+  if (!el.isConnected) return false;
+  if (typeof window !== "undefined") {
+    const s = window.getComputedStyle(el);
+    if (s.visibility === "hidden" || s.display === "none") return false;
+  }
+  return el.getClientRects().length > 0;
+}
+
+/** Se o trigger tem filho focável, prefere-o (regra de UX pedida). */
+function resolveFocusTarget(el: HTMLElement): HTMLElement | null {
+  if (!isVisible(el)) return null;
+  const child = el.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+  if (child && isVisible(child)) return child;
+  if (el.matches(FOCUSABLE_SELECTOR) || el.tabIndex >= 0) return el;
+  return null;
+}
+
+/** Restaura foco ao trigger após o painel desaparecer. Casos de borda:
+ *   1) trigger sumiu do DOM → volta ao anterior na pilha
+ *   2) múltiplos triggers → o último ganha (natural na pilha)
+ *   3) trigger tem filho focável → foca o filho
+ *   4) nada focável disponível → não faz nada (evita jump para <body>) */
+function useFocusReturn(active: boolean) {
+  const savedRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (!active) return;
+    if (typeof document === "undefined") return;
+    const trigger = document.activeElement as HTMLElement | null;
+    const valid = trigger && trigger !== document.body ? trigger : null;
+    savedRef.current = valid;
+    if (valid) focusReturnStack.push(valid);
+
+    return () => {
+      const mine = savedRef.current;
+      if (mine) {
+        const idx = focusReturnStack.lastIndexOf(mine);
+        if (idx !== -1) focusReturnStack.splice(idx, 1);
+      }
+      requestAnimationFrame(() => {
+        let target = mine ? resolveFocusTarget(mine) : null;
+        if (!target) {
+          for (let i = focusReturnStack.length - 1; i >= 0; i--) {
+            const cand = resolveFocusTarget(focusReturnStack[i]);
+            if (cand) {
+              target = cand;
+              break;
+            }
+          }
+        }
+        if (target) {
+          try {
+            target.focus({ preventScroll: true });
+          } catch {
+            /* noop */
+          }
+        }
+      });
+    };
+  }, [active]);
 }
 
 /* Wrapper com fade-in suave (evita "congelamento" visual) */
