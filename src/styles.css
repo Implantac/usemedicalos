@@ -43,6 +43,8 @@
 
   --color-navy: var(--navy);
   --color-navy-foreground: var(--navy-foreground);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
