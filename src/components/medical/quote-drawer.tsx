@@ -202,9 +202,10 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
             <div className="space-y-2">
               {quote.items.map((it, idx) => {
                 const m = itemMargin(it);
-                const suggested = suggestPrice(it);
+                const suggested = suggestPrice(it, tenantConfig.target_margin);
                 const base = basePrice(it.cost_price);
-                const signal = pricingSignal(it);
+                const signal = pricingSignal(it, minMargin);
+
                 const ok = signal === "ok";
                 const negative = signal === "negative";
                 const belowBase = signal === "below_base";
