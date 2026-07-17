@@ -79,6 +79,38 @@ function OwnerPage() {
           </div>
         </div>
 
+        {/* HERO: Comissão estimada — gamificação financeira em destaque */}
+        <div className="rounded-xl border-2 border-success/40 bg-gradient-to-br from-success/15 via-success/5 to-transparent p-4 shadow-sm sm:p-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                Comissão estimada — mês atual
+              </div>
+              <div className="mt-1 flex items-baseline gap-2">
+                <span className="num text-4xl font-black tracking-tight text-success sm:text-5xl">
+                  {formatBRL(commission.mtd_total)}
+                </span>
+                <span className="text-xs font-semibold text-muted-foreground">
+                  + {formatBRL(commission.mtd_pipeline)} em pipeline
+                </span>
+              </div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                {commission.won_count} ganha(s) · margem média{" "}
+                <span className={kpis.avgMargin >= 0.15 ? "font-bold text-success" : kpis.avgMargin >= 0.12 ? "font-bold text-warning-foreground" : "font-bold text-danger"}>
+                  {formatPct(kpis.avgMargin)}
+                </span>
+                {kpis.avgMargin < 0.15 && kpis.avgMargin >= 0.12 && " — cada +1% de margem sobe seu tier"}
+                {kpis.avgMargin < 0.12 && " — margem crítica: comissão zerada"}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="grid h-14 w-14 place-items-center rounded-full bg-success/20 text-success">
+                <Coins className="h-7 w-7" />
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
           <KpiCard label="Cotações ativas" value={kpis.activeCount} icon={Activity} tone="primary" />
           <KpiCard label="Pipeline aberto" value={formatBRL(kpis.pipeline)} icon={TrendingUp} tone="success" />
@@ -93,7 +125,7 @@ function OwnerPage() {
             label="Margem média"
             value={formatPct(kpis.avgMargin)}
             icon={DollarSign}
-            tone={kpis.avgMargin < 0.12 ? "danger" : "success"}
+            tone={kpis.avgMargin < 0.12 ? "danger" : kpis.avgMargin < 0.15 ? "warning" : "success"}
           />
         </div>
 
