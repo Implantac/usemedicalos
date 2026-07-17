@@ -53,8 +53,9 @@ function ExceptionsPage() {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader onReset={resetDemo} />
-      <main className="mx-auto max-w-[1200px] px-3 py-4 sm:px-4 sm:py-6">
-        <div className="mb-4 flex items-center gap-2">
+      <main className="mx-auto max-w-[1200px] space-y-4 px-3 py-4 sm:px-4 sm:py-6">
+        <TenantScopeBanner hint="Exceções ANVISA/CMED" />
+        <div className="flex items-center gap-2">
           <ShieldCheck className="h-5 w-5 text-brand" />
           <h1 className="text-lg font-bold tracking-tight">Exceções ativas de compliance</h1>
           <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
