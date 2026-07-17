@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Copy, KeyRound, Plus, Trash2, XCircle } from "lucide-react";
+import { Copy, KeyRound, Lock, Plus, Trash2, XCircle } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,9 @@ import { useApiKeys } from "@/hooks/use-api-keys";
 import { TIER_LIMITS, type ApiScope, type RateTier } from "@/lib/medical/api-keys";
 import { useActiveTenant } from "@/hooks/use-active-tenant";
 import { TENANTS } from "@/lib/medical/mock-data";
+import { usePermissions } from "@/hooks/use-permissions";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/api-keys")({
   head: () => ({
@@ -39,12 +41,15 @@ function ApiKeysPage() {
   const { scope, tenant } = useActiveTenant();
   const tenantId = tenant?.id ?? TENANTS[0].id;
   const { keys, create, revoke, remove } = useApiKeys(tenantId);
+  const { can } = usePermissions();
+  const canManage = can("api_keys.manage");
   const [label, setLabel] = useState("");
   const [scopes, setScopes] = useState<ApiScope[]>(["catalog:read"]);
   const [tier, setTier] = useState<RateTier>("standard");
   const [revealed, setRevealed] = useState<string | null>(null);
 
   function submit() {
+    if (!canManage) return toast.error("Sem permissão api_keys.manage.");
     if (!label.trim()) return toast.error("Informe um rótulo.");
     if (scopes.length === 0) return toast.error("Selecione ao menos um escopo.");
     const k = create({ label, scopes, tier });
@@ -52,6 +57,7 @@ function ApiKeysPage() {
     setLabel("");
     toast.success("Chave criada. Copie o secret agora — não será exibido novamente.");
   }
+
 
   async function copy(text: string, msg: string) {
     await navigator.clipboard.writeText(text);
