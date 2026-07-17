@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
-import { Building2, Inbox, KeyRound, LayoutDashboard, LineChart, Package, Plug, RefreshCw, ShieldCheck } from "lucide-react";
+import { Inbox, KeyRound, LayoutDashboard, LineChart, Package, Plug, RefreshCw, ShieldCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { TENANT } from "@/lib/medical/mock-data";
 import { cn } from "@/lib/utils";
 import { SlaAlertBell } from "./sla-alert-bell";
+import { TenantSwitcher } from "./tenant-switcher";
 import logoAsset from "@/assets/use-medical-logo.png.asset.json";
+
 
 const NAV = [
   { to: "/", label: "Inbox", icon: Inbox },
