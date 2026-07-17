@@ -197,9 +197,23 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
             <Textarea
               value={quote.notes ?? ""}
               onChange={(e) => onUpdateQuote(quote.id, { notes: e.target.value })}
+              onBlur={(e) => {
+                if ((e.target.value ?? "") !== (quote.notes ?? "")) return;
+                if (e.target.value?.trim()) {
+                  appendActivity({ quote_id: quote.id, type: "notes_updated", message: "Notas internas atualizadas" });
+                  bumpActivity();
+                }
+              }}
               placeholder="Observações para o time comercial…"
               className="mt-1 min-h-20 text-sm"
             />
+          </section>
+
+          <section className="border-t p-4">
+            <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              Timeline de atividades
+            </h3>
+            <QuoteTimeline quoteId={quote.id} version={activityVersion} />
           </section>
         </div>
 
