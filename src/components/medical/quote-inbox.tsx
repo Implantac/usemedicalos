@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowRight, Building2, Filter, Search, Undo2, X } from "lucide-react";
+import { ArrowRight, Bookmark, BookmarkPlus, Building2, Filter, Search, Trash2, Undo2, X } from "lucide-react";
 import type { Quote, QuoteStatus } from "@/lib/medical/types";
 import { STATUS_LABEL } from "@/lib/medical/types";
 import { quoteTotals, formatBRL, formatPct } from "@/lib/medical/pricing";
@@ -13,12 +13,23 @@ import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useInboxViews, type InboxSort, type InboxViewState } from "@/hooks/use-inbox-views";
 
 const PRIORITY_RANK = { urgente: 0, alta: 1, normal: 2, baixa: 3 } as const;
 const ALL_STATUS = Object.keys(STATUS_LABEL) as QuoteStatus[];
+
+const SORT_LABEL: Record<InboxSort, string> = {
+  priority: "Prioridade + SLA",
+  sla: "SLA mais curto",
+  revenue_desc: "Maior receita",
+  received_desc: "Mais recente",
+};
 
 interface Props {
   quotes: Quote[];
@@ -33,8 +44,29 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
   const [owner, setOwner] = useState<string>("todos");
   const [sla, setSla] = useState<SlaBucket>("todos");
   const [statuses, setStatuses] = useState<Set<QuoteStatus>>(new Set());
+  const [sort, setSort] = useState<InboxSort>("priority");
+  const [activeViewId, setActiveViewId] = useState<string | null>(null);
+
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [viewName, setViewName] = useState("");
+
+  const { views, saveView, deleteView } = useInboxViews();
+
+  const currentState = (): InboxViewState => ({
+    q, tenant, owner, sla, statuses: Array.from(statuses), sort,
+  });
+
+  const applyState = (s: InboxViewState) => {
+    setQ(s.q);
+    setTenant(s.tenant);
+    setOwner(s.owner);
+    setSla(s.sla);
+    setStatuses(new Set(s.statuses));
+    setSort(s.sort);
+  };
 
   const toggleStatus = (s: QuoteStatus) => {
+    setActiveViewId(null);
     setStatuses((prev) => {
       const next = new Set(prev);
       if (next.has(s)) next.delete(s); else next.add(s);
@@ -43,12 +75,40 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
   };
 
   const clearFilters = () => {
-    setQ(""); setTenant("todos"); setOwner("todos"); setSla("todos"); setStatuses(new Set());
+    setQ(""); setTenant("todos"); setOwner("todos"); setSla("todos");
+    setStatuses(new Set()); setSort("priority"); setActiveViewId(null);
+  };
+
+  const handleSaveView = () => {
+    const name = viewName.trim();
+    if (!name) { toast.error("Dê um nome à visualização"); return; }
+    const v = saveView(name, currentState());
+    setActiveViewId(v.id);
+    setSaveOpen(false);
+    setViewName("");
+    toast.success(`Visualização "${v.name}" salva`);
+  };
+
+  const handleLoadView = (id: string) => {
+    if (id === "__none__") { setActiveViewId(null); return; }
+    const v = views.find((x) => x.id === id);
+    if (!v) return;
+    applyState(v.state);
+    setActiveViewId(v.id);
+    toast(`Visualização "${v.name}" aplicada`);
+  };
+
+  const handleDeleteView = () => {
+    if (!activeViewId) return;
+    const v = views.find((x) => x.id === activeViewId);
+    deleteView(activeViewId);
+    setActiveViewId(null);
+    if (v) toast(`Visualização "${v.name}" removida`);
   };
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return quotes
+    const list = quotes
       .filter((x) => tenant === "todos" || x.tenant_id === tenant)
       .filter((x) => owner === "todos" || x.owner_id === owner)
       .filter((x) => statuses.size === 0 || statuses.has(x.status))
@@ -59,19 +119,33 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
           : x.customer_name.toLowerCase().includes(needle) ||
             x.id.toLowerCase().includes(needle) ||
             x.items.some((i) => i.sku.toLowerCase().includes(needle) || i.name.toLowerCase().includes(needle)),
-      )
-      .sort((a, b) => {
-        const pa = PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
-        if (pa !== 0) return pa;
-        return slaState(a.sla_deadline).hours - slaState(b.sla_deadline).hours;
-      });
-  }, [quotes, q, tenant, owner, sla, statuses]);
+      );
+
+    return list.sort((a, b) => {
+      switch (sort) {
+        case "sla":
+          return slaState(a.sla_deadline).hours - slaState(b.sla_deadline).hours;
+        case "revenue_desc":
+          return quoteTotals(b.items).revenue - quoteTotals(a.items).revenue;
+        case "received_desc":
+          return new Date(b.received_at).getTime() - new Date(a.received_at).getTime();
+        case "priority":
+        default: {
+          const pa = PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
+          if (pa !== 0) return pa;
+          return slaState(a.sla_deadline).hours - slaState(b.sla_deadline).hours;
+        }
+      }
+    });
+  }, [quotes, q, tenant, owner, sla, statuses, sort]);
 
   const activeCount =
     (tenant !== "todos" ? 1 : 0) +
     (owner !== "todos" ? 1 : 0) +
     (sla !== "todos" ? 1 : 0) +
-    (statuses.size > 0 ? 1 : 0);
+    (statuses.size > 0 ? 1 : 0) +
+    (sort !== "priority" ? 1 : 0) +
+    (q.trim() ? 1 : 0);
 
   const handleAdvance = (e: React.MouseEvent, qt: Quote) => {
     e.stopPropagation();
@@ -95,21 +169,83 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
     toast.error(`${qt.customer_name} marcado como perdido`);
   };
 
+  // Wrap setters so manual filter changes clear active view marker
+  const wrap = <T,>(setter: (v: T) => void) => (v: T) => { setActiveViewId(null); setter(v); };
+
   return (
     <div className="flex h-full flex-col">
       <div className="space-y-2 border-b bg-card p-3">
+        {/* Saved views bar */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <Bookmark className="h-3 w-3" /> Visualizações
+          </span>
+          <Select value={activeViewId ?? "__none__"} onValueChange={handleLoadView}>
+            <SelectTrigger className="h-8 w-full sm:w-64">
+              <SelectValue placeholder={views.length ? "Carregar visualização…" : "Nenhuma salva"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">— Sem visualização —</SelectItem>
+              {views.map((v) => (
+                <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline" className="h-8 gap-1 px-2 text-[11px]">
+                <BookmarkPlus className="h-3.5 w-3.5" /> Salvar atual
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Salvar visualização</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Nome</label>
+                <Input
+                  value={viewName}
+                  onChange={(e) => setViewName(e.target.value)}
+                  placeholder="Ex.: Urgentes em risco - Sudeste"
+                  autoFocus
+                  onKeyDown={(e) => e.key === "Enter" && handleSaveView()}
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Salva os filtros atuais (busca, tenant, vendedor, SLA, status) e a ordenação.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setSaveOpen(false)}>Cancelar</Button>
+                <Button onClick={handleSaveView}>Salvar</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {activeViewId && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 gap-1 px-2 text-[11px] text-danger hover:text-danger"
+              onClick={handleDeleteView}
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Excluir
+            </Button>
+          )}
+        </div>
+
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={q}
-              onChange={(e) => setQ(e.target.value)}
+              onChange={(e) => { setActiveViewId(null); setQ(e.target.value); }}
               placeholder="Buscar cliente, SKU ou ID…"
               className="h-9 pl-8"
             />
           </div>
 
-          <Select value={tenant} onValueChange={setTenant}>
+          <Select value={tenant} onValueChange={wrap(setTenant)}>
             <SelectTrigger className="h-9 w-full sm:w-52">
               <Building2 className="mr-1.5 h-3.5 w-3.5 opacity-60" />
               <SelectValue />
@@ -122,7 +258,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
             </SelectContent>
           </Select>
 
-          <Select value={owner} onValueChange={setOwner}>
+          <Select value={owner} onValueChange={wrap(setOwner)}>
             <SelectTrigger className="h-9 w-full sm:w-44">
               <SelectValue />
             </SelectTrigger>
@@ -134,13 +270,24 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
             </SelectContent>
           </Select>
 
-          <Select value={sla} onValueChange={(v) => setSla(v as SlaBucket)}>
+          <Select value={sla} onValueChange={wrap((v: string) => setSla(v as SlaBucket))}>
             <SelectTrigger className="h-9 w-full sm:w-44">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {(Object.keys(SLA_LABEL) as SlaBucket[]).map((s) => (
                 <SelectItem key={s} value={s}>{SLA_LABEL[s]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={sort} onValueChange={wrap((v: string) => setSort(v as InboxSort))}>
+            <SelectTrigger className="h-9 w-full sm:w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(SORT_LABEL) as InboxSort[]).map((s) => (
+                <SelectItem key={s} value={s}>Ordenar: {SORT_LABEL[s]}</SelectItem>
               ))}
             </SelectContent>
           </Select>
