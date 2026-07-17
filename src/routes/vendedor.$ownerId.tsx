@@ -63,17 +63,17 @@ function OwnerPage() {
           <Link
             to="/dashboard"
             search={{ period: 30 }}
-            className="inline-flex h-8 items-center gap-1.5 rounded-md border bg-card px-2.5 text-xs font-medium text-muted-foreground hover:text-foreground"
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border bg-card px-2.5 text-xs font-medium text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Dashboard
           </Link>
-          <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary">
               {owner.initials}
             </div>
-            <div>
-              <h1 className="text-lg font-bold tracking-tight text-foreground">{owner.name}</h1>
-              <p className="text-xs text-muted-foreground">Território: {owner.territory}</p>
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-bold tracking-tight text-foreground">{owner.name}</h1>
+              <p className="truncate text-xs text-muted-foreground">Território: {owner.territory}</p>
             </div>
           </div>
         </div>
