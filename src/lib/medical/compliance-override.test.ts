@@ -6,6 +6,17 @@ import {
   revokeOverride,
 } from "./compliance-override";
 
+// Minimal in-memory localStorage shim for node test env.
+class MemStorage {
+  private m = new Map<string, string>();
+  getItem(k: string) { return this.m.get(k) ?? null; }
+  setItem(k: string, v: string) { this.m.set(k, String(v)); }
+  removeItem(k: string) { this.m.delete(k); }
+  clear() { this.m.clear(); }
+}
+(globalThis as unknown as { window?: unknown; localStorage?: unknown }).window = globalThis;
+(globalThis as unknown as { localStorage: MemStorage }).localStorage = new MemStorage();
+
 beforeEach(() => {
   localStorage.clear();
 });
