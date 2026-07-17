@@ -175,10 +175,13 @@ function IntegrationsPage() {
           </div>
         )}
 
+        <SignatureHelper payload={payload} mapping={mapping} disabled={!!payloadErr || !!mappingErr} />
+
         <div className="rounded-lg border bg-card p-3 text-xs text-muted-foreground card-shadow">
           <strong className="text-foreground">Endpoint público:</strong>{" "}
           <code>POST /api/public/erp/ingest</code> — body{" "}
-          <code>{`{ tenant_token, mapping, payload }`}</code>. Retorna draft validado.
+          <code>{`{ tenant_token, mapping, payload }`}</code>. Header{" "}
+          <code>x-use-signature: sha256=&lt;HMAC&gt;</code> (use o helper acima).
         </div>
       </main>
       <Toaster position="top-right" richColors />
