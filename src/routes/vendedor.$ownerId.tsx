@@ -189,7 +189,7 @@ function OwnerPage() {
                         >
                           {formatPct(t.margin)}
                         </td>
-                        <td className="px-2 py-2 text-right">
+                        <td className="px-2 py-1 text-right">
                           {q.status === "aguardando_precificacao" || q.status === "em_negociacao" ? (
                             <SlaIndicator deadline={q.sla_deadline} compact />
                           ) : (
