@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Priority, Quote, QuoteItem, QuoteStatus, SourceType } from "@/lib/medical/types";
 import { INITIAL_QUOTES, TENANT } from "@/lib/medical/mock-data";
 import { classify, slaHoursFor } from "@/lib/medical/classifier";
+import { appendActivity } from "@/lib/medical/activity";
 
 const STORAGE_KEY = "use-medical:quotes:v2";
 
@@ -89,6 +90,7 @@ export function useQuotes() {
       use_sistemas_synced: false,
     };
     setQuotes((qs) => [q, ...qs]);
+    appendActivity({ quote_id: q.id, type: "created", message: `Cotação criada para ${q.customer_name}` });
     return q;
   }, []);
 

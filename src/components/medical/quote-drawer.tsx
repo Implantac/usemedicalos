@@ -15,6 +15,8 @@ import { formatBRL, formatPct, itemMargin, itemTotal, quoteTotals, suggestPrice 
 import { PriorityBadge, SourceTag, StatusBadge } from "./badges";
 import { SlaIndicator } from "./sla-indicator";
 import { sendToUseSistemas } from "@/lib/medical/use-sistemas-mock";
+import { appendActivity } from "@/lib/medical/activity";
+import { QuoteTimeline } from "./quote-timeline";
 
 interface Props {
   quote: Quote | null;
@@ -26,9 +28,11 @@ interface Props {
 
 export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpdateQuote }: Props) {
   const [submitting, setSubmitting] = useState(false);
+  const [activityVersion, setActivityVersion] = useState(0);
   if (!quote) return null;
   const totals = quoteTotals(quote.items);
   const marginOk = totals.margin >= MIN_MARGIN;
+  const bumpActivity = () => setActivityVersion((v) => v + 1);
 
   const handleGenerateProposal = async () => {
     if (!marginOk) {
@@ -39,6 +43,8 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
     try {
       const res = await sendToUseSistemas(quote);
       onUpdateQuote(quote.id, { status: "enviado", use_sistemas_synced: true, use_sistemas_order_id: res.order_id });
+      appendActivity({ quote_id: quote.id, type: "sent_use_sistemas", message: `Enviado ao Use Sistemas`, meta: { order_id: res.order_id } });
+      bumpActivity();
       toast.success(res.message);
     } catch {
       toast.error("Falha ao integrar com Use Sistemas.");
@@ -123,7 +129,11 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 text-muted-foreground hover:text-danger"
-                        onClick={() => onRemoveItem(quote.id, idx)}
+                        onClick={() => {
+                          appendActivity({ quote_id: quote.id, type: "item_removed", message: `Item removido: ${it.name}`, meta: { sku: it.sku } });
+                          onRemoveItem(quote.id, idx);
+                          bumpActivity();
+                        }}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -172,7 +182,11 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
                           size="sm"
                           variant="outline"
                           className="h-6 px-2 text-[11px]"
-                          onClick={() => onUpdateItem(quote.id, idx, { unit_price: suggested })}
+                          onClick={() => {
+                            onUpdateItem(quote.id, idx, { unit_price: suggested });
+                            appendActivity({ quote_id: quote.id, type: "price_suggested", message: `Sugestão IA aplicada em ${it.sku}: ${formatBRL(suggested)}`, meta: { sku: it.sku } });
+                            bumpActivity();
+                          }}
                         >
                           Aplicar
                         </Button>
@@ -191,9 +205,23 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
             <Textarea
               value={quote.notes ?? ""}
               onChange={(e) => onUpdateQuote(quote.id, { notes: e.target.value })}
+              onBlur={(e) => {
+                if ((e.target.value ?? "") !== (quote.notes ?? "")) return;
+                if (e.target.value?.trim()) {
+                  appendActivity({ quote_id: quote.id, type: "notes_updated", message: "Notas internas atualizadas" });
+                  bumpActivity();
+                }
+              }}
               placeholder="Observações para o time comercial…"
               className="mt-1 min-h-20 text-sm"
             />
+          </section>
+
+          <section className="border-t p-4">
+            <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              Timeline de atividades
+            </h3>
+            <QuoteTimeline quoteId={quote.id} version={activityVersion} />
           </section>
         </div>
 
@@ -226,7 +254,18 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
           <div className="flex flex-col gap-2 sm:flex-row">
             <Select
               value={quote.status}
-              onValueChange={(v) => onUpdateQuote(quote.id, { status: v as QuoteStatus })}
+              onValueChange={(v) => {
+                const to = v as QuoteStatus;
+                if (to === quote.status) return;
+                appendActivity({
+                  quote_id: quote.id,
+                  type: "status_changed",
+                  message: `Status: ${STATUS_LABEL[quote.status]} → ${STATUS_LABEL[to]}`,
+                  meta: { from: quote.status, to },
+                });
+                onUpdateQuote(quote.id, { status: to });
+                bumpActivity();
+              }}
             >
               <SelectTrigger className="h-9 sm:w-48"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -241,6 +280,8 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
               onClick={() => {
                 try {
                   generateProposalPdf(quote);
+                  appendActivity({ quote_id: quote.id, type: "pdf_generated", message: "Proposta PDF gerada" });
+                  bumpActivity();
                   toast.success("Proposta PDF gerada.");
                 } catch (e) {
                   console.error(e);
