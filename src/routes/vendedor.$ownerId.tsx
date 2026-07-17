@@ -96,6 +96,13 @@ function OwnerPage() {
           />
         </div>
 
+        <div className="grid gap-2 md:grid-cols-4">
+          <DailyGoalRing progress={commission.daily_progress} goal={commission.daily_goal} />
+          <KpiCard label="Comissão MTD" value={formatBRL(commission.mtd_total)} icon={Coins} tone="success" />
+          <KpiCard label="Ganhas (mês)" value={formatBRL(commission.mtd_won)} icon={Award} tone="primary" />
+          <KpiCard label="Pipeline comissão" value={formatBRL(commission.mtd_pipeline)} icon={TrendingUp} />
+        </div>
+
         <div className="overflow-hidden rounded-lg border bg-card card-shadow">
           <div className="border-b bg-muted/40 px-3 py-2">
             <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
