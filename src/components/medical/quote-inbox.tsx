@@ -414,11 +414,12 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
                 key={s}
                 type="button"
                 onClick={() => toggleStatus(s)}
+                aria-pressed={active}
                 className={cn(
-                  "rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors",
+                  "rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-smooth press",
                   active
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-background text-muted-foreground hover:bg-accent",
+                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                    : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-accent hover:text-foreground",
                 )}
               >
                 {STATUS_LABEL[s]}
