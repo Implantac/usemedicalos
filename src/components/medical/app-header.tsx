@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
-import { Building2, Inbox, KeyRound, LayoutDashboard, LineChart, Package, Plug, RefreshCw, ShieldCheck } from "lucide-react";
+import { Inbox, KeyRound, LayoutDashboard, LineChart, Package, Plug, RefreshCw, ShieldCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { TENANT } from "@/lib/medical/mock-data";
 import { cn } from "@/lib/utils";
 import { SlaAlertBell } from "./sla-alert-bell";
+import { TenantSwitcher } from "./tenant-switcher";
 import logoAsset from "@/assets/use-medical-logo.png.asset.json";
+
 
 const NAV = [
   { to: "/", label: "Inbox", icon: Inbox },
@@ -55,13 +56,9 @@ export function AppHeader({ onReset, children }: { onReset: () => void; children
           })}
         </nav>
 
-        <div className="ml-4 hidden min-w-0 items-center gap-1.5 text-xs opacity-80 lg:flex">
-          <Building2 className="h-3.5 w-3.5 shrink-0" />
-          <span className="truncate font-medium">{TENANT.name}</span>
-          <span className="hidden truncate opacity-60 xl:inline">· CNPJ {TENANT.cnpj}</span>
-        </div>
-
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+          <TenantSwitcher />
+
           {children}
           <SlaAlertBell />
           <Button

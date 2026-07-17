@@ -11,11 +11,16 @@ export type QuoteStatus =
   | "perdido";
 export type Priority = "baixa" | "normal" | "alta" | "urgente";
 
+export type ErpType = "use_sistemas" | "totvs_protheus" | "sankhya" | "senior" | "none";
+
 export interface Tenant {
   id: string;
   name: string;
   cnpj: string;
+  erp_type: ErpType;
+  region?: string;
 }
+
 
 export interface Owner {
   id: string;
