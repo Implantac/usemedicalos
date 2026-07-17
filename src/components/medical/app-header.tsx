@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { FileSearch, Inbox, KeyRound, LayoutDashboard, LineChart, Package, Plug, Radio, RefreshCw, Shield, ShieldAlert, ShieldCheck } from "lucide-react";
+import { Cloud, FileSearch, Inbox, KeyRound, LayoutDashboard, LineChart, Package, Plug, Radio, RefreshCw, Shield, ShieldAlert, ShieldCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,7 @@ const NAV = [
   { to: "/governanca", label: "Governança", icon: Shield },
   { to: "/auditoria", label: "Auditoria", icon: FileSearch },
   { to: "/quarentena", label: "Quarentena", icon: ShieldAlert },
+  { to: "/cloud-readiness", label: "Cloud", icon: Cloud },
 ] as const;
 
 
