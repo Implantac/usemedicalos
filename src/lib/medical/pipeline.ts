@@ -1,6 +1,7 @@
 import type { QuoteStatus } from "./types";
 
 export const PIPELINE: QuoteStatus[] = [
+  "pending_review",
   "aguardando_precificacao",
   "em_negociacao",
   "enviado",
