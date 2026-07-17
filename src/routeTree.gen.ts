@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SlaWatchdogRouteImport } from './routes/sla-watchdog'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as QuarentenaRouteImport } from './routes/quarentena'
 import { Route as ProdutosRouteImport } from './routes/produtos'
@@ -24,6 +25,11 @@ import { Route as ApiPublicUseSistemasRouteImport } from './routes/api/public/us
 import { Route as ApiPublicCatalogRouteImport } from './routes/api/public/catalog'
 import { Route as ApiPublicErpIngestRouteImport } from './routes/api/public/erp.ingest'
 
+const SlaWatchdogRoute = SlaWatchdogRouteImport.update({
+  id: '/sla-watchdog',
+  path: '/sla-watchdog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/produtos': typeof ProdutosRoute
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sla-watchdog': typeof SlaWatchdogRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByTo {
   '/produtos': typeof ProdutosRoute
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sla-watchdog': typeof SlaWatchdogRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
@@ -138,6 +146,7 @@ export interface FileRoutesById {
   '/produtos': typeof ProdutosRoute
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sla-watchdog': typeof SlaWatchdogRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/quarentena'
     | '/sitemap.xml'
+    | '/sla-watchdog'
     | '/vendedor/$ownerId'
     | '/api/public/catalog'
     | '/api/public/use-sistemas'
@@ -172,6 +182,7 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/quarentena'
     | '/sitemap.xml'
+    | '/sla-watchdog'
     | '/vendedor/$ownerId'
     | '/api/public/catalog'
     | '/api/public/use-sistemas'
@@ -188,6 +199,7 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/quarentena'
     | '/sitemap.xml'
+    | '/sla-watchdog'
     | '/vendedor/$ownerId'
     | '/api/public/catalog'
     | '/api/public/use-sistemas'
@@ -205,6 +217,7 @@ export interface RootRouteChildren {
   ProdutosRoute: typeof ProdutosRoute
   QuarentenaRoute: typeof QuarentenaRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SlaWatchdogRoute: typeof SlaWatchdogRoute
   VendedorOwnerIdRoute: typeof VendedorOwnerIdRoute
   ApiPublicCatalogRoute: typeof ApiPublicCatalogRoute
   ApiPublicUseSistemasRoute: typeof ApiPublicUseSistemasRoute
@@ -214,6 +227,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sla-watchdog': {
+      id: '/sla-watchdog'
+      path: '/sla-watchdog'
+      fullPath: '/sla-watchdog'
+      preLoaderRoute: typeof SlaWatchdogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -325,6 +345,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProdutosRoute: ProdutosRoute,
   QuarentenaRoute: QuarentenaRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SlaWatchdogRoute: SlaWatchdogRoute,
   VendedorOwnerIdRoute: VendedorOwnerIdRoute,
   ApiPublicCatalogRoute: ApiPublicCatalogRoute,
   ApiPublicUseSistemasRoute: ApiPublicUseSistemasRoute,
