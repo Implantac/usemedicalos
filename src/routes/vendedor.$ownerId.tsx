@@ -218,3 +218,78 @@ function OwnerPage() {
     </div>
   );
 }
+
+function RegionBenchmarkCard({
+  region,
+  quotes,
+  selfAvgMargin,
+  selfAvgTicket,
+  selfWinRate,
+}: {
+  region: Region;
+  quotes: ReturnType<typeof useQuotes>["quotes"];
+  selfAvgMargin: number;
+  selfAvgTicket: number;
+  selfWinRate: number;
+}) {
+  const mk = benchmarkFor(region);
+  const closed = quotes.filter((q) => q.status === "ganho" || q.status === "perdido");
+  const sampleSize = quotes.length;
+  const marginDelta = selfAvgMargin - mk.avgMargin;
+  const ticketDelta = mk.avgTicket ? (selfAvgTicket - mk.avgTicket) / mk.avgTicket : 0;
+  const winDelta = selfWinRate - mk.winRate;
+
+  const Cell = ({
+    label,
+    value,
+    marketLabel,
+    delta,
+    kind,
+  }: {
+    label: string;
+    value: string;
+    marketLabel: string;
+    delta: number;
+    kind: "pp" | "pct";
+  }) => {
+    const zero = Math.abs(delta) < 0.001;
+    const up = delta > 0;
+    const Icon = zero ? Minus : up ? ArrowUp : ArrowDown;
+    const tone = zero ? "text-muted-foreground" : up ? "text-success" : "text-destructive";
+    const deltaLabel = kind === "pp" ? `${(delta * 100).toFixed(1)}pp` : formatPct(delta);
+    return (
+      <div className="rounded-md border bg-muted/20 p-2">
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+        <div className="mt-0.5 flex items-baseline justify-between gap-2">
+          <span className="num text-lg font-bold text-foreground">{value}</span>
+          <span className={cn("inline-flex items-center gap-0.5 num text-[11px] font-semibold", tone)}>
+            <Icon className="h-3 w-3" />
+            {deltaLabel}
+          </span>
+        </div>
+        <div className="text-[10px] text-muted-foreground">Mercado: <span className="num">{marketLabel}</span></div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="rounded-lg border bg-card p-3 card-shadow">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          Comparativo com meu território
+        </h3>
+        <span className="text-[10px] text-muted-foreground">
+          {region} · minha amostra: {sampleSize} · mercado: {mk.sampleSize} distribuidores
+        </span>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-3">
+        <Cell label="Margem média" value={formatPct(selfAvgMargin)} marketLabel={formatPct(mk.avgMargin)} delta={marginDelta} kind="pp" />
+        <Cell label="Ticket médio" value={formatBRL(selfAvgTicket)} marketLabel={formatBRL(mk.avgTicket)} delta={ticketDelta} kind="pct" />
+        <Cell label="Win rate" value={closed.length ? formatPct(selfWinRate) : "—"} marketLabel={formatPct(mk.winRate)} delta={closed.length ? winDelta : 0} kind="pp" />
+      </div>
+      <p className="mt-2 text-[10px] text-muted-foreground">
+        Baseline de mercado anonimizado por região (LGPD). Nenhum distribuidor é identificável.
+      </p>
+    </div>
+  );
+}
