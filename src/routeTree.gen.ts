@@ -15,6 +15,7 @@ import { Route as QuarentenaRouteImport } from './routes/quarentena'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as InteligenciaRouteImport } from './routes/inteligencia'
 import { Route as IntegracoesRouteImport } from './routes/integracoes'
+import { Route as GovernancaRouteImport } from './routes/governanca'
 import { Route as ExcecoesRouteImport } from './routes/excecoes'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ApiKeysRouteImport } from './routes/api-keys'
@@ -53,6 +54,11 @@ const InteligenciaRoute = InteligenciaRouteImport.update({
 const IntegracoesRoute = IntegracoesRouteImport.update({
   id: '/integracoes',
   path: '/integracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GovernancaRoute = GovernancaRouteImport.update({
+  id: '/governanca',
+  path: '/governanca',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExcecoesRoute = ExcecoesRouteImport.update({
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/api-keys': typeof ApiKeysRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
+  '/governanca': typeof GovernancaRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
   '/produtos': typeof ProdutosRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/api-keys': typeof ApiKeysRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
+  '/governanca': typeof GovernancaRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
   '/produtos': typeof ProdutosRoute
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/api-keys': typeof ApiKeysRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
+  '/governanca': typeof GovernancaRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
   '/produtos': typeof ProdutosRoute
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/api-keys'
     | '/dashboard'
     | '/excecoes'
+    | '/governanca'
     | '/integracoes'
     | '/inteligencia'
     | '/produtos'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/api-keys'
     | '/dashboard'
     | '/excecoes'
+    | '/governanca'
     | '/integracoes'
     | '/inteligencia'
     | '/produtos'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/api-keys'
     | '/dashboard'
     | '/excecoes'
+    | '/governanca'
     | '/integracoes'
     | '/inteligencia'
     | '/produtos'
@@ -212,6 +224,7 @@ export interface RootRouteChildren {
   ApiKeysRoute: typeof ApiKeysRoute
   DashboardRoute: typeof DashboardRoute
   ExcecoesRoute: typeof ExcecoesRoute
+  GovernancaRoute: typeof GovernancaRoute
   IntegracoesRoute: typeof IntegracoesRoute
   InteligenciaRoute: typeof InteligenciaRoute
   ProdutosRoute: typeof ProdutosRoute
@@ -267,6 +280,13 @@ declare module '@tanstack/react-router' {
       path: '/integracoes'
       fullPath: '/integracoes'
       preLoaderRoute: typeof IntegracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/governanca': {
+      id: '/governanca'
+      path: '/governanca'
+      fullPath: '/governanca'
+      preLoaderRoute: typeof GovernancaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/excecoes': {
@@ -340,6 +360,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiKeysRoute: ApiKeysRoute,
   DashboardRoute: DashboardRoute,
   ExcecoesRoute: ExcecoesRoute,
+  GovernancaRoute: GovernancaRoute,
   IntegracoesRoute: IntegracoesRoute,
   InteligenciaRoute: InteligenciaRoute,
   ProdutosRoute: ProdutosRoute,
