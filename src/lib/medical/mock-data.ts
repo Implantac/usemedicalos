@@ -65,6 +65,23 @@ function build(
   };
 }
 
+const TENANT_ASSIGNMENT: Record<string, string> = {
+  q2: "tnt_med_sul",
+  q4: "tnt_bio_norte",
+  q6: "tnt_med_sul",
+  q8: "tnt_bio_norte",
+};
+    status: "aguardando_precificacao",
+    priority: cls.priority,
+    keywords: cls.keywords,
+    received_at: hoursAgo(receivedHoursAgo),
+    sla_deadline: hoursFromNow(sla - receivedHoursAgo),
+    notes: "",
+    totvs_synced: false,
+    ...overrides,
+  };
+}
+
 export const INITIAL_QUOTES: Quote[] = [
   build("q1", {
     owner_id: "u_ana",
