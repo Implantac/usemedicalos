@@ -14,7 +14,7 @@ describe("classifier", () => {
   });
 
   it("cai em normal quando não há palavras-chave", () => {
-    const r = classify("Solicitação padrão de material");
+    const r = classify("Pedido padrão de material");
     expect(r.priority).toBe("normal");
     expect(r.keywords).toEqual([]);
   });
