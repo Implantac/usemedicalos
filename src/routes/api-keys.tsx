@@ -8,7 +8,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { useApiKeys } from "@/hooks/use-api-keys";
 import { TIER_LIMITS, type ApiScope, type RateTier } from "@/lib/medical/api-keys";
-import { TENANT } from "@/lib/medical/mock-data";
+import { useActiveTenant } from "@/hooks/use-active-tenant";
+import { TENANTS } from "@/lib/medical/mock-data";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/api-keys")({
