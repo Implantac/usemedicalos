@@ -20,10 +20,10 @@ export default defineConfig({
         injectRegister: null,
         filename: "sw.js",
         devOptions: { enabled: false },
-        includeAssets: ["favicon.png", "icon-192.png", "icon-512.png"],
+        includeAssets: ["favicon.png", "icon-192.png", "icon-512.png", "offline.html"],
         manifest: false,
         workbox: {
-          navigateFallback: "/",
+          navigateFallback: "/offline.html",
           navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//],
           globPatterns: ["**/*.{js,css,html,svg,png,ico,webp,woff,woff2}"],
           runtimeCaching: [
