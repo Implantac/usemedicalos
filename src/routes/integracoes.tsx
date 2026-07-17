@@ -44,10 +44,26 @@ function IntegrationsPage() {
   const navigate = useNavigate();
   const { mappings, saveMapping, deleteMapping } = useErpMappings();
   const { addQuote } = useQuotes();
+  const { tenant, scope } = useActiveTenant();
   const [payload, setPayload] = useState(() => JSON.stringify(SAMPLE_ERP_PAYLOAD, null, 2));
   const [mapping, setMapping] = useState(() => JSON.stringify(SAMPLE_MAPPING, null, 2));
   const [name, setName] = useState("");
   const [result, setResult] = useState<null | ReturnType<typeof applyMapping>>(null);
+
+  function sendToQuarantine() {
+    let parsedPayload: unknown = payload;
+    try { parsedPayload = JSON.parse(payload); } catch { /* mantém string crua */ }
+    const errors = result?.errors ?? [payloadErr, mappingErr].filter(Boolean) as string[];
+    quarantine({
+      tenant_id: scope === "all" ? null : scope,
+      source: "sandbox",
+      reason: result && !result.ok ? "Falha no mapeamento" : "JSON inválido",
+      errors,
+      payload_raw: parsedPayload,
+    });
+    toast.success("Payload enviado para a Quarentena.");
+  }
+
 
   const [payloadErr, mappingErr] = useMemo(() => {
     let pe: string | null = null;
