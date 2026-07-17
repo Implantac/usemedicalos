@@ -92,6 +92,12 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto">
+          <section className="space-y-2 border-b p-4">
+            <ComplianceAlert report={compliance} />
+            <CommissionBadge quote={quote} />
+          </section>
+
+
           {/* Payload original + IA classification */}
           <section className="border-b p-4">
             <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
