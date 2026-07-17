@@ -462,7 +462,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
                 onClick={() => onSelect(qt.id)}
                 onKeyDown={(e) => (e.key === "Enter" ? onSelect(qt.id) : null)}
                 className={cn(
-                  "w-full cursor-pointer px-4 py-3 text-left transition-colors hover:bg-accent/40",
+                  "w-full cursor-pointer px-3 py-1.5 text-left transition-colors hover:bg-accent/40",
                   active && "bg-accent/60",
                 )}
               >
