@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { ArrowRight, Bookmark, BookmarkPlus, Building2, Filter, Search, Trash2, Undo2, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, Bookmark, BookmarkPlus, Building2, Download, Filter, Search, Share2, Trash2, Undo2, Upload, X } from "lucide-react";
 import type { Quote, QuoteStatus } from "@/lib/medical/types";
 import { STATUS_LABEL } from "@/lib/medical/types";
 import { quoteTotals, formatBRL, formatPct } from "@/lib/medical/pricing";
@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useInboxViews, type InboxSort, type InboxViewState } from "@/hooks/use-inbox-views";
+import { decodeViewState, encodeViewState } from "@/lib/medical/view-encoding";
 
 const PRIORITY_RANK = { urgente: 0, alta: 1, normal: 2, baixa: 3 } as const;
 const ALL_STATUS = Object.keys(STATUS_LABEL) as QuoteStatus[];
@@ -49,8 +50,9 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
 
   const [saveOpen, setSaveOpen] = useState(false);
   const [viewName, setViewName] = useState("");
-
   const { views, saveView, deleteView } = useInboxViews();
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
 
   const currentState = (): InboxViewState => ({
     q, tenant, owner, sla, statuses: Array.from(statuses), sort,
