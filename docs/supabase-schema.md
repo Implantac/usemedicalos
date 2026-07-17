@@ -266,14 +266,108 @@ grant all on public.market_benchmarks to service_role;
 alter table public.market_benchmarks enable row level security;
 create policy "benchmarks: leitura autenticada" on public.market_benchmarks
   for select to authenticated using (sample_size >= 5);
+
+-- ============= API KEYS por tenant (Fase 3) =============
+create table public.api_keys (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null references public.tenants(id) on delete cascade,
+  name text not null,
+  key_prefix text not null,
+  key_hash text not null,
+  scopes text[] not null default '{catalog:read}',
+  created_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  last_used_at timestamptz,
+  revoked_at timestamptz
+);
+create unique index api_keys_prefix_uidx on public.api_keys(key_prefix);
+grant select, insert, update on public.api_keys to authenticated;
+grant all on public.api_keys to service_role;
+alter table public.api_keys enable row level security;
+create policy "api_keys: leitura tenant" on public.api_keys
+  for select to authenticated using (public.is_tenant_member(tenant_id));
+create policy "api_keys: escrita admin" on public.api_keys
+  for all to authenticated
+  using (public.is_tenant_member(tenant_id) and public.has_role(auth.uid(), 'admin'))
+  with check (public.is_tenant_member(tenant_id) and public.has_role(auth.uid(), 'admin'));
+
+-- ============= COMPLIANCE OVERRIDES (Fase 3 — auditável) =============
+create table public.compliance_overrides (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null references public.tenants(id) on delete cascade,
+  quote_id uuid not null references public.quotes(id) on delete cascade,
+  product_id uuid references public.products(id) on delete set null,
+  reason text not null,
+  manager_id uuid not null references auth.users(id) on delete restrict,
+  original_status public.compliance_status not null,
+  created_at timestamptz not null default now()
+);
+grant select, insert on public.compliance_overrides to authenticated;
+grant all on public.compliance_overrides to service_role;
+alter table public.compliance_overrides enable row level security;
+create policy "overrides: leitura tenant" on public.compliance_overrides
+  for select to authenticated using (public.is_tenant_member(tenant_id));
+create policy "overrides: criar como manager" on public.compliance_overrides
+  for insert to authenticated
+  with check (
+    public.is_tenant_member(tenant_id)
+    and (public.has_role(auth.uid(), 'admin') or public.has_role(auth.uid(), 'moderator'))
+    and manager_id = auth.uid()
+  );
+
+-- ============= ERP MAPPINGS (sandbox de ingestão) =============
+create table public.erp_mappings (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null references public.tenants(id) on delete cascade,
+  name text not null,
+  config jsonb not null,
+  created_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+grant select, insert, update, delete on public.erp_mappings to authenticated;
+grant all on public.erp_mappings to service_role;
+alter table public.erp_mappings enable row level security;
+create policy "erp_mappings: acesso tenant" on public.erp_mappings
+  for all to authenticated
+  using (public.is_tenant_member(tenant_id))
+  with check (public.is_tenant_member(tenant_id));
+
+-- ============= INBOX VIEWS (filtros salvos por usuário) =============
+create table public.inbox_views (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null references public.tenants(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  name text not null,
+  payload jsonb not null,
+  shared boolean not null default false,
+  created_at timestamptz not null default now()
+);
+grant select, insert, update, delete on public.inbox_views to authenticated;
+grant all on public.inbox_views to service_role;
+alter table public.inbox_views enable row level security;
+create policy "views: leitura own+shared" on public.inbox_views
+  for select to authenticated
+  using (public.is_tenant_member(tenant_id) and (user_id = auth.uid() or shared));
+create policy "views: escrita own" on public.inbox_views
+  for all to authenticated
+  using (public.is_tenant_member(tenant_id) and user_id = auth.uid())
+  with check (public.is_tenant_member(tenant_id) and user_id = auth.uid());
 ```
 
-## Como migrar o app quando o Cloud subir
+## Checklist de migração para Lovable Cloud
 
-1. Rodar este SQL na base Supabase gerada pela ativação da Cloud.
-2. Substituir `useQuotes` (localStorage) por hooks TanStack Query que chamam
-   server functions `createServerFn` com `.middleware([requireSupabaseAuth])`.
-3. Semear `tenants` + `tenant_members` para o usuário logado antes do
-   primeiro `SELECT` em `quotes`/`products`.
-4. Manter o mock Use Sistemas: virar server route em `src/routes/api/public/use-sistemas.ts`
-   com verificação HMAC.
+1. **Backup** — exporte `localStorage` (Inbox → menu ⋯ → exportar JSON) por usuário-piloto.
+2. **Ativar Cloud** — comando dispara provisionamento Supabase gerenciado.
+3. **Ordem de execução do SQL**:
+   1. Tipos (`app_role`, `quote_status`, `priority`, `compliance_status`).
+   2. `tenants`, `tenant_members`, `user_roles` (+ `is_tenant_member`, `has_role`).
+   3. `products`, `quotes`, `quote_items`, `activity_log`.
+   4. `sla_tracking`, `regulatory_compliance`, `market_benchmarks`.
+   5. Fase 3: `api_keys`, `compliance_overrides`, `erp_mappings`, `inbox_views`.
+   6. Trigger de comissão (`docs/migrations/commissions_trigger.sql`).
+4. **Seed inicial**: criar `tenant` do distribuidor + `tenant_members(auth.uid(), role='admin')` antes do primeiro SELECT.
+5. **Substituir hooks** (`useQuotes`, `useProducts`, `useApiKeys`, `useErpMappings`, `useInboxViews`) por TanStack Query + `createServerFn` com `.middleware([requireSupabaseAuth])`.
+6. **Endpoints públicos** (`/api/public/catalog`, `/api/public/erp/ingest`, `/api/public/use-sistemas`) permanecem — passam a validar `api_keys.key_hash` via server publishable client.
+7. **Mock Use Sistemas** vira server route real com verificação HMAC de assinatura.
+
