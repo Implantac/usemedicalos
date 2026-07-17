@@ -545,6 +545,8 @@ function EngineStatusChip({ status }: { status: PricingStatus }) {
         ENGINE_CHIP_TONE[status],
       )}
     >
+      {PRICING_STATUS_LABEL[status]}
+    </span>
   );
 }
 
