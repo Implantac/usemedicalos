@@ -221,19 +221,50 @@ function SignatureHelper({ payload, mapping, disabled }: { payload: string; mapp
   const [token, setToken] = useState("tenant-demo-token");
   const [sig, setSig] = useState<string | null>(null);
   const [body, setBody] = useState<string | null>(null);
+  const [liveResp, setLiveResp] = useState<{ status: number; body: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function buildBody(): Promise<string | null> {
+    if (disabled) { toast.error("Corrija o JSON antes."); return null; }
+    try {
+      return JSON.stringify({
+        tenant_token: token,
+        mapping: JSON.parse(mapping),
+        payload: JSON.parse(payload),
+      });
+    } catch (e) {
+      toast.error((e as Error).message);
+      return null;
+    }
+  }
 
   async function generate() {
-    if (disabled) return toast.error("Corrija o JSON antes de gerar a assinatura.");
     if (!secret.trim()) return toast.error("Informe o ERP_INGEST_SECRET.");
-    const b = JSON.stringify({
-      tenant_token: token,
-      mapping: JSON.parse(mapping),
-      payload: JSON.parse(payload),
-    });
+    const b = await buildBody();
+    if (!b) return;
     const s = await signPayload(secret, b);
     setBody(b);
     setSig(s);
     toast.success("Assinatura gerada.");
+  }
+
+  async function callLive() {
+    const b = body ?? (await buildBody());
+    if (!b) return;
+    setBusy(true);
+    try {
+      const headers: Record<string, string> = { "content-type": "application/json" };
+      if (sig) headers["x-use-signature"] = sig;
+      const r = await fetch("/api/public/erp/ingest", { method: "POST", headers, body: b });
+      const text = await r.text();
+      setLiveResp({ status: r.status, body: text });
+      if (r.ok) toast.success(`Endpoint respondeu ${r.status}.`);
+      else toast.error(`Endpoint retornou ${r.status}.`);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function copyCurl() {
@@ -246,12 +277,15 @@ function SignatureHelper({ payload, mapping, disabled }: { payload: string; mapp
   return (
     <div className="rounded-lg border bg-card p-3 card-shadow">
       <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
-        <KeyRound className="h-4 w-4 text-brand" /> Gerador de assinatura HMAC
+        <KeyRound className="h-4 w-4 text-brand" /> Gerador de assinatura HMAC + teste ao vivo
       </div>
-      <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-        <Input placeholder="ERP_INGEST_SECRET" value={secret} onChange={(e) => setSecret(e.target.value)} className="h-8 text-xs" />
+      <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto_auto]">
+        <Input placeholder="ERP_INGEST_SECRET (opcional em dev)" value={secret} onChange={(e) => setSecret(e.target.value)} className="h-8 text-xs" />
         <Input placeholder="tenant_token" value={token} onChange={(e) => setToken(e.target.value)} className="h-8 text-xs" />
-        <Button size="sm" onClick={generate} className="gap-1.5"><KeyRound className="h-4 w-4" /> Gerar</Button>
+        <Button size="sm" onClick={generate} className="gap-1.5"><KeyRound className="h-4 w-4" /> Assinar</Button>
+        <Button size="sm" variant="outline" onClick={callLive} disabled={busy} className="gap-1.5">
+          <PlayCircle className="h-4 w-4" /> {busy ? "Enviando..." : "Chamar endpoint"}
+        </Button>
       </div>
       {sig && (
         <div className="mt-2 space-y-1">
@@ -259,6 +293,17 @@ function SignatureHelper({ payload, mapping, disabled }: { payload: string; mapp
           <Button size="sm" variant="outline" onClick={copyCurl} className="gap-1.5">
             <Copy className="h-3 w-3" /> Copiar cURL
           </Button>
+        </div>
+      )}
+      {liveResp && (
+        <div className="mt-2">
+          <div className={cn(
+            "mb-1 inline-block rounded px-2 py-0.5 text-[10px] font-bold",
+            liveResp.status < 300 ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive",
+          )}>
+            HTTP {liveResp.status}
+          </div>
+          <pre className="max-h-56 overflow-auto rounded bg-background p-2 text-[11px] leading-snug">{liveResp.body}</pre>
         </div>
       )}
     </div>
