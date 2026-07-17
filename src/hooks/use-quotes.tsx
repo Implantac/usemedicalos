@@ -131,10 +131,49 @@ export function useQuotes() {
     return q;
   }, [tenant]);
 
+  const ingestPortalQuote = useCallback((quote: Quote) => {
+    setAllQuotes((qs) => [quote, ...qs]);
+    appendActivity({
+      quote_id: quote.id,
+      type: "ingested_from_portal",
+      message: `RFQ capturada do portal ${quote.portal_meta?.source_platform ?? "externo"} — ${quote.customer_name}`,
+      meta: {
+        source_platform: quote.portal_meta?.source_platform,
+        portal_reference: quote.portal_meta?.portal_reference,
+      },
+    });
+  }, []);
+
+  const markPortalResponded = useCallback((quoteId: string) => {
+    setAllQuotes((qs) =>
+      qs.map((q) =>
+        q.id === quoteId && q.portal_meta && !q.portal_meta.response_at
+          ? { ...q, portal_meta: { ...q.portal_meta, response_at: new Date().toISOString() } }
+          : q,
+      ),
+    );
+    appendActivity({
+      quote_id: quoteId,
+      type: "portal_response_taken",
+      message: "Vendedor assumiu a RFQ e iniciou a precificação",
+    });
+  }, []);
+
   const resetDemo = useCallback(() => {
     setAllQuotes(INITIAL_QUOTES);
   }, []);
 
-  return { quotes, hydrated, addQuote, updateQuote, updateItem, removeItem, setStatus, resetDemo };
+  return {
+    quotes,
+    hydrated,
+    addQuote,
+    ingestPortalQuote,
+    markPortalResponded,
+    updateQuote,
+    updateItem,
+    removeItem,
+    setStatus,
+    resetDemo,
+  };
 }
 
