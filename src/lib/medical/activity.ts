@@ -1,6 +1,6 @@
 // Activity log for quotes - persisted in localStorage.
 // TODO(cloud): migrar para tabela quote_activities (quote_id, actor_id, type, meta jsonb, created_at)
-import type { QuoteStatus } from "./types";
+import type { ClientTier, QuoteStatus } from "./types";
 
 export type ActivityType =
   | "created"
@@ -12,7 +12,8 @@ export type ActivityType =
   | "pdf_generated"
   | "sent_use_sistemas"
   | "compliance_override"
-  | "compliance_override_revoked";
+  | "compliance_override_revoked"
+  | "client_tier_changed";
 
 export interface Activity {
   id: string;
@@ -27,6 +28,7 @@ export interface Activity {
     order_id?: string;
     reason?: string;
     engine_status?: string;
+    tier?: ClientTier;
   };
 }
 
