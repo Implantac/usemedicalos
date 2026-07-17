@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Building2, Inbox, LayoutDashboard, LineChart, Package, Plug, RefreshCw } from "lucide-react";
+import { Building2, Inbox, LayoutDashboard, LineChart, Package, Plug, RefreshCw, ShieldCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { TENANT } from "@/lib/medical/mock-data";
@@ -13,6 +13,7 @@ const NAV = [
   { to: "/produtos", label: "Produtos", icon: Package },
   { to: "/inteligencia", label: "Inteligência", icon: LineChart },
   { to: "/integracoes", label: "Integrações", icon: Plug },
+  { to: "/excecoes", label: "Exceções", icon: ShieldCheck },
 ] as const;
 
 export function AppHeader({ onReset, children }: { onReset: () => void; children?: ReactNode }) {

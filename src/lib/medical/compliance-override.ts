@@ -37,6 +37,12 @@ export function listOverrides(quoteId: string): ComplianceOverride[] {
   return read().filter((o) => o.quote_id === quoteId && isActive(o));
 }
 
+export function listAllActiveOverrides(): ComplianceOverride[] {
+  return read()
+    .filter(isActive)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+}
+
 export function hasOverride(quoteId: string, sku: string): boolean {
   return read().some(
     (o) => o.quote_id === quoteId && o.sku === sku && isActive(o),

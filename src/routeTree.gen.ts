@@ -13,6 +13,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as InteligenciaRouteImport } from './routes/inteligencia'
 import { Route as IntegracoesRouteImport } from './routes/integracoes'
+import { Route as ExcecoesRouteImport } from './routes/excecoes'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VendedorOwnerIdRouteImport } from './routes/vendedor.$ownerId'
@@ -38,6 +39,11 @@ const InteligenciaRoute = InteligenciaRouteImport.update({
 const IntegracoesRoute = IntegracoesRouteImport.update({
   id: '/integracoes',
   path: '/integracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExcecoesRoute = ExcecoesRouteImport.update({
+  id: '/excecoes',
+  path: '/excecoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -74,6 +80,7 @@ const ApiPublicErpIngestRoute = ApiPublicErpIngestRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/excecoes': typeof ExcecoesRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
   '/produtos': typeof ProdutosRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/excecoes': typeof ExcecoesRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
   '/produtos': typeof ProdutosRoute
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/excecoes': typeof ExcecoesRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
   '/produtos': typeof ProdutosRoute
@@ -113,6 +122,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/excecoes'
     | '/integracoes'
     | '/inteligencia'
     | '/produtos'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard'
+    | '/excecoes'
     | '/integracoes'
     | '/inteligencia'
     | '/produtos'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/excecoes'
     | '/integracoes'
     | '/inteligencia'
     | '/produtos'
@@ -150,6 +162,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
+  ExcecoesRoute: typeof ExcecoesRoute
   IntegracoesRoute: typeof IntegracoesRoute
   InteligenciaRoute: typeof InteligenciaRoute
   ProdutosRoute: typeof ProdutosRoute
@@ -188,6 +201,13 @@ declare module '@tanstack/react-router' {
       path: '/integracoes'
       fullPath: '/integracoes'
       preLoaderRoute: typeof IntegracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/excecoes': {
+      id: '/excecoes'
+      path: '/excecoes'
+      fullPath: '/excecoes'
+      preLoaderRoute: typeof ExcecoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -238,6 +258,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
+  ExcecoesRoute: ExcecoesRoute,
   IntegracoesRoute: IntegracoesRoute,
   InteligenciaRoute: InteligenciaRoute,
   ProdutosRoute: ProdutosRoute,
