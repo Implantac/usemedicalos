@@ -165,6 +165,19 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
         <div className="flex-1 overflow-y-auto">
           <section className="space-y-3 border-b p-4">
             <CommissionBadge quote={quote} />
+            <ClientTierSelector
+              value={quote.client_tier ?? "B"}
+              onChange={(tier) => {
+                onUpdateQuote(quote.id, { client_tier: tier });
+                appendActivity({
+                  quote_id: quote.id,
+                  type: "client_tier_changed",
+                  message: `Tier do cliente ajustado para ${tier}`,
+                  meta: { tier },
+                });
+                bumpActivity();
+              }}
+            />
             <ComplianceAlert
               report={compliance}
               confirmed={complianceConfirmed}
