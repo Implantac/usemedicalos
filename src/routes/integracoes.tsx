@@ -1,6 +1,6 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Copy, KeyRound, Plug, PlayCircle, Save, Trash2, Send } from "lucide-react";
+import { AlertCircle, CheckCircle2, Copy, KeyRound, Plug, PlayCircle, Save, ShieldAlert, Sliders, Trash2, Send } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,12 @@ import { ERP_CONNECTORS, type ErpConnector } from "@/lib/medical/erp-connectors"
 import { useErpMappings } from "@/hooks/use-erp-mappings";
 import { useQuotes } from "@/hooks/use-quotes";
 import { OWNERS } from "@/lib/medical/mock-data";
+import { quarantine } from "@/lib/medical/quarantine";
+import { useActiveTenant } from "@/hooks/use-active-tenant";
+import { useTenantConfig } from "@/hooks/use-tenant-config";
+import { DEFAULT_TENANT_CONFIG } from "@/lib/medical/tenant-config";
 import { cn } from "@/lib/utils";
+
 
 
 export const Route = createFileRoute("/integracoes")({
