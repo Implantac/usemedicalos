@@ -1,6 +1,7 @@
 import type { Quote, QuoteStatus, SourceType } from "./types";
 import { OWNERS, ownerById } from "./mock-data";
 import { quoteTotals } from "./pricing";
+import { computeCommission } from "./commission";
 import { slaState } from "@/components/medical/sla-indicator";
 
 export function filterByDays(quotes: Quote[], days: number): Quote[] {
