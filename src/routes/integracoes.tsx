@@ -225,6 +225,10 @@ function IntegrationsPage() {
 
         <TenantConfigCard tenantId={tenant?.id ?? null} tenantName={tenant?.name ?? null} />
 
+        <div className="grid gap-3 lg:grid-cols-2">
+          <OutboundWebhooksCard />
+          <PriceCacheCard />
+        </div>
 
         <SignatureHelper payload={payload} mapping={mapping} disabled={!!payloadErr || !!mappingErr} />
 
