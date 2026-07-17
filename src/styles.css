@@ -6,9 +6,10 @@
 
 /*
  * USE Medical — Corporate operating system for medical distributors.
- * Palette: Navy (trust), Emerald (success), Soft Red (SLA alerts).
- * High-density data UI. All colors in oklch.
+ * Palette: Navy (trust) + Copper/Orange (from logo, brand accent),
+ * Emerald (success), Soft Red (SLA alerts). High-density data UI.
  */
+
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
