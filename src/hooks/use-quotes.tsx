@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Priority, Quote, QuoteItem, QuoteStatus, SourceType } from "@/lib/medical/types";
-import { INITIAL_QUOTES, TENANT } from "@/lib/medical/mock-data";
+import { INITIAL_QUOTES, TENANTS } from "@/lib/medical/mock-data";
 import { classify, slaHoursFor } from "@/lib/medical/classifier";
 import { appendActivity } from "@/lib/medical/activity";
+import { useActiveTenant } from "@/hooks/use-active-tenant";
 
 const STORAGE_KEY = "use-medical:quotes:v2";
 
@@ -29,25 +30,31 @@ export interface NewQuoteInput {
 }
 
 export function useQuotes() {
-  const [quotes, setQuotes] = useState<Quote[]>(INITIAL_QUOTES);
+  const [allQuotes, setAllQuotes] = useState<Quote[]>(INITIAL_QUOTES);
   const [hydrated, setHydrated] = useState(false);
+  const { scope, tenant } = useActiveTenant();
 
   useEffect(() => {
-    setQuotes(load());
+    setAllQuotes(load());
     setHydrated(true);
   }, []);
 
   useEffect(() => {
     if (!hydrated) return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(quotes));
-  }, [quotes, hydrated]);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(allQuotes));
+  }, [allQuotes, hydrated]);
+
+  const quotes = useMemo(
+    () => (scope === "all" ? allQuotes : allQuotes.filter((q) => q.tenant_id === scope)),
+    [allQuotes, scope],
+  );
 
   const updateQuote = useCallback((id: string, patch: Partial<Quote>) => {
-    setQuotes((qs) => qs.map((q) => (q.id === id ? { ...q, ...patch } : q)));
+    setAllQuotes((qs) => qs.map((q) => (q.id === id ? { ...q, ...patch } : q)));
   }, []);
 
   const updateItem = useCallback((quoteId: string, index: number, patch: Partial<QuoteItem>) => {
-    setQuotes((qs) =>
+    setAllQuotes((qs) =>
       qs.map((q) =>
         q.id !== quoteId
           ? q
@@ -57,7 +64,7 @@ export function useQuotes() {
   }, []);
 
   const removeItem = useCallback((quoteId: string, index: number) => {
-    setQuotes((qs) =>
+    setAllQuotes((qs) =>
       qs.map((q) => (q.id !== quoteId ? q : { ...q, items: q.items.filter((_, i) => i !== index) })),
     );
   }, []);
@@ -72,9 +79,10 @@ export function useQuotes() {
     const priority = input.priority_override ?? cls.priority;
     const sla = slaHoursFor(priority);
     const now = new Date();
+    const targetTenantId = tenant?.id ?? TENANTS[0].id;
     const q: Quote = {
       id: `q${Date.now().toString().slice(-6)}`,
-      tenant_id: TENANT.id,
+      tenant_id: targetTenantId,
       owner_id: input.owner_id,
       source_type: input.source_type,
       status: "aguardando_precificacao",
@@ -89,14 +97,15 @@ export function useQuotes() {
       notes: "",
       use_sistemas_synced: false,
     };
-    setQuotes((qs) => [q, ...qs]);
+    setAllQuotes((qs) => [q, ...qs]);
     appendActivity({ quote_id: q.id, type: "created", message: `Cotação criada para ${q.customer_name}` });
     return q;
-  }, []);
+  }, [tenant]);
 
   const resetDemo = useCallback(() => {
-    setQuotes(INITIAL_QUOTES);
+    setAllQuotes(INITIAL_QUOTES);
   }, []);
 
   return { quotes, hydrated, addQuote, updateQuote, updateItem, removeItem, setStatus, resetDemo };
 }
+
