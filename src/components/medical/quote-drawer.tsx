@@ -42,13 +42,14 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
   const [activityVersion, setActivityVersion] = useState(0);
   const [overrideVersion, setOverrideVersion] = useState(0);
   const [complianceConfirmed, setComplianceConfirmed] = useState(false);
+  const overriddenSkus = useMemo(
+    () => (quote ? new Set(listOverrides(quote.id).map((o) => o.sku)) : new Set<string>()),
+    [quote?.id, overrideVersion],
+  );
   if (!quote) return null;
   const totals = quoteTotals(quote.items);
   const marginOk = totals.margin >= MIN_MARGIN;
-  const overriddenSkus = useMemo(
-    () => new Set(listOverrides(quote.id).map((o) => o.sku)),
-    [quote.id, overrideVersion],
-  );
+
   const compliance = checkQuote(quote, overriddenSkus);
   const complianceBlocked = compliance.status === "blocked";
   const complianceRequiresConfirm =
