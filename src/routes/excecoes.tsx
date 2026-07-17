@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ShieldCheck, Clock, XCircle } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
+import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -23,14 +24,19 @@ function ExceptionsPage() {
   const { quotes, resetDemo } = useQuotes();
   const [tick, setTick] = useState(0);
 
-  const overrides = useMemo(() => listAllActiveOverrides(), [tick]);
+  const quoteById = useMemo(() => new Map(quotes.map((q) => [q.id, q])), [quotes]);
+  const overrides = useMemo(
+    // `quotes` já vem filtrado pelo tenant ativo (useQuotes). Só listamos
+    // overrides cujo quote_id está dentro do escopo — evita vazar exceções
+    // de outros tenants na visão single-tenant.
+    () => listAllActiveOverrides().filter((o) => quoteById.has(o.quote_id)),
+    [tick, quoteById],
+  );
 
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 30_000);
     return () => clearInterval(id);
   }, []);
-
-  const quoteById = useMemo(() => new Map(quotes.map((q) => [q.id, q])), [quotes]);
 
   function handleRevoke(o: ComplianceOverride) {
     revokeOverride(o.quote_id, o.sku);
