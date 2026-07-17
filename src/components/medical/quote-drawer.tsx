@@ -45,6 +45,10 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
       toast.error("Margem abaixo do mínimo (12%). Ajuste preços antes de enviar.");
       return;
     }
+    if (complianceBlocked) {
+      toast.error("Cotação bloqueada por restrição ANVISA/CMED.");
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await sendToUseSistemas(quote);
