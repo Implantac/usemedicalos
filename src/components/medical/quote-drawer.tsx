@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { Quote, QuoteStatus } from "@/lib/medical/types";
 import { STATUS_LABEL, MIN_MARGIN } from "@/lib/medical/types";
-import { formatBRL, formatPct, itemMargin, itemTotal, quoteTotals, suggestPrice } from "@/lib/medical/pricing";
+import { basePrice, formatBRL, formatPct, itemMargin, itemTotal, pricingSignal, quoteTotals, suggestPrice } from "@/lib/medical/pricing";
 import { PriorityBadge, SourceTag, StatusBadge } from "./badges";
 import { SlaIndicator } from "./sla-indicator";
 import { sendToUseSistemas } from "@/lib/medical/use-sistemas-mock";
@@ -49,13 +49,15 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
   if (!quote) return null;
   const totals = quoteTotals(quote.items);
   const marginOk = totals.margin >= MIN_MARGIN;
+  const hasNegative = quote.items.some((it) => pricingSignal(it) === "negative");
 
   const compliance = checkQuote(quote, overriddenSkus);
   const complianceBlocked = compliance.status === "blocked";
   const complianceRequiresConfirm =
     compliance.status === "warning" || compliance.status === "overridden";
   const complianceGateOk = !complianceBlocked && (!complianceRequiresConfirm || complianceConfirmed);
-  const canSend = marginOk && complianceGateOk;
+  const canSend = marginOk && !hasNegative && complianceGateOk;
+
   const bumpActivity = () => setActivityVersion((v) => v + 1);
 
   const handleOverride = (sku: string) => {
@@ -196,14 +198,24 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
               {quote.items.map((it, idx) => {
                 const m = itemMargin(it);
                 const suggested = suggestPrice(it);
-                const ok = m >= MIN_MARGIN;
+                const base = basePrice(it.cost_price);
+                const signal = pricingSignal(it);
+                const ok = signal === "ok";
+                const negative = signal === "negative";
+                const belowBase = signal === "below_base";
                 return (
-                  <div key={idx} className="rounded-lg border bg-card p-3 card-shadow">
+                  <div
+                    key={idx}
+                    className={cn(
+                      "rounded-lg border bg-card p-3 card-shadow",
+                      negative && "border-danger/60 bg-danger/5",
+                    )}
+                  >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="truncate text-sm font-semibold">{it.name}</div>
                         <div className="text-[11px] text-muted-foreground num">
-                          SKU {it.sku} · custo {formatBRL(it.cost_price)}
+                          SKU {it.sku} · custo {formatBRL(it.cost_price)} · piso {formatBRL(base)}
                         </div>
                       </div>
                       <Button
@@ -238,7 +250,11 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
                           step="0.01"
                           value={it.unit_price}
                           onChange={(e) => onUpdateItem(quote.id, idx, { unit_price: Number(e.target.value) || 0 })}
-                          className={cn("h-8 num", !ok && "border-danger focus-visible:ring-danger")}
+                          className={cn(
+                            "h-8 num",
+                            negative && "border-danger bg-danger/5 text-danger focus-visible:ring-danger",
+                            belowBase && !negative && "border-warning/60 focus-visible:ring-warning",
+                          )}
                         />
                       </div>
                       <div>
@@ -252,6 +268,19 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
                         </div>
                       </div>
                     </div>
+
+                    {negative && (
+                      <div className="mt-2 flex items-start gap-1.5 rounded-md border border-danger/40 bg-danger/10 px-2 py-1.5 text-[11px] font-medium text-danger">
+                        <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
+                        <span>Margem negativa: ajuste necessário — preço abaixo do custo de aquisição.</span>
+                      </div>
+                    )}
+                    {belowBase && (
+                      <div className="mt-2 flex items-start gap-1.5 rounded-md border border-warning/40 bg-warning/10 px-2 py-1.5 text-[11px] font-medium text-warning-foreground">
+                        <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
+                        <span>Abaixo do piso comercial ({formatBRL(base)} = custo × 1.25).</span>
+                      </div>
+                    )}
 
                     <div className="mt-2 flex items-center justify-between rounded-md border border-dashed border-primary/30 bg-primary/5 px-2 py-1.5">
                       <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary">
@@ -276,6 +305,7 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
                   </div>
                 );
               })}
+
             </div>
           </section>
 

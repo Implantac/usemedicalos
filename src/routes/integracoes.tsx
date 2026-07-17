@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Copy, KeyRound, PlayCircle, Save, Trash2, Send } from "lucide-react";
+import { AlertCircle, CheckCircle2, Copy, KeyRound, Plug, PlayCircle, Save, Trash2, Send } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,10 +13,12 @@ import {
   SAMPLE_MAPPING,
   type ErpMappingConfig,
 } from "@/lib/medical/erp-mapping";
+import { ERP_CONNECTORS, type ErpConnector } from "@/lib/medical/erp-connectors";
 import { useErpMappings } from "@/hooks/use-erp-mappings";
 import { useQuotes } from "@/hooks/use-quotes";
 import { OWNERS } from "@/lib/medical/mock-data";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/integracoes")({
   head: () => ({
@@ -109,6 +111,9 @@ function IntegrationsPage() {
             </Button>
           </div>
         </div>
+
+        <ConnectorsGrid />
+
 
         {mappings.length > 0 && (
           <div className="rounded-lg border bg-card p-3 card-shadow">
@@ -309,3 +314,99 @@ function SignatureHelper({ payload, mapping, disabled }: { payload: string; mapp
     </div>
   );
 }
+
+function ConnectorsGrid() {
+  const [selected, setSelected] = useState<ErpConnector | null>(null);
+  const statusStyle: Record<ErpConnector["status"], string> = {
+    estavel: "bg-success/15 text-success",
+    beta: "bg-brand/15 text-brand",
+    planejado: "bg-muted text-muted-foreground",
+  };
+  const statusLabel: Record<ErpConnector["status"], string> = {
+    estavel: "Estável",
+    beta: "Beta",
+    planejado: "Planejado",
+  };
+  return (
+    <div className="rounded-lg border bg-card p-3 card-shadow">
+      <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+        <Plug className="h-4 w-4 text-brand" /> Conectores de ERP
+      </div>
+      <p className="mb-3 text-xs text-muted-foreground">
+        Escolha o ERP do cliente para pré-preencher o wizard de credenciais e mapeamento.
+      </p>
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {ERP_CONNECTORS.map((c) => {
+          const active = selected?.id === c.id;
+          return (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => setSelected(active ? null : c)}
+              className={cn(
+                "group flex flex-col items-start gap-1 rounded-md border bg-background p-3 text-left transition-smooth press",
+                active ? "border-primary ring-2 ring-primary/30" : "hover:border-primary/40 hover:bg-accent/40",
+              )}
+            >
+              <div className="flex w-full items-center justify-between gap-2">
+                <span className="text-sm font-semibold text-foreground">{c.name}</span>
+                <span className={cn("rounded px-1.5 py-0.5 text-[10px] font-bold uppercase", statusStyle[c.status])}>
+                  {statusLabel[c.status]}
+                </span>
+              </div>
+              <span className="text-[11px] text-muted-foreground">{c.vendor} · Auth: {c.authType}</span>
+              <p className="text-[11px] leading-snug text-muted-foreground line-clamp-3">{c.description}</p>
+            </button>
+          );
+        })}
+      </div>
+
+      {selected && (
+        <div className="mt-3 rounded-md border border-primary/30 bg-primary/5 p-3">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <div>
+              <div className="text-sm font-bold text-foreground">Configurar {selected.name}</div>
+              <div className="text-[11px] text-muted-foreground">
+                {selected.status === "planejado"
+                  ? "Registre interesse — priorizamos conforme demanda."
+                  : "Preencha as credenciais. Nada é enviado agora — apenas gera o preset."}
+              </div>
+            </div>
+            <Button size="sm" variant="ghost" onClick={() => setSelected(null)} className="h-6 px-2 text-[11px]">
+              <Trash2 className="h-3 w-3" /> Fechar
+            </Button>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {selected.authFields.map((f) => (
+              <div key={f.key}>
+                <label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {f.label}
+                </label>
+                <Input
+                  type={f.secret ? "password" : "text"}
+                  placeholder={f.placeholder ?? f.label}
+                  className="h-8 text-xs"
+                  disabled={selected.status === "planejado"}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="mt-2 flex items-center gap-2">
+            <Button
+              size="sm"
+              disabled={selected.status === "planejado"}
+              onClick={() => toast.success(`Preset "${selected.name}" preparado. Configure o mapping abaixo.`)}
+              className="gap-1.5"
+            >
+              <Save className="h-3 w-3" /> Salvar preset
+            </Button>
+            {selected.defaultEndpoint && (
+              <code className="rounded bg-background px-2 py-1 text-[11px]">POST {selected.defaultEndpoint}</code>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Bookmark, BookmarkPlus, Building2, Download, Filter, Search, Share2, Trash2, Undo2, Upload, X } from "lucide-react";
+import { ArrowRight, Bookmark, BookmarkPlus, Building2, Download, Filter, Layers, Rows3, Search, Share2, Trash2, Undo2, Upload, X } from "lucide-react";
+import { useInboxDensity } from "@/hooks/use-inbox-density";
+
 import type { Quote, QuoteStatus } from "@/lib/medical/types";
 import { STATUS_LABEL } from "@/lib/medical/types";
 import { quoteTotals, formatBRL, formatPct } from "@/lib/medical/pricing";
@@ -47,6 +49,9 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
   const [statuses, setStatuses] = useState<Set<QuoteStatus>>(new Set());
   const [sort, setSort] = useState<InboxSort>("priority");
   const [activeViewId, setActiveViewId] = useState<string | null>(null);
+  const { density, setDensity } = useInboxDensity();
+  const foco = density === "foco";
+
 
   const [saveOpen, setSaveOpen] = useState(false);
   const [viewName, setViewName] = useState("");
@@ -438,11 +443,40 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
               <X className="h-3 w-3" aria-hidden="true" /> Limpar filtros ({activeCount})
             </Button>
           )}
-          <Badge variant="outline" className="ml-auto text-[11px] font-medium">
-            {filtered.length} de {quotes.length}
-          </Badge>
+          <div className="ml-auto flex items-center gap-1.5">
+            <div className="inline-flex rounded-md border bg-background p-0.5" role="tablist" aria-label="Densidade da inbox">
+              <button
+                type="button"
+                onClick={() => setDensity("foco")}
+                aria-pressed={foco}
+                title="Modo Foco — 3 colunas essenciais"
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-[11px] font-medium transition-smooth",
+                  foco ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <Layers className="h-3 w-3" /> Foco
+              </button>
+              <button
+                type="button"
+                onClick={() => setDensity("detalhada")}
+                aria-pressed={!foco}
+                title="Modo Detalhada — todas as metainformações"
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-[11px] font-medium transition-smooth",
+                  !foco ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <Rows3 className="h-3 w-3" /> Detalhada
+              </button>
+            </div>
+            <Badge variant="outline" className="text-[11px] font-medium">
+              {filtered.length} de {quotes.length}
+            </Badge>
+          </div>
         </div>
       </div>
+
 
       <ul className="flex-1 divide-y overflow-y-auto">
         {filtered.length === 0 && (
@@ -487,14 +521,23 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
                       <span className="truncate text-sm font-semibold text-foreground">
                         {qt.customer_name}
                       </span>
-                      <SourceTag source={qt.source_type} />
-                      <span className="inline-flex items-center gap-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                        <Building2 className="h-3 w-3" /> {t.name}
-                      </span>
+                      {!foco && <SourceTag source={qt.source_type} />}
+                      {!foco && (
+                        <span className="inline-flex items-center gap-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                          <Building2 className="h-3 w-3" /> {t.name}
+                        </span>
+                      )}
                     </div>
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                      #{qt.id.toUpperCase()} · {qt.customer_segment} · {ow.name} · {qt.items.length} item(ns)
-                    </p>
+                    {!foco && (
+                      <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                        #{qt.id.toUpperCase()} · {qt.customer_segment} · {ow.name} · {qt.items.length} item(ns)
+                      </p>
+                    )}
+                    {foco && (
+                      <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                        #{qt.id.toUpperCase()} · {ow.name}
+                      </p>
+                    )}
                   </div>
                   <SlaIndicator deadline={qt.sla_deadline} compact />
                 </div>
@@ -502,7 +545,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
                 <div className="mt-1 flex flex-wrap items-center justify-between gap-1.5">
                   <div className="flex flex-wrap items-center gap-1">
                     <PriorityBadge priority={qt.priority} />
-                    <StatusBadge status={qt.status} />
+                    {!foco && <StatusBadge status={qt.status} />}
                   </div>
                   <div className="num text-right leading-tight">
                     <div className="text-sm font-semibold text-foreground">{formatBRL(totals.revenue)}</div>
@@ -515,7 +558,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
                   </div>
                 </div>
 
-                {(ns || ps) && (
+                {(ns || ps) && (!foco || active) && (
                   <div className="mt-1.5 flex flex-wrap items-center gap-1 border-t pt-1.5">
                     {ns && (
                       <Button
@@ -549,6 +592,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
                     )}
                   </div>
                 )}
+
               </div>
             </li>
           );

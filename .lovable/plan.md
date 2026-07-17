@@ -1,76 +1,65 @@
+# Plano — 4 frentes solicitadas
 
-# USE Medical — Roadmap Power-Up
-
-Vou executar **Fase 1 completa** agora (código real, sem Cloud — mantendo padrão localStorage + schema SQL pronto para migração) e deixar **Fases 2 e 3** como scaffolds/documentação para não gerar scope creep. Cloud continua bloqueado por créditos; assim que liberar, migro tudo (RLS multi-tenant já modelado em `docs/supabase-schema.md`).
-
----
-
-## Fase 1 — MVP "Adoção Acelerada" (executo agora)
-
-### 1.1 Gamificação Financeira — Comissão em tempo real
-- **Tipos** `Commission`, `CommissionRule`, `SalesGoal` em `src/lib/medical/types.ts`
-- **Motor** `src/lib/medical/commission.ts`:
-  - Regras por faixa de margem (ex.: <12% = 0%, 12-20% = 2%, 20-30% = 3.5%, >30% = 5%)
-  - Bônus por SLA cumprido (+0.5%)
-  - `computeCommission(quote, rule)` puro + testado
-- **UI**:
-  - `CommissionBadge` no `QuoteDrawer` — atualiza ao editar preço/quantidade
-  - Novo card no dashboard do vendedor (`vendedor.$ownerId.tsx`): comissão MTD, meta diária, barra de progresso, streak
-  - `DailyGoalRing` (SVG) no header quando logado como vendedor
-- **Testes**: `commission.test.ts` cobrindo faixas, bônus e edge cases
-
-### 1.2 Compliance ANVISA/CMED
-- **Tipos** `ComplianceCheck`, `ComplianceStatus` (`ok` | `warning` | `blocked`)
-- **Motor** `src/lib/medical/compliance.ts`:
-  - Validação de registro ANVISA (regex + validade fake por SKU)
-  - Teto CMED (PMC) — se `unit_price > pmc_max` → `blocked` com motivo
-  - Restrição por classe terapêutica em cliente-alvo
-- **Mock dataset** `src/lib/medical/compliance-data.ts` com dados regulatórios por SKU
-- **UI**:
-  - `ComplianceAlert` (verde/amarelo/vermelho) no topo do `QuoteDrawer`
-  - Ícone de status em cada item da cotação
-  - Bloqueio de "Gerar Proposta" quando `blocked` (com override do gestor + log)
-- **IA de Preço atualizada**: `pricing.ts` passa a considerar teto CMED como upper bound
-- **Testes**: `compliance.test.ts`
-
-### 1.3 Schema SQL Atualizado
-Atualizar `docs/supabase-schema.md` com:
-- `commissions` (id, tenant_id, quote_id, owner_id, base_amount, rate, bonus, total, computed_at)
-- `commission_rules` (tenant_id, tier_json, bonus_rules)
-- `sales_goals` (owner_id, period, target_amount, target_count)
-- `regulatory_compliance` (id, tenant_id, product_id, anvisa_code, cmed_pmc, status, checked_at, blocked_reason)
-- `market_benchmarks` (region, segment, avg_margin, sample_size, period) — vazio, pronto p/ Fase 2
-
-Todos com RLS por `tenant_id` e GRANTs corretos.
+Antes de codar, quero alinhar escopo e ordem — são 4 frentes grandes e algumas já têm base implementada no projeto. Vou marcar o que **já existe**, o que é **refinamento** e o que é **novo**.
 
 ---
 
-## Fase 2 — "Vantagem Competitiva" (scaffolds hoje, ativação depois)
+## 1. Carga Cognitiva — Inbox "3 colunas + expandir"
 
-- Rota `/inteligencia` com placeholder do Benchmarking (usa `market_benchmarks` mock agregado)
-- Stub `src/lib/medical/regulated-ai.ts` (interface do prompt regulatório) — sem chamada real de IA agora
-- Documento `docs/roadmap/fase-2.md`
+Estado atual: `QuoteInbox` mostra ~7 colunas (cliente, segmento, SLA, prioridade, margem, itens, origem, ações) em linhas densas (`py-1.5`).
 
-## Fase 3 — "Ecossistema" (documentação hoje)
+**Refatoração proposta (só frontend):**
+- Modo padrão "Foco": 3 colunas — **Cliente**, **Prazo SLA** (cronômetro colorido), **Margem calculada** (pill verde/amarelo/vermelho).
+- Chevron por linha → expande inline uma faixa com segmento, prioridade, itens, origem, ações rápidas (avançar status, abrir drawer completo).
+- Toggle no topo: **Foco (3 col)** ↔ **Detalhada (tudo)** — persistido em `localStorage`.
+- Prioridade/alerta reforçados por cor da barra lateral esquerda (já existe, vou intensificar em urgente/atrasado).
+- Filtro rápido "Somente pendentes urgentes" no topo (aproveita o sino de SLA existente).
+- Notificações já cobertas por `use-sla-notifications` + `SlaAlertBell` — só amarro o CTA "ativar alertas" quando `Notification.permission === 'default'`.
 
-- `docs/roadmap/fase-3.md` — Sandbox de integração JSON mapping, contratos API pública, Bionexo
-- Contratos TypeScript em `src/lib/medical/ecosystem-types.ts`
+Fora do escopo agora: refazer o sistema de filtros salvos (já existe em `use-inbox-views`).
+
+## 2. Precificação Inteligente — regra + alerta de margem negativa
+
+Estado atual: `suggestPrice()` em `pricing.ts` já faz markup ponderado (target 28% + histórico + ajuste de volume) e `isMarginOk` usa `MIN_MARGIN = 12%`. Compliance CMED já limita teto.
+
+**Refinamento (não substituir a IA existente, adicionar guarda):**
+- Nova função `basePrice(cost) = cost * 1.25` como **piso comercial** exposto ao lado da sugestão da IA no `QuoteDrawer`.
+- Validação por item:
+  - `unit_price < cost_price` → campo em vermelho + banner "Margem negativa: ajuste necessário" (bloqueia "Gerar Proposta", igual ao gate de compliance).
+  - `unit_price < basePrice` → aviso amarelo "Abaixo do piso de 25%".
+- Regras por tipo de produto (serviço vs físico): campo `product.unit` já existe; adiciono `product.pricing_profile` (`fisico` default | `servico`) com targets diferentes (28% físico, 40% serviço).
+- Revisão/aprovação e ML ficam **fora deste sprint** — anoto no roadmap; ML precisa de volume de dados que ainda não temos.
+
+## 3. Multi-tenant + RLS
+
+Estado atual: schema completo em `docs/supabase-schema.md` já contempla `tenant_id` em todas as tabelas, `is_tenant_member()` SECURITY DEFINER, `user_roles` separado, políticas RLS por tenant, GRANTs explícitos. Está **pronto para aplicar** assim que Lovable Cloud for ativado.
+
+**Ação neste sprint:**
+- **Não** ativar Cloud automaticamente (você decide quando — consome créditos).
+- Revisar o schema documentado, adicionar o que faltou nas Fases 2/3 recentes (api_keys, compliance_overrides, erp_mappings) para ficar 100% pronto.
+- Adicionar checklist de migração em `docs/supabase-schema.md`: backup, ordem de aplicação, seed inicial de tenant/membership.
+
+Quando você mandar "ativar Cloud", eu chamo `supabase--enable`, rodo o SQL via migration tool e migro os hooks `useQuotes`/`useProducts` para server functions com `requireSupabaseAuth`.
+
+## 4. Conectores ERP — página de configuração
+
+Estado atual: já existe `/integracoes` com sandbox de mapping ERP (`erp-mapping.ts` + `use-erp-mappings`) e webhook HMAC. Falta a **camada de seleção de provedor**.
+
+**Adição:**
+- Nova aba em `/integracoes` chamada "Conectores": grid de cards com TOTVS Protheus (renomeado Use Sistemas conforme sua regra anterior), Sankhya, Senior, "Custom (webhook genérico)".
+- Cada card abre um wizard de 3 passos: **Selecionar ERP → Credenciais (mock, salvo em `api_keys`) → Mapeamento de campos (reusa o sandbox existente)**.
+- Registry `src/lib/medical/erp-connectors.ts` com metadata de cada provedor (nome, campos de auth, endpoint base, docs URL). Fácil plugar novos.
+- Adaptador comum `ErpAdapter` interface — implementação real fica para quando Cloud subir; por ora, tudo é mock que grava em localStorage.
 
 ---
 
-## Design System
-Ajuste em `src/styles.css`: introduzir `--commission` (verde âmbar) e `--compliance-warning` (amarelo) mantendo navy + cobre da logo. Nada de refactor visual amplo.
+## Ordem de execução sugerida
 
-## Fora de escopo agora
-- Ativação Cloud (bloqueada — mantenho stubs prontos)
-- Portal Sandbox funcional (Fase 3 — só docs)
-- BI real (Fase 2 — só placeholder)
-- Ecosystem API (Fase 3 — só contratos)
+Posso fazer tudo em sequência num único sprint, mas recomendo esta ordem:
 
-## Entregáveis Fase 1
-1. Motor de comissão + UI gamificada + testes
-2. Motor de compliance + alertas + bloqueio + testes
-3. Schema SQL atualizado
-4. Scaffolds Fase 2/3 + docs
+1. **Inbox foco/detalhada** (impacto imediato de UX, baixo risco)
+2. **Precificação com alertas** (evita prejuízo, alta prioridade de negócio)
+3. **Registry ERP + wizard** (destrava roadmap comercial)
+4. **Revisão do schema** (só docs, sem código de runtime)
 
-Após aprovação, executo tudo em paralelo (arquivos independentes) e rodo vitest para validar.
+Confirma que posso tocar tudo, ou prefere que eu comece só pelas frentes 1 e 2?
