@@ -484,15 +484,15 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
                   <SlaIndicator deadline={qt.sla_deadline} compact />
                 </div>
 
-                <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-1.5">
+                <div className="mt-1 flex flex-wrap items-center justify-between gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1">
                     <PriorityBadge priority={qt.priority} />
                     <StatusBadge status={qt.status} />
                   </div>
-                  <div className="num text-right">
+                  <div className="num text-right leading-tight">
                     <div className="text-sm font-semibold text-foreground">{formatBRL(totals.revenue)}</div>
                     <div className={cn(
-                      "text-[11px] font-medium",
+                      "text-[10px] font-medium",
                       totals.margin < 0.12 ? "text-danger" : "text-success",
                     )}>
                       margem {formatPct(totals.margin)}
@@ -501,15 +501,12 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
                 </div>
 
                 {(ns || ps) && (
-                  <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t pt-2">
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      Ações rápidas
-                    </span>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1 border-t pt-1.5">
                     {ns && (
                       <Button
                         size="sm"
                         variant="default"
-                        className="h-7 gap-1 px-2 text-[11px]"
+                        className="h-6 gap-1 px-2 text-[10px]"
                         onClick={(e) => handleAdvance(e, qt)}
                       >
                         Avançar → {STATUS_LABEL[ns]} <ArrowRight className="h-3 w-3" />
@@ -519,7 +516,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-7 gap-1 px-2 text-[11px]"
+                        className="h-6 gap-1 px-1.5 text-[10px]"
                         onClick={(e) => handleRegress(e, qt)}
                       >
                         <Undo2 className="h-3 w-3" /> Voltar
@@ -529,7 +526,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-7 gap-1 px-2 text-[11px] text-danger hover:text-danger"
+                        className="h-6 gap-1 px-1.5 text-[10px] text-danger hover:text-danger"
                         onClick={(e) => handleLost(e, qt)}
                       >
                         Marcar perdido
