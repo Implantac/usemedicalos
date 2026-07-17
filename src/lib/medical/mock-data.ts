@@ -186,4 +186,4 @@ export const INITIAL_QUOTES: Quote[] = ([
     }, 120),
     status: "ganho",
   },
-].map((q) => (TENANT_ASSIGNMENT[q.id] ? { ...q, tenant_id: TENANT_ASSIGNMENT[q.id] } : q));
+] as Quote[]).map((q) => (TENANT_ASSIGNMENT[q.id] ? { ...q, tenant_id: TENANT_ASSIGNMENT[q.id] } : q));
