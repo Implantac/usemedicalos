@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { applyMapping, type ErpMappingConfig } from "@/lib/medical/erp-mapping";
 import { verifySignature } from "@/lib/medical/webhook-signature";
+import { clientKey, rateLimit, rateLimitHeaders } from "@/lib/medical/rate-limit";
 
 // Endpoint público para ingestão de payloads ERP arbitrários.
 // Segurança: assinatura HMAC-SHA256 via header `x-use-signature`.
@@ -18,6 +19,14 @@ export const Route = createFileRoute("/api/public/erp/ingest")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const rl = rateLimit(clientKey(request, "erp"), { max: 30, windowMs: 60_000 });
+        const rlHeaders = rateLimitHeaders(rl);
+        if (!rl.ok) {
+          return new Response("Rate limit exceeded", {
+            status: 429,
+            headers: { ...rlHeaders, "Retry-After": "60" },
+          });
+        }
         const secret = process.env.ERP_INGEST_SECRET;
         const rawBody = await request.text();
 
