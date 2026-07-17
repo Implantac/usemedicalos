@@ -83,6 +83,18 @@ function ApiKeysPage() {
           </p>
         </div>
 
+        {!canManage && (
+          <div className="flex items-start gap-2 rounded-md border border-warn/40 bg-warn/10 p-3 text-xs text-warn-foreground">
+            <Lock className="mt-0.5 h-4 w-4 shrink-0 text-warn" />
+            <div>
+              <div className="font-semibold text-foreground">Modo leitura</div>
+              Você não tem a permissão <code className="font-mono">api_keys.manage</code>. Peça a um admin
+              para conceder o papel adequado em <strong>Governança</strong>.
+            </div>
+          </div>
+        )}
+
+
         <div className="rounded-lg border bg-card p-3 card-shadow">
           <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
             <Plus className="h-4 w-4 text-brand" /> Nova chave
