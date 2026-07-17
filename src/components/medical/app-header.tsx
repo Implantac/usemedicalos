@@ -44,9 +44,9 @@ export function AppHeader({ onReset, children }: { onReset: () => void; children
                 activeOptions={{ exact: true }}
                 aria-label={n.label}
                 className={cn(
-                  "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2 text-xs font-medium text-primary-foreground/70 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground sm:px-2.5",
+                  "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2 text-xs font-medium text-primary-foreground/75 transition-smooth hover:bg-primary-foreground/10 hover:text-primary-foreground sm:px-2.5 press",
                 )}
-                activeProps={{ className: "bg-brand/20 text-primary-foreground ring-1 ring-brand/40" }}
+                activeProps={{ className: "bg-brand/25 text-primary-foreground shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--color-brand)_45%,transparent)]" }}
               >
                 <Icon className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{n.label}</span>
