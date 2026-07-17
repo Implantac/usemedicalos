@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { SlaAlertBell } from "./sla-alert-bell";
 import { TenantSwitcher } from "./tenant-switcher";
+import { RoleSwitcher } from "./role-switcher";
 import logoAsset from "@/assets/use-medical-logo.png.asset.json";
 
 
@@ -60,6 +61,8 @@ export function AppHeader({ onReset, children }: { onReset: () => void; children
 
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           <TenantSwitcher />
+          <RoleSwitcher />
+
 
           {children}
           <SlaAlertBell />
