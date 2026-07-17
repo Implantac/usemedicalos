@@ -10,8 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { Quote, QuoteStatus } from "@/lib/medical/types";
-import { STATUS_LABEL, MIN_MARGIN } from "@/lib/medical/types";
+import { STATUS_LABEL } from "@/lib/medical/types";
 import { basePrice, formatBRL, formatPct, itemMargin, itemTotal, pricingSignal, quoteTotals, suggestPrice } from "@/lib/medical/pricing";
+import { useTenantConfig } from "@/hooks/use-tenant-config";
+
 import { PriorityBadge, SourceTag, StatusBadge } from "./badges";
 import { SlaIndicator } from "./sla-indicator";
 import { sendToUseSistemas } from "@/lib/medical/use-sistemas-mock";
