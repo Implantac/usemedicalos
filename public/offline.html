@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Offline — USE Medical</title>
+    <meta name="theme-color" content="#0b1220" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b1220;
+        --panel: #111b2e;
+        --border: #1f2b45;
+        --fg: #f5f7fb;
+        --muted: #9aa8c2;
+        --brand: #e67828;
+        --brand-fg: #0b1220;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); }
+      body {
+        min-height: 100vh;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      main {
+        width: 100%;
+        max-width: 560px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 28px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+      }
+      .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+      .brand img { width: 40px; height: 40px; }
+      .brand span { font-weight: 700; letter-spacing: -0.01em; }
+      .status {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em;
+        color: var(--brand); font-weight: 700;
+      }
+      .status::before {
+        content: ""; width: 8px; height: 8px; border-radius: 50%;
+        background: var(--brand); box-shadow: 0 0 0 4px rgba(230,120,40,0.15);
+      }
+      h1 { font-size: 22px; margin: 10px 0 8px; letter-spacing: -0.02em; }
+      p  { color: var(--muted); line-height: 1.55; margin: 0 0 18px; font-size: 14px; }
+      .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+      button, a.btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        border-radius: 8px; padding: 9px 14px; font-size: 13px; font-weight: 600;
+        border: 1px solid var(--border); background: transparent; color: var(--fg);
+        cursor: pointer; text-decoration: none; transition: all .15s ease;
+      }
+      button.primary {
+        background: var(--brand); color: var(--brand-fg); border-color: var(--brand);
+      }
+      button:hover, a.btn:hover { transform: translateY(-1px); }
+      .cached h2 {
+        font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+        color: var(--muted); margin: 0 0 10px; font-weight: 600;
+      }
+      .cached ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+      .cached a {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 10px 12px; border-radius: 8px;
+        background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+        color: var(--fg); text-decoration: none; font-size: 13px;
+      }
+      .cached a:hover { background: rgba(230,120,40,0.08); border-color: var(--brand); }
+      .cached small { color: var(--muted); font-size: 11px; }
+      footer { margin-top: 22px; font-size: 11px; color: var(--muted); text-align: center; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="brand">
+        <img src="/icon-192.png" alt="" />
+        <div>
+          <div class="status">Sem conexão</div>
+          <div><span>USE Medical</span> — modo offline</div>
+        </div>
+      </div>
+
+      <h1>Você está offline</h1>
+      <p>
+        Não conseguimos alcançar o servidor. As páginas visitadas recentemente
+        continuam disponíveis abaixo. Ações que dependem de rede
+        (nova cotação, envio para o Use Sistemas, geração de PDF nova) serão
+        sincronizadas assim que a conexão voltar.
+      </p>
+
+      <div class="actions">
+        <button class="primary" onclick="location.reload()">Tentar novamente</button>
+        <a class="btn" href="/">Ir para a Inbox</a>
+      </div>
+
+      <div class="cached">
+        <h2>Conteúdo em cache</h2>
+        <ul id="cached-links">
+          <li><a href="/">Inbox de cotações <small>·  /</small></a></li>
+          <li><a href="/dashboard">Dashboard de SLA <small>· /dashboard</small></a></li>
+          <li><a href="/produtos">Catálogo de produtos <small>· /produtos</small></a></li>
+        </ul>
+      </div>
+
+      <footer>
+        Verificando conexão automaticamente…
+      </footer>
+    </main>
+
+    <script>
+      // Auto-reload when the connection returns.
+      window.addEventListener("online", () => location.reload());
+
+      // Best-effort: surface any additional navigations we have cached.
+      (async () => {
+        if (!("caches" in window)) return;
+        try {
+          const names = await caches.keys();
+          const seen = new Set(["/", "/dashboard", "/produtos"]);
+          const extras = [];
+          for (const name of names) {
+            if (!/html-navigations|precache/i.test(name)) continue;
+            const cache = await caches.open(name);
+            const reqs = await cache.keys();
+            for (const req of reqs) {
+              try {
+                const u = new URL(req.url);
+                if (u.origin !== location.origin) continue;
+                const p = u.pathname;
+                if (seen.has(p)) continue;
+                if (/\.(?:js|css|png|jpg|jpeg|svg|webp|ico|woff2?)$/.test(p)) continue;
+                if (p.startsWith("/api/") || p.startsWith("/~oauth")) continue;
+                if (p === "/offline.html") continue;
+                seen.add(p);
+                extras.push(p);
+              } catch {}
+            }
+          }
+          if (!extras.length) return;
+          const ul = document.getElementById("cached-links");
+          for (const p of extras.slice(0, 8)) {
+            const li = document.createElement("li");
+            li.innerHTML = '<a href="' + p + '">' + p + ' <small>· cache</small></a>';
+            ul.appendChild(li);
+          }
+        } catch {}
+      })();
+    </script>
+  </body>
+</html>
