@@ -1,18 +1,19 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { Activity, ArrowLeft, Award, Coins, DollarSign, Percent, Ticket, TrendingUp } from "lucide-react";
+import { Activity, ArrowDown, ArrowLeft, ArrowUp, Award, Coins, DollarSign, Minus, Percent, Ticket, TrendingUp } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { KpiCard } from "@/components/medical/kpi-card";
 import { PriorityBadge, StatusBadge } from "@/components/medical/badges";
 import { SlaIndicator } from "@/components/medical/sla-indicator";
 import { DailyGoalRing } from "@/components/medical/daily-goal-ring";
-import { CommissionBadge } from "@/components/medical/commission-badge";
 import { useQuotes } from "@/hooks/use-quotes";
 import { OWNERS, ownerById } from "@/lib/medical/mock-data";
 import { computeKpis } from "@/lib/medical/analytics";
 import { formatBRL, formatPct, quoteTotals } from "@/lib/medical/pricing";
 import { summarizeForOwner } from "@/lib/medical/commission";
+import { benchmarkFor, type Region } from "@/lib/medical/benchmarks";
 import { Toaster } from "@/components/ui/sonner";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/vendedor/$ownerId")({
   loader: ({ params }) => {
