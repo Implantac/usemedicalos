@@ -26,6 +26,7 @@ export interface Activity {
     sku?: string;
     order_id?: string;
     reason?: string;
+    engine_status?: string;
   };
 }
 

@@ -13,6 +13,10 @@ import type { Quote, QuoteStatus } from "@/lib/medical/types";
 import { STATUS_LABEL } from "@/lib/medical/types";
 import { basePrice, formatBRL, formatPct, itemMargin, itemTotal, pricingSignal, quoteTotals, suggestPrice } from "@/lib/medical/pricing";
 import { useTenantConfig } from "@/hooks/use-tenant-config";
+import { useProductOverrides } from "@/hooks/use-product-overrides";
+import { useQuotes } from "@/hooks/use-quotes";
+import { enrichProductsWithMarket } from "@/lib/medical/pricing-flywheel";
+import { calculateSuggestedPrice, PRICING_STATUS_LABEL, type PricingStatus } from "@/lib/medical/pricing-engine";
 
 import { PriorityBadge, SourceTag, StatusBadge } from "./badges";
 import { SlaIndicator } from "./sla-indicator";
@@ -28,7 +32,7 @@ import {
   revokeOverride,
 } from "@/lib/medical/compliance-override";
 import { benchmarkFor, type Region } from "@/lib/medical/benchmarks";
-import { ownerById } from "@/lib/medical/mock-data";
+import { ownerById, PRODUCTS } from "@/lib/medical/mock-data";
 import { ArrowDown, ArrowUp, Minus } from "lucide-react";
 
 interface Props {
@@ -54,6 +58,16 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
   const totals = quoteTotals(quote.items);
   const marginOk = totals.margin >= minMargin;
   const hasNegative = quote.items.some((it) => pricingSignal(it, minMargin) === "negative");
+
+  // Motor de precificação 4 camadas: catálogo enriquecido pelo flywheel + overrides do gestor.
+  const { quotes: allQuotes } = useQuotes();
+  const { applyTo: applyProductOverride } = useProductOverrides();
+  const productBySku = useMemo(() => {
+    const enriched = enrichProductsWithMarket(PRODUCTS, allQuotes).map(applyProductOverride);
+    const m = new Map<string, (typeof enriched)[number]>();
+    for (const p of enriched) m.set(p.sku, p);
+    return m;
+  }, [allQuotes, applyProductOverride]);
 
 
   const compliance = checkQuote(quote, overriddenSkus);
@@ -202,7 +216,11 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
             <div className="space-y-2">
               {quote.items.map((it, idx) => {
                 const m = itemMargin(it);
-                const suggested = suggestPrice(it, tenantConfig.target_margin);
+                const catalogProduct = productBySku.get(it.sku);
+                const engine = catalogProduct
+                  ? calculateSuggestedPrice(catalogProduct, { tier: "B" })
+                  : null;
+                const suggested = engine ? engine.suggested_price : suggestPrice(it, tenantConfig.target_margin);
                 const base = basePrice(it.cost_price);
                 const signal = pricingSignal(it, minMargin);
 
@@ -288,25 +306,42 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
                       </div>
                     )}
 
-                    <div className="mt-2 flex items-center justify-between rounded-md border border-dashed border-primary/30 bg-primary/5 px-2 py-1.5">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary">
-                        <Sparkles className="h-3 w-3" /> Sugestão IA
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="num text-xs font-bold text-foreground">{formatBRL(suggested)}</span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-6 px-2 text-[11px]"
-                          onClick={() => {
-                            onUpdateItem(quote.id, idx, { unit_price: suggested });
-                            appendActivity({ quote_id: quote.id, type: "price_suggested", message: `Sugestão IA aplicada em ${it.sku}: ${formatBRL(suggested)}`, meta: { sku: it.sku } });
-                            bumpActivity();
-                          }}
-                        >
-                          Aplicar
-                        </Button>
+                    <div className="mt-2 rounded-md border border-dashed border-primary/30 bg-primary/5 px-2 py-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary">
+                          <Sparkles className="h-3 w-3" />
+                          {engine ? "Motor 4 camadas" : "Sugestão IA"}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          {engine && <EngineStatusChip status={engine.status} />}
+                          <span className="num text-xs font-bold text-foreground">{formatBRL(suggested)}</span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 px-2 text-[11px]"
+                            disabled={engine?.status === "BLOCKED"}
+                            onClick={() => {
+                              onUpdateItem(quote.id, idx, { unit_price: suggested });
+                              appendActivity({
+                                quote_id: quote.id,
+                                type: "price_suggested",
+                                message: `${engine ? "Motor" : "Sugestão IA"} aplicado em ${it.sku}: ${formatBRL(suggested)}`,
+                                meta: { sku: it.sku, engine_status: engine?.status },
+                              });
+                              bumpActivity();
+                            }}
+                          >
+                            Aplicar
+                          </Button>
+                        </div>
                       </div>
+                      {engine && (
+                        <div className="mt-1 grid grid-cols-3 gap-1 text-[10px] text-muted-foreground num">
+                          <span>Floor {formatBRL(engine.floor_price)}</span>
+                          <span>CMED {engine.compliance_cap ? formatBRL(engine.compliance_cap) : "—"}</span>
+                          <span>Mercado {engine.market_target ? formatBRL(engine.market_target) : "—"}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -480,4 +515,26 @@ function BenchmarkMini({
     </div>
   );
 }
+
+const ENGINE_CHIP_TONE: Record<PricingStatus, string> = {
+  OPTIMAL: "bg-success/15 text-success border-success/30",
+  MARKET_MISSING: "bg-muted text-muted-foreground border-muted-foreground/20",
+  WARNING: "bg-warning/15 text-warning border-warning/30",
+  COMPLIANCE_LIMIT: "bg-warning/15 text-warning border-warning/30",
+  BLOCKED: "bg-danger/15 text-danger border-danger/30",
+};
+
+function EngineStatusChip({ status }: { status: PricingStatus }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider",
+        ENGINE_CHIP_TONE[status],
+      )}
+    >
+      {PRICING_STATUS_LABEL[status]}
+    </span>
+  );
+}
+
 
