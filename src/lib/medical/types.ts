@@ -92,6 +92,7 @@ export interface Quote {
   notes?: string;
   use_sistemas_synced?: boolean;
   use_sistemas_order_id?: string;
+  portal_meta?: PortalMeta;
 }
 
 export interface SlaTracking {
