@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
+import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { ProductList } from "@/components/medical/product-list";
 import { ProductHistoryDrawer } from "@/components/medical/product-history-drawer";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ function ProdutosPage() {
       <AppHeader onReset={resetDemo} />
 
       <main className="mx-auto max-w-[1600px] space-y-4 px-3 py-4 sm:px-4">
+        <TenantScopeBanner hint="Catálogo compartilhado entre tenants" />
         <div>
           <h1 className="text-lg font-bold tracking-tight text-foreground">Catálogo de produtos</h1>
           <p className="text-xs text-muted-foreground">

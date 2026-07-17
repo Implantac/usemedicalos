@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
+import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { QuoteInbox } from "@/components/medical/quote-inbox";
 import { QuoteDrawer } from "@/components/medical/quote-drawer";
 import { QuoteStats } from "@/components/medical/quote-stats";
@@ -50,6 +51,9 @@ function InboxPage() {
       </AppHeader>
 
       <main className="mx-auto max-w-[1600px] px-3 py-4 sm:px-4">
+        <div className="mb-3">
+          <TenantScopeBanner hint="Inbox filtrada pelo escopo" />
+        </div>
         <div className="mb-4 space-y-2">
           <div>
             <h1 className="text-lg font-bold tracking-tight text-foreground">Inbox Universal</h1>
