@@ -50,9 +50,10 @@ export function suggestPrice(item: QuoteItem, targetMargin = 0.28): number {
   return Math.round(blended * 100) / 100;
 }
 
-export function isMarginOk(margin: number): boolean {
-  return margin >= MIN_MARGIN;
+export function isMarginOk(margin: number, minMargin: number = MIN_MARGIN): boolean {
+  return margin >= minMargin;
 }
+
 
 export function formatBRL(v: number): string {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
