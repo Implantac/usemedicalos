@@ -27,14 +27,14 @@ export function ownerById(id: string): Owner {
 }
 
 export const PRODUCTS: Product[] = [
-  { id: "p1", sku: "SUT-3-0-CT", name: "Fio de Sutura 3-0 c/ Agulha", cost_price: 18.5, last_suggested_price: 27.9, unit: "un" },
-  { id: "p2", sku: "LUV-CIR-M", name: "Luva Cirúrgica Estéril M", cost_price: 2.1, last_suggested_price: 3.2, unit: "par" },
-  { id: "p3", sku: "SER-20ML", name: "Seringa 20ml Descartável", cost_price: 0.85, last_suggested_price: 1.4, unit: "un" },
-  { id: "p4", sku: "CAT-VEN-20G", name: "Cateter Venoso 20G", cost_price: 4.2, last_suggested_price: 6.9, unit: "un" },
-  { id: "p5", sku: "MSC-N95", name: "Máscara N95 PFF2", cost_price: 3.5, last_suggested_price: 5.5, unit: "un" },
-  { id: "p6", sku: "GZE-EST-10", name: "Gaze Estéril 10x10cm", cost_price: 1.1, last_suggested_price: 1.9, unit: "un" },
-  { id: "p7", sku: "SOR-FIS-500", name: "Soro Fisiológico 500ml", cost_price: 4.8, last_suggested_price: 7.2, unit: "un" },
-  { id: "p8", sku: "PRT-CIR-COMP", name: "Prótese Cirúrgica Composta", cost_price: 890, last_suggested_price: 1450, unit: "un" },
+  { id: "p1", sku: "SUT-3-0-CT",   name: "Fio de Sutura 3-0 c/ Agulha", cost_price: 18.5, last_suggested_price: 27.9, unit: "un",  tax_rate: 0.18, logistics_rate: 0.03, cmed_ceiling: 32.5,  market_avg: 27.4,  compliance_flags: { anvisa: true } },
+  { id: "p2", sku: "LUV-CIR-M",    name: "Luva Cirúrgica Estéril M",    cost_price: 2.1,  last_suggested_price: 3.2,  unit: "par", tax_rate: 0.12, logistics_rate: 0.02, cmed_ceiling: 3.6,   market_avg: 3.15,  compliance_flags: { anvisa: true } },
+  { id: "p3", sku: "SER-20ML",     name: "Seringa 20ml Descartável",    cost_price: 0.85, last_suggested_price: 1.4,  unit: "un",  tax_rate: 0.12, logistics_rate: 0.02, cmed_ceiling: 1.6,   market_avg: 1.38,  compliance_flags: { anvisa: true } },
+  { id: "p4", sku: "CAT-VEN-20G",  name: "Cateter Venoso 20G",          cost_price: 4.2,  last_suggested_price: 6.9,  unit: "un",  tax_rate: 0.18, logistics_rate: 0.03, cmed_ceiling: 7.4,   market_avg: 6.85,  compliance_flags: { anvisa: true } },
+  { id: "p5", sku: "MSC-N95",      name: "Máscara N95 PFF2",            cost_price: 3.5,  last_suggested_price: 5.5,  unit: "un",  tax_rate: 0.12, logistics_rate: 0.02, cmed_ceiling: 6.2,   market_avg: 5.4,   compliance_flags: { anvisa: true } },
+  { id: "p6", sku: "GZE-EST-10",   name: "Gaze Estéril 10x10cm",        cost_price: 1.1,  last_suggested_price: 1.9,  unit: "un",  tax_rate: 0.12, logistics_rate: 0.02, cmed_ceiling: 2.1,   market_avg: 1.85,  compliance_flags: { anvisa: true } },
+  { id: "p7", sku: "SOR-FIS-500",  name: "Soro Fisiológico 500ml",      cost_price: 4.8,  last_suggested_price: 7.2,  unit: "un",  tax_rate: 0.18, logistics_rate: 0.04, cmed_ceiling: 8.0,   market_avg: 7.1,   compliance_flags: { anvisa: true, refrigerated: true } },
+  { id: "p8", sku: "PRT-CIR-COMP", name: "Prótese Cirúrgica Composta",  cost_price: 890,  last_suggested_price: 1450, unit: "un",  tax_rate: 0.22, logistics_rate: 0.05, cmed_ceiling: 1600,  market_avg: 1440,  compliance_flags: { anvisa: true, controlled: true, special_handling: true } },
 ];
 
 function hoursAgo(h: number) {
