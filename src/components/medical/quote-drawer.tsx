@@ -17,6 +17,9 @@ import { SlaIndicator } from "./sla-indicator";
 import { sendToUseSistemas } from "@/lib/medical/use-sistemas-mock";
 import { appendActivity } from "@/lib/medical/activity";
 import { QuoteTimeline } from "./quote-timeline";
+import { checkQuote } from "@/lib/medical/compliance";
+import { ComplianceAlert } from "./compliance-alert";
+import { CommissionBadge } from "./commission-badge";
 
 interface Props {
   quote: Quote | null;
@@ -32,11 +35,18 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
   if (!quote) return null;
   const totals = quoteTotals(quote.items);
   const marginOk = totals.margin >= MIN_MARGIN;
+  const compliance = checkQuote(quote);
+  const complianceBlocked = compliance.status === "blocked";
+  const canSend = marginOk && !complianceBlocked;
   const bumpActivity = () => setActivityVersion((v) => v + 1);
 
   const handleGenerateProposal = async () => {
     if (!marginOk) {
       toast.error("Margem abaixo do mínimo (12%). Ajuste preços antes de enviar.");
+      return;
+    }
+    if (complianceBlocked) {
+      toast.error("Cotação bloqueada por restrição ANVISA/CMED.");
       return;
     }
     setSubmitting(true);
@@ -82,6 +92,12 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto">
+          <section className="space-y-2 border-b p-4">
+            <ComplianceAlert report={compliance} />
+            <CommissionBadge quote={quote} />
+          </section>
+
+
           {/* Payload original + IA classification */}
           <section className="border-b p-4">
             <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
@@ -293,11 +309,15 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
             </Button>
             <Button
               className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-              disabled={submitting || !marginOk}
+              disabled={submitting || !canSend}
               onClick={handleGenerateProposal}
             >
               <FileText className="mr-2 h-4 w-4" />
-              {submitting ? "Enviando ao Use Sistemas…" : "Gerar Proposta & Enviar Use Sistemas"}
+              {submitting
+                ? "Enviando ao Use Sistemas…"
+                : complianceBlocked
+                  ? "Bloqueado (Compliance)"
+                  : "Gerar Proposta & Enviar Use Sistemas"}
             </Button>
           </div>
         </div>

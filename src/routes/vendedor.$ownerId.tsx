@@ -1,14 +1,16 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { Activity, ArrowLeft, DollarSign, Percent, Ticket, TrendingUp } from "lucide-react";
+import { Activity, ArrowLeft, Award, Coins, DollarSign, Percent, Ticket, TrendingUp } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { KpiCard } from "@/components/medical/kpi-card";
 import { PriorityBadge, StatusBadge } from "@/components/medical/badges";
 import { SlaIndicator } from "@/components/medical/sla-indicator";
+import { DailyGoalRing } from "@/components/medical/daily-goal-ring";
 import { useQuotes } from "@/hooks/use-quotes";
 import { OWNERS, ownerById } from "@/lib/medical/mock-data";
 import { computeKpis } from "@/lib/medical/analytics";
 import { formatBRL, formatPct, quoteTotals } from "@/lib/medical/pricing";
+import { summarizeForOwner } from "@/lib/medical/commission";
 import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/vendedor/$ownerId")({
@@ -47,6 +49,7 @@ function OwnerPage() {
 
   const mine = useMemo(() => quotes.filter((q) => q.owner_id === ownerId), [quotes, ownerId]);
   const kpis = useMemo(() => computeKpis(mine), [mine]);
+  const commission = useMemo(() => summarizeForOwner(mine), [mine]);
   const sorted = useMemo(
     () => [...mine].sort((a, b) => (a.received_at < b.received_at ? 1 : -1)),
     [mine],
@@ -91,6 +94,13 @@ function OwnerPage() {
             icon={DollarSign}
             tone={kpis.avgMargin < 0.12 ? "danger" : "success"}
           />
+        </div>
+
+        <div className="grid gap-2 md:grid-cols-4">
+          <DailyGoalRing progress={commission.daily_progress} goal={commission.daily_goal} />
+          <KpiCard label="Comissão MTD" value={formatBRL(commission.mtd_total)} icon={Coins} tone="success" />
+          <KpiCard label="Ganhas (mês)" value={formatBRL(commission.mtd_won)} icon={Award} tone="primary" />
+          <KpiCard label="Pipeline comissão" value={formatBRL(commission.mtd_pipeline)} icon={TrendingUp} />
         </div>
 
         <div className="overflow-hidden rounded-lg border bg-card card-shadow">
