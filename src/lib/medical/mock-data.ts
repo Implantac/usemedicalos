@@ -72,7 +72,7 @@ const TENANT_ASSIGNMENT: Record<string, string> = {
   q8: "tnt_bio_norte",
 };
 
-export const INITIAL_QUOTES: Quote[] = [
+export const INITIAL_QUOTES: Quote[] = ([
   build("q1", {
     owner_id: "u_ana",
     customer_name: "Hospital Santa Clara",
