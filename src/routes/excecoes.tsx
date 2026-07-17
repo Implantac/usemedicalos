@@ -34,7 +34,7 @@ function ExceptionsPage() {
 
   function handleRevoke(o: ComplianceOverride) {
     revokeOverride(o.quote_id, o.sku);
-    logActivity({
+    appendActivity({
       quote_id: o.quote_id,
       type: "compliance_override_revoked",
       actor: o.manager_id,
