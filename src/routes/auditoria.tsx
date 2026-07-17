@@ -48,9 +48,9 @@ const HIGH_RISK: ActivityType[] = [
 ];
 
 function AuditoriaPage() {
-  const { reset } = useQuotes();
+  const { resetDemo, quotes: scopedQuotes } = useQuotes();
   const { scope, tenant } = useActiveTenant();
-  const { quotes: scopedQuotes } = useQuotes();
+
   const [type, setType] = useState<"all" | ActivityType>("all");
   const [search, setSearch] = useState("");
   const [onlyRisk, setOnlyRisk] = useState(false);

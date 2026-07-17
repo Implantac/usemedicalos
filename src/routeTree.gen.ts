@@ -18,6 +18,7 @@ import { Route as IntegracoesRouteImport } from './routes/integracoes'
 import { Route as GovernancaRouteImport } from './routes/governanca'
 import { Route as ExcecoesRouteImport } from './routes/excecoes'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as ApiKeysRouteImport } from './routes/api-keys'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VendedorOwnerIdRouteImport } from './routes/vendedor.$ownerId'
@@ -71,6 +72,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuditoriaRoute = AuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiKeysRoute = ApiKeysRouteImport.update({
   id: '/api-keys',
   path: '/api-keys',
@@ -110,6 +116,7 @@ const ApiPublicErpIngestRoute = ApiPublicErpIngestRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api-keys': typeof ApiKeysRoute
+  '/auditoria': typeof AuditoriaRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
   '/governanca': typeof GovernancaRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api-keys': typeof ApiKeysRoute
+  '/auditoria': typeof AuditoriaRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
   '/governanca': typeof GovernancaRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api-keys': typeof ApiKeysRoute
+  '/auditoria': typeof AuditoriaRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
   '/governanca': typeof GovernancaRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/api-keys'
+    | '/auditoria'
     | '/dashboard'
     | '/excecoes'
     | '/governanca'
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/api-keys'
+    | '/auditoria'
     | '/dashboard'
     | '/excecoes'
     | '/governanca'
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/api-keys'
+    | '/auditoria'
     | '/dashboard'
     | '/excecoes'
     | '/governanca'
@@ -222,6 +234,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiKeysRoute: typeof ApiKeysRoute
+  AuditoriaRoute: typeof AuditoriaRoute
   DashboardRoute: typeof DashboardRoute
   ExcecoesRoute: typeof ExcecoesRoute
   GovernancaRoute: typeof GovernancaRoute
@@ -303,6 +316,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auditoria': {
+      id: '/auditoria'
+      path: '/auditoria'
+      fullPath: '/auditoria'
+      preLoaderRoute: typeof AuditoriaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api-keys': {
       id: '/api-keys'
       path: '/api-keys'
@@ -358,6 +378,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiKeysRoute: ApiKeysRoute,
+  AuditoriaRoute: AuditoriaRoute,
   DashboardRoute: DashboardRoute,
   ExcecoesRoute: ExcecoesRoute,
   GovernancaRoute: GovernancaRoute,
