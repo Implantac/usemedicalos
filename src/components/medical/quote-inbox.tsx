@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { ArrowRight, Bookmark, BookmarkPlus, Building2, Filter, Search, Trash2, Undo2, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, Bookmark, BookmarkPlus, Building2, Download, Filter, Search, Share2, Trash2, Undo2, Upload, X } from "lucide-react";
 import type { Quote, QuoteStatus } from "@/lib/medical/types";
 import { STATUS_LABEL } from "@/lib/medical/types";
 import { quoteTotals, formatBRL, formatPct } from "@/lib/medical/pricing";
@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useInboxViews, type InboxSort, type InboxViewState } from "@/hooks/use-inbox-views";
+import { decodeViewState, encodeViewState } from "@/lib/medical/view-encoding";
 
 const PRIORITY_RANK = { urgente: 0, alta: 1, normal: 2, baixa: 3 } as const;
 const ALL_STATUS = Object.keys(STATUS_LABEL) as QuoteStatus[];
@@ -49,21 +50,39 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
 
   const [saveOpen, setSaveOpen] = useState(false);
   const [viewName, setViewName] = useState("");
-
   const { views, saveView, deleteView } = useInboxViews();
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
 
   const currentState = (): InboxViewState => ({
     q, tenant, owner, sla, statuses: Array.from(statuses), sort,
   });
 
   const applyState = (s: InboxViewState) => {
-    setQ(s.q);
-    setTenant(s.tenant);
-    setOwner(s.owner);
-    setSla(s.sla);
-    setStatuses(new Set(s.statuses));
-    setSort(s.sort);
+    setQ(s.q ?? "");
+    setTenant(s.tenant ?? "todos");
+    setOwner(s.owner ?? "todos");
+    setSla(s.sla ?? "todos");
+    setStatuses(new Set(s.statuses ?? []));
+    setSort(s.sort ?? "priority");
   };
+
+  // Aplica ?view=<base64> ao montar (compartilhamento entre dispositivos)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const encoded = url.searchParams.get("view");
+    if (!encoded) return;
+    const state = decodeViewState(encoded);
+    if (!state) { toast.error("Link de visualização inválido"); return; }
+    applyState(state);
+    url.searchParams.delete("view");
+    window.history.replaceState(null, "", url.toString());
+    toast("Visualização carregada do link");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
 
   const toggleStatus = (s: QuoteStatus) => {
     setActiveViewId(null);
@@ -105,6 +124,55 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
     setActiveViewId(null);
     if (v) toast(`Visualização "${v.name}" removida`);
   };
+
+  const handleShare = async () => {
+    const encoded = encodeViewState(currentState());
+    const url = new URL(window.location.href);
+    url.searchParams.set("view", encoded);
+    const link = url.toString();
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success("Link copiado — abra em outro dispositivo para carregar os filtros");
+    } catch {
+      toast(link);
+    }
+  };
+
+  const handleExport = () => {
+    const blob = new Blob([JSON.stringify(views, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `inbox-views-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast.success(`${views.length} visualização(ões) exportada(s)`);
+  };
+
+  const handleImport = async (file: File) => {
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const list = Array.isArray(parsed) ? parsed : [];
+      let n = 0;
+      for (const v of list) {
+        if (v && typeof v.name === "string" && v.state) {
+          saveView(v.name, v.state as InboxViewState);
+          n++;
+        }
+      }
+      if (n === 0) toast.error("Nenhuma visualização válida no arquivo");
+      else toast.success(`${n} visualização(ões) importada(s)`);
+    } catch {
+      toast.error("Arquivo JSON inválido");
+    } finally {
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -232,7 +300,49 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
               <Trash2 className="h-3.5 w-3.5" /> Excluir
             </Button>
           )}
+
+          <div className="ml-auto flex items-center gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 gap-1 px-2 text-[11px]"
+              onClick={handleShare}
+              title="Copiar link com os filtros atuais"
+            >
+              <Share2 className="h-3.5 w-3.5" /> Compartilhar
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 gap-1 px-2 text-[11px]"
+              onClick={handleExport}
+              disabled={views.length === 0}
+              title="Baixar todas as visualizações em JSON"
+            >
+              <Download className="h-3.5 w-3.5" /> Exportar
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 gap-1 px-2 text-[11px]"
+              onClick={() => fileRef.current?.click()}
+              title="Importar visualizações de um JSON"
+            >
+              <Upload className="h-3.5 w-3.5" /> Importar
+            </Button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleImport(f);
+              }}
+            />
+          </div>
         </div>
+
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="relative flex-1">
