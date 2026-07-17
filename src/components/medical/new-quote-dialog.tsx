@@ -176,7 +176,7 @@ export function NewQuoteDialog({ open, onOpenChange, onCreate }: Props) {
             </div>
           </div>
         ) : (
-          <div className="space-y-3 p-5">
+          <div className="space-y-3 p-4 sm:p-5">
             <div>
               <Label className="text-[10px] uppercase text-muted-foreground">Adicionar produto</Label>
               <Input value={search} onChange={(e) => setSearch(e.target.value)} className="h-9" placeholder="Buscar por SKU ou nome…" />
