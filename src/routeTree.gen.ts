@@ -17,6 +17,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VendedorOwnerIdRouteImport } from './routes/vendedor.$ownerId'
 import { Route as ApiPublicUseSistemasRouteImport } from './routes/api/public/use-sistemas'
+import { Route as ApiPublicErpIngestRouteImport } from './routes/api/public/erp.ingest'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -58,6 +59,11 @@ const ApiPublicUseSistemasRoute = ApiPublicUseSistemasRouteImport.update({
   path: '/api/public/use-sistemas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicErpIngestRoute = ApiPublicErpIngestRouteImport.update({
+  id: '/api/public/erp/ingest',
+  path: '/api/public/erp/ingest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
+  '/api/public/erp/ingest': typeof ApiPublicErpIngestRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
+  '/api/public/erp/ingest': typeof ApiPublicErpIngestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
+  '/api/public/erp/ingest': typeof ApiPublicErpIngestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/vendedor/$ownerId'
     | '/api/public/use-sistemas'
+    | '/api/public/erp/ingest'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/vendedor/$ownerId'
     | '/api/public/use-sistemas'
+    | '/api/public/erp/ingest'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/vendedor/$ownerId'
     | '/api/public/use-sistemas'
+    | '/api/public/erp/ingest'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +144,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VendedorOwnerIdRoute: typeof VendedorOwnerIdRoute
   ApiPublicUseSistemasRoute: typeof ApiPublicUseSistemasRoute
+  ApiPublicErpIngestRoute: typeof ApiPublicErpIngestRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicUseSistemasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/erp/ingest': {
+      id: '/api/public/erp/ingest'
+      path: '/api/public/erp/ingest'
+      fullPath: '/api/public/erp/ingest'
+      preLoaderRoute: typeof ApiPublicErpIngestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VendedorOwnerIdRoute: VendedorOwnerIdRoute,
   ApiPublicUseSistemasRoute: ApiPublicUseSistemasRoute,
+  ApiPublicErpIngestRoute: ApiPublicErpIngestRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
