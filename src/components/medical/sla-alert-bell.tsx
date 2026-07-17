@@ -26,7 +26,7 @@ export function SlaAlertBell() {
     return { rows, overdue, risk };
   }, [quotes]);
 
-  const total = alerts.overdue + alerts.risk;
+  const total = mounted ? alerts.overdue + alerts.risk : 0;
   const tone = alerts.overdue > 0 ? "danger" : "warning";
 
   return (
