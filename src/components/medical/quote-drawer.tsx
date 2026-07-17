@@ -155,7 +155,13 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
               onOverride={handleOverride}
               onRevoke={handleRevoke}
             />
+            <BenchmarkMini
+              region={ownerById(quote.owner_id).territory as Region}
+              selfMargin={totals.margin}
+              selfTicket={totals.revenue}
+            />
           </section>
+
 
 
 
