@@ -34,7 +34,7 @@ import {
   type GovRole,
   type Permission,
 } from "@/lib/medical/governance";
-import { resetDemo } from "@/lib/medical/mock-data";
+import { useQuotes } from "@/hooks/use-quotes";
 
 export const Route = createFileRoute("/governanca")({
   head: () => ({
