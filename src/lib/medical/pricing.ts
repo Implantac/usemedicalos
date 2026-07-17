@@ -10,13 +10,14 @@ export function basePrice(cost: number): number {
 
 export type PricingSignal = "negative" | "below_base" | "below_min" | "ok";
 
-export function pricingSignal(item: QuoteItem): PricingSignal {
+export function pricingSignal(item: QuoteItem, minMargin: number = MIN_MARGIN): PricingSignal {
   if (item.unit_price <= 0) return "negative";
   if (item.unit_price < item.cost_price) return "negative";
   if (item.unit_price < basePrice(item.cost_price)) return "below_base";
-  if (itemMargin(item) < MIN_MARGIN) return "below_min";
+  if (itemMargin(item) < minMargin) return "below_min";
   return "ok";
 }
+
 
 
 export function itemMargin(item: QuoteItem): number {
