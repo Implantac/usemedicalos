@@ -545,9 +545,50 @@ function EngineStatusChip({ status }: { status: PricingStatus }) {
         ENGINE_CHIP_TONE[status],
       )}
     >
-      {PRICING_STATUS_LABEL[status]}
-    </span>
   );
 }
+
+const TIER_TONE: Record<ClientTier, string> = {
+  A: "bg-primary/15 text-primary border-primary/30",
+  B: "bg-muted text-foreground border-border",
+  C: "bg-warning/15 text-warning-foreground border-warning/30",
+};
+
+function ClientTierSelector({ value, onChange }: { value: ClientTier; onChange: (t: ClientTier) => void }) {
+  const tiers: ClientTier[] = ["A", "B", "C"];
+  return (
+    <div className="flex items-center justify-between rounded-lg border bg-card px-2.5 py-2">
+      <div className="min-w-0">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          Tier do cliente
+        </div>
+        <div className="text-[11px] text-muted-foreground">
+          Aplica desconto estratégico do motor de precificação.
+        </div>
+      </div>
+      <div className="flex items-center gap-1">
+        {tiers.map((t) => {
+          const active = value === t;
+          const discount = CLIENT_TIER_DISCOUNT[t];
+          return (
+            <button
+              key={t}
+              type="button"
+              onClick={() => onChange(t)}
+              className={cn(
+                "inline-flex flex-col items-center rounded border px-2 py-1 text-[10px] font-bold uppercase transition",
+                active ? TIER_TONE[t] : "border-border/60 text-muted-foreground hover:bg-muted",
+              )}
+            >
+              <span className="text-xs leading-none">{t}</span>
+              <span className="mt-0.5 num text-[9px] leading-none">-{(discount * 100).toFixed(0)}%</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 
 
