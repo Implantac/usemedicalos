@@ -1,6 +1,8 @@
 // Activity log for quotes - persisted in localStorage.
 // TODO(cloud): migrar para tabela quote_activities (quote_id, actor_id, type, meta jsonb, created_at)
 import type { ClientTier, QuoteStatus } from "./types";
+import { GENESIS_HASH, hashActivity } from "./audit-chain";
+
 
 export type ActivityType =
   | "created"
@@ -60,40 +62,20 @@ export function saveActivities(list: Activity[]) {
 
 export function appendActivity(entry: Omit<Activity, "id" | "created_at">): Activity {
   const list = loadActivities();
-  const prev = list[0]; // list is stored DESC (mais nova primeiro)
-  const prev_hash = prev?.hash ?? "0".repeat(64);
+  const prev = list[0]; // DESC
+  const prev_hash = prev?.hash ?? GENESIS_HASH;
   const activity: Activity = {
     ...entry,
     id: `act_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
     created_at: new Date().toISOString(),
     prev_hash,
   };
-  // hash síncrono (djb2) para não bloquear callers. Verificador usa SHA-256 async.
-  // Trocamos por SHA-256 em batch offline no verificador — o hash aqui serve como
-  // "commit" da cadeia; se alguém alterar a atividade, o SHA-256 no verifyChain diverge.
-  activity.hash = quickHash(canonical(activity, prev_hash));
+  activity.hash = hashActivity(activity, prev_hash);
   const next = [activity, ...list];
   saveActivities(next);
   return activity;
 }
 
-function canonical(a: Activity, prevHash: string): string {
-  return JSON.stringify({
-    id: a.id,
-    quote_id: a.quote_id,
-    type: a.type,
-    message: a.message,
-    created_at: a.created_at,
-    meta: a.meta ?? null,
-    prev_hash: prevHash,
-  });
-}
-
-function quickHash(s: string): string {
-  let h = 5381;
-  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
-  return `djb2_${(h >>> 0).toString(16)}`;
-}
 
 export function getActivitiesFor(quoteId: string): Activity[] {
   return loadActivities().filter((a) => a.quote_id === quoteId);
