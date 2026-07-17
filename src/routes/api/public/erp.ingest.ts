@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { applyMapping, type ErpMappingConfig } from "@/lib/medical/erp-mapping";
 import { verifySignature } from "@/lib/medical/webhook-signature";
+import { clientKey, rateLimit, rateLimitHeaders } from "@/lib/medical/rate-limit";
 
 // Endpoint público para ingestão de payloads ERP arbitrários.
 // Segurança: assinatura HMAC-SHA256 via header `x-use-signature`.
