@@ -49,9 +49,12 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
     [quote?.id, overrideVersion],
   );
   if (!quote) return null;
+  const { config: tenantConfig } = useTenantConfig(quote.tenant_id);
+  const minMargin = tenantConfig.min_margin;
   const totals = quoteTotals(quote.items);
-  const marginOk = totals.margin >= MIN_MARGIN;
-  const hasNegative = quote.items.some((it) => pricingSignal(it) === "negative");
+  const marginOk = totals.margin >= minMargin;
+  const hasNegative = quote.items.some((it) => pricingSignal(it, minMargin) === "negative");
+
 
   const compliance = checkQuote(quote, overriddenSkus);
   const complianceBlocked = compliance.status === "blocked";
