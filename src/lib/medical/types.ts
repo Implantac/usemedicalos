@@ -103,6 +103,7 @@ export interface SlaTracking {
 }
 
 export const STATUS_LABEL: Record<QuoteStatus, string> = {
+  pending_review: "Nova RFQ do portal",
   aguardando_precificacao: "Aguardando Precificação",
   em_negociacao: "Em Negociação",
   enviado: "Enviado",
