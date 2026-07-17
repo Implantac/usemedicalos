@@ -296,6 +296,7 @@ export function ErrorState({
 }: BaseProps & { onRetry?: () => void }) {
   const dict = useDict();
   const ref = useManagedFocus<HTMLDivElement>(autoFocus);
+  useFocusReturn(true);
   const label = message ?? dict.error;
   return (
     <FadeIn>
