@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PRODUCTS } from "@/lib/medical/mock-data";
+import { clientKey, rateLimit, rateLimitHeaders } from "@/lib/medical/rate-limit";
 
 // Endpoint público read-only do catálogo (Ecosystem API).
 // Projeta apenas colunas seguras: NÃO expõe cost_price nem last_suggested_price.
