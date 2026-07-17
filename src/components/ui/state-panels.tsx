@@ -1,4 +1,12 @@
-import { useEffect, useState, createContext, useContext, useMemo, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  createContext,
+  useContext,
+  useMemo,
+  type ReactNode,
+} from "react";
 import { Loader2, ChevronDown, X, Check } from "lucide-react";
 import { useRouterState } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
@@ -71,7 +79,24 @@ const baseFont = { fontFamily: '"Open Sans", Inter, sans-serif', fontSize: 16 };
 type BaseProps = {
   message?: string;
   className?: string;
+  /** Se true, move o foco do teclado para o painel ao montar. */
+  autoFocus?: boolean;
 };
+
+/** Hook que envia foco para o container quando `enabled` é true.
+ *  Só age uma vez por montagem — respeita navegação por teclado. */
+function useManagedFocus<T extends HTMLElement>(enabled: boolean) {
+  const ref = useRef<T | null>(null);
+  useEffect(() => {
+    if (!enabled) return;
+    const el = ref.current;
+    if (!el) return;
+    // Aguarda a transição de entrada para não roubar foco antes do paint.
+    const id = requestAnimationFrame(() => el.focus({ preventScroll: false }));
+    return () => cancelAnimationFrame(id);
+  }, [enabled]);
+  return ref;
+}
 
 /* Wrapper com fade-in suave (evita "congelamento" visual) */
 function FadeIn({ children, className }: { children: ReactNode; className?: string }) {
@@ -101,26 +126,33 @@ export function LoadingState({
   message,
   className,
   slowThresholdMs = 2000,
+  autoFocus = false,
 }: BaseProps & { slowThresholdMs?: number }) {
   const dict = useDict();
   const [slow, setSlow] = useState(false);
+  const ref = useManagedFocus<HTMLDivElement>(autoFocus);
 
   useEffect(() => {
     const t = window.setTimeout(() => setSlow(true), slowThresholdMs);
     return () => window.clearTimeout(t);
   }, [slowThresholdMs]);
 
+  const label = message ?? dict.loading;
+
   return (
     <FadeIn className={cn("mx-auto w-fit", className)}>
       <div
+        ref={ref}
         role="status"
         aria-live="polite"
         aria-busy="true"
-        className="flex flex-col items-center justify-center gap-3 rounded-full aspect-square w-40 p-6"
+        aria-label={label}
+        tabIndex={-1}
+        className="flex flex-col items-center justify-center gap-3 rounded-full aspect-square w-40 p-6 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
         style={{ ...baseFont, backgroundColor: "#333", color: "#666" }}
       >
         <Loader2 className="h-8 w-8 animate-spin" aria-hidden="true" style={{ color: "#666" }} />
-        <span style={{ color: "#666" }}>{message ?? dict.loading}</span>
+        <span style={{ color: "#666" }}>{label}</span>
       </div>
       <div
         className={cn(
@@ -144,20 +176,27 @@ export function EmptyState({
   message,
   className,
   action,
+  autoFocus = false,
 }: BaseProps & { action?: ReactNode }) {
   const dict = useDict();
+  const ref = useManagedFocus<HTMLDivElement>(autoFocus);
+  const label = message ?? dict.empty;
   return (
     <FadeIn>
       <div
-        role="status"
+        ref={ref}
+        role="alert"
+        aria-live="assertive"
+        aria-label={label}
+        tabIndex={-1}
         className={cn(
-          "flex flex-col items-center justify-center gap-3 rounded-lg p-8 w-full",
+          "flex flex-col items-center justify-center gap-3 rounded-lg p-8 w-full outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary",
           className,
         )}
         style={{ ...baseFont, backgroundColor: "#f7f7f7", color: "#666" }}
       >
         <ChevronDown className="h-8 w-8" aria-hidden="true" style={{ color: "#666" }} />
-        <span>{message ?? dict.empty}</span>
+        <span>{label}</span>
         {action}
       </div>
     </FadeIn>
@@ -172,23 +211,32 @@ export function ErrorState({
   message,
   className,
   onRetry,
+  autoFocus = true,
 }: BaseProps & { onRetry?: () => void }) {
   const dict = useDict();
+  const ref = useManagedFocus<HTMLDivElement>(autoFocus);
+  const label = message ?? dict.error;
   return (
     <FadeIn>
       <div
+        ref={ref}
         role="alert"
         aria-live="assertive"
-        className={cn("flex items-center gap-3 rounded-lg p-4 w-full", className)}
+        aria-label={label}
+        tabIndex={-1}
+        className={cn(
+          "flex items-center gap-3 rounded-lg p-4 w-full outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary",
+          className,
+        )}
         style={{ ...baseFont, backgroundColor: "#f44336", color: "#fff" }}
       >
         <X className="h-6 w-6 shrink-0" aria-hidden="true" />
-        <span className="flex-1">{message ?? dict.error}</span>
+        <span className="flex-1">{label}</span>
         {onRetry ? (
           <button
             type="button"
             onClick={onRetry}
-            className="rounded px-3 py-1 text-sm font-medium underline-offset-2 hover:underline"
+            className="rounded px-3 py-1 text-sm font-medium underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
             style={{ color: "#fff" }}
           >
             Tentar novamente
@@ -203,18 +251,30 @@ export function ErrorState({
 /* Success                                                             */
 /* ------------------------------------------------------------------ */
 
-export function SuccessState({ message, className }: BaseProps) {
+export function SuccessState({
+  message,
+  className,
+  autoFocus = false,
+}: BaseProps) {
   const dict = useDict();
+  const ref = useManagedFocus<HTMLDivElement>(autoFocus);
+  const label = message ?? dict.success;
   return (
     <FadeIn>
       <div
+        ref={ref}
         role="status"
         aria-live="polite"
-        className={cn("flex items-center gap-3 rounded-lg p-4 w-full", className)}
+        aria-label={label}
+        tabIndex={-1}
+        className={cn(
+          "flex items-center gap-3 rounded-lg p-4 w-full outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary",
+          className,
+        )}
         style={{ ...baseFont, backgroundColor: "#4CAF50", color: "#fff" }}
       >
         <Check className="h-6 w-6 shrink-0" aria-hidden="true" />
-        <span>{message ?? dict.success}</span>
+        <span>{label}</span>
       </div>
     </FadeIn>
   );
@@ -244,9 +304,12 @@ export function StateView<T>({
   isEmpty?: (data: T) => boolean;
 }) {
   if (status === "loading") return <LoadingState message={messages?.loading} />;
-  if (status === "error") return <ErrorState message={error ?? messages?.error} onRetry={onRetry} />;
-  if (status === "success" && messages?.success) return <SuccessState message={messages.success} />;
-  if (data !== undefined && isEmpty(data)) return <EmptyState message={messages?.empty} />;
+  if (status === "error")
+    return <ErrorState message={error ?? messages?.error} onRetry={onRetry} autoFocus />;
+  if (status === "success" && messages?.success)
+    return <SuccessState message={messages.success} />;
+  if (data !== undefined && isEmpty(data))
+    return <EmptyState message={messages?.empty} autoFocus />;
   if (data !== undefined) return <>{children(data)}</>;
   return null;
 }
@@ -274,7 +337,10 @@ export function RouteLoadingOverlay({ thresholdMs = 2000 }: { thresholdMs?: numb
 
   if (!visible) return null;
   return (
-    <div className="fixed inset-x-0 top-0 z-[100] flex justify-center pt-4 pointer-events-none">
+    <div
+      className="fixed inset-x-0 top-0 z-[100] flex justify-center pt-4 pointer-events-none"
+      aria-live="polite"
+    >
       <LoadingState />
     </div>
   );
@@ -298,7 +364,9 @@ export function OperationFeedback({
   unauthenticatedMessage?: string;
 }) {
   const dict = useDict();
-  if (status === "error") return <ErrorState message={errorMessage ?? dict.error} />;
-  if (!isLoggedIn) return <ErrorState message={unauthenticatedMessage ?? dict.unauthenticated} />;
+  if (status === "error")
+    return <ErrorState message={errorMessage ?? dict.error} autoFocus />;
+  if (!isLoggedIn)
+    return <ErrorState message={unauthenticatedMessage ?? dict.unauthenticated} autoFocus />;
   return <SuccessState message={successMessage ?? dict.success} />;
 }
