@@ -309,11 +309,15 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
             </Button>
             <Button
               className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-              disabled={submitting || !marginOk}
+              disabled={submitting || !canSend}
               onClick={handleGenerateProposal}
             >
               <FileText className="mr-2 h-4 w-4" />
-              {submitting ? "Enviando ao Use Sistemas…" : "Gerar Proposta & Enviar Use Sistemas"}
+              {submitting
+                ? "Enviando ao Use Sistemas…"
+                : complianceBlocked
+                  ? "Bloqueado (Compliance)"
+                  : "Gerar Proposta & Enviar Use Sistemas"}
             </Button>
           </div>
         </div>
