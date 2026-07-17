@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, Download, FileText, Sparkles, Trash2, X } from "lucide-react";
 import { generateProposalPdf } from "@/lib/medical/proposal-pdf";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -20,6 +20,11 @@ import { QuoteTimeline } from "./quote-timeline";
 import { checkQuote } from "@/lib/medical/compliance";
 import { ComplianceAlert } from "./compliance-alert";
 import { CommissionBadge } from "./commission-badge";
+import {
+  addOverride,
+  listOverrides,
+  revokeOverride,
+} from "@/lib/medical/compliance-override";
 
 interface Props {
   quote: Quote | null;
@@ -32,13 +37,55 @@ interface Props {
 export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpdateQuote }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [activityVersion, setActivityVersion] = useState(0);
+  const [overrideVersion, setOverrideVersion] = useState(0);
   if (!quote) return null;
   const totals = quoteTotals(quote.items);
   const marginOk = totals.margin >= MIN_MARGIN;
-  const compliance = checkQuote(quote);
+  const overriddenSkus = useMemo(
+    () => new Set(listOverrides(quote.id).map((o) => o.sku)),
+    [quote.id, overrideVersion],
+  );
+  const compliance = checkQuote(quote, overriddenSkus);
   const complianceBlocked = compliance.status === "blocked";
   const canSend = marginOk && !complianceBlocked;
   const bumpActivity = () => setActivityVersion((v) => v + 1);
+
+  const handleOverride = (sku: string) => {
+    const reason = window.prompt(
+      `Justificativa do gestor para liberar ${sku} (bloqueio ANVISA/CMED):`,
+      "",
+    );
+    if (!reason || !reason.trim()) return;
+    addOverride({
+      quote_id: quote.id,
+      sku,
+      manager_id: quote.owner_id,
+      reason: reason.trim(),
+      ttl_hours: 24,
+    });
+    appendActivity({
+      quote_id: quote.id,
+      type: "compliance_override",
+      message: `Bloqueio liberado por gestor: ${sku}`,
+      meta: { sku, reason: reason.trim() },
+    });
+    setOverrideVersion((v) => v + 1);
+    bumpActivity();
+    toast.success(`${sku} liberado sob justificativa.`);
+  };
+
+  const handleRevoke = (sku: string) => {
+    revokeOverride(quote.id, sku);
+    appendActivity({
+      quote_id: quote.id,
+      type: "compliance_override_revoked",
+      message: `Liberação revogada: ${sku}`,
+      meta: { sku },
+    });
+    setOverrideVersion((v) => v + 1);
+    bumpActivity();
+    toast.message(`Liberação de ${sku} revogada.`);
+  };
 
   const handleGenerateProposal = async () => {
     if (!marginOk) {
