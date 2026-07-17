@@ -35,7 +35,9 @@ const ALL_SCOPES: { id: ApiScope; label: string; desc: string }[] = [
 const TIERS: RateTier[] = ["basic", "standard", "pro"];
 
 function ApiKeysPage() {
-  const { keys, create, revoke, remove } = useApiKeys(TENANT.id);
+  const { scope, tenant } = useActiveTenant();
+  const tenantId = tenant?.id ?? TENANTS[0].id;
+  const { keys, create, revoke, remove } = useApiKeys(tenantId);
   const [label, setLabel] = useState("");
   const [scopes, setScopes] = useState<ApiScope[]>(["catalog:read"]);
   const [tier, setTier] = useState<RateTier>("standard");
