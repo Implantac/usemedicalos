@@ -22,6 +22,8 @@ export function LeaderboardTable({ rows }: { rows: OwnerRow[] }) {
               <th className="px-2 py-2 text-right font-semibold">Resp. média</th>
               <th className="px-2 py-2 text-right font-semibold">Margem</th>
               <th className="px-2 py-2 text-right font-semibold">Conversão</th>
+              <th className="px-2 py-2 text-right font-semibold">Comissão ganha</th>
+              <th className="px-2 py-2 text-right font-semibold">Comissão pipeline</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -50,6 +52,8 @@ export function LeaderboardTable({ rows }: { rows: OwnerRow[] }) {
                   {formatPct(r.avgMargin)}
                 </td>
                 <td className="px-2 py-2 text-right num font-semibold">{formatPct(r.conversion)}</td>
+                <td className="px-2 py-2 text-right num font-semibold text-success">{formatBRL(r.commissionWon)}</td>
+                <td className="px-2 py-2 text-right num text-muted-foreground">{formatBRL(r.commissionPipeline)}</td>
               </tr>
             ))}
           </tbody>
