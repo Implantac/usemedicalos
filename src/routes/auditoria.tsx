@@ -126,7 +126,7 @@ function AuditoriaPage() {
 
   return (
     <div className="min-h-screen bg-gradient-warm">
-      <AppHeader onReset={reset} />
+      <AppHeader onReset={resetDemo} />
       <main className="mx-auto max-w-[1600px] px-3 py-4 sm:px-4">
         <TenantScopeBanner />
 
