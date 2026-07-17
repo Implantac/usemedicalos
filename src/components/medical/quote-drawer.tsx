@@ -38,6 +38,7 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
   const [submitting, setSubmitting] = useState(false);
   const [activityVersion, setActivityVersion] = useState(0);
   const [overrideVersion, setOverrideVersion] = useState(0);
+  const [complianceConfirmed, setComplianceConfirmed] = useState(false);
   if (!quote) return null;
   const totals = quoteTotals(quote.items);
   const marginOk = totals.margin >= MIN_MARGIN;
@@ -47,7 +48,10 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
   );
   const compliance = checkQuote(quote, overriddenSkus);
   const complianceBlocked = compliance.status === "blocked";
-  const canSend = marginOk && !complianceBlocked;
+  const complianceRequiresConfirm =
+    compliance.status === "warning" || compliance.status === "overridden";
+  const complianceGateOk = !complianceBlocked && (!complianceRequiresConfirm || complianceConfirmed);
+  const canSend = marginOk && complianceGateOk;
   const bumpActivity = () => setActivityVersion((v) => v + 1);
 
   const handleOverride = (sku: string) => {
