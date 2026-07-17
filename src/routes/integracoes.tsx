@@ -112,7 +112,17 @@ function IntegrationsPage() {
           </div>
         </div>
 
-        <ConnectorsGrid />
+        <ConnectorsGrid
+          onApplyPreset={(c) => {
+            if (c.mappingTemplate) {
+              setMapping(JSON.stringify(c.mappingTemplate, null, 2));
+              setName(`${c.name} — preset`);
+              toast.success(`Template do ${c.name} carregado no editor abaixo.`);
+            } else {
+              toast.info(`${c.name} ainda não tem template. Configure manualmente.`);
+            }
+          }}
+        />
 
 
         {mappings.length > 0 && (
@@ -315,7 +325,7 @@ function SignatureHelper({ payload, mapping, disabled }: { payload: string; mapp
   );
 }
 
-function ConnectorsGrid() {
+function ConnectorsGrid({ onApplyPreset }: { onApplyPreset: (c: ErpConnector) => void }) {
   const [selected, setSelected] = useState<ErpConnector | null>(null);
   const statusStyle: Record<ErpConnector["status"], string> = {
     estavel: "bg-success/15 text-success",
@@ -395,7 +405,7 @@ function ConnectorsGrid() {
             <Button
               size="sm"
               disabled={selected.status === "planejado"}
-              onClick={() => toast.success(`Preset "${selected.name}" preparado. Configure o mapping abaixo.`)}
+              onClick={() => onApplyPreset(selected)}
               className="gap-1.5"
             >
               <Save className="h-3 w-3" /> Salvar preset
