@@ -14,6 +14,7 @@ import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VendedorOwnerIdRouteImport } from './routes/vendedor.$ownerId'
+import { Route as ApiPublicUseSistemasRouteImport } from './routes/api/public/use-sistemas'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -40,6 +41,11 @@ const VendedorOwnerIdRoute = VendedorOwnerIdRouteImport.update({
   path: '/vendedor/$ownerId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicUseSistemasRoute = ApiPublicUseSistemasRouteImport.update({
+  id: '/api/public/use-sistemas',
+  path: '/api/public/use-sistemas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
+  '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
+  '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,6 +70,7 @@ export interface FileRoutesById {
   '/produtos': typeof ProdutosRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
+  '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -71,8 +80,15 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/sitemap.xml'
     | '/vendedor/$ownerId'
+    | '/api/public/use-sistemas'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/produtos' | '/sitemap.xml' | '/vendedor/$ownerId'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/produtos'
+    | '/sitemap.xml'
+    | '/vendedor/$ownerId'
+    | '/api/public/use-sistemas'
   id:
     | '__root__'
     | '/'
@@ -80,6 +96,7 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/sitemap.xml'
     | '/vendedor/$ownerId'
+    | '/api/public/use-sistemas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -88,6 +105,7 @@ export interface RootRouteChildren {
   ProdutosRoute: typeof ProdutosRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VendedorOwnerIdRoute: typeof VendedorOwnerIdRoute
+  ApiPublicUseSistemasRoute: typeof ApiPublicUseSistemasRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -127,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VendedorOwnerIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/use-sistemas': {
+      id: '/api/public/use-sistemas'
+      path: '/api/public/use-sistemas'
+      fullPath: '/api/public/use-sistemas'
+      preLoaderRoute: typeof ApiPublicUseSistemasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -136,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProdutosRoute: ProdutosRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VendedorOwnerIdRoute: VendedorOwnerIdRoute,
+  ApiPublicUseSistemasRoute: ApiPublicUseSistemasRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
