@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import type { Product, Quote } from "@/lib/medical/types";
 import { priceHistory } from "@/lib/medical/analytics";
 import { formatBRL, formatPct, suggestPrice } from "@/lib/medical/pricing";
+import { PricingEnginePanel } from "./pricing-engine-panel";
+import { ProductGovernanceForm } from "./product-governance-form";
+import { useUserRole } from "@/hooks/use-user-role";
 import { cn } from "@/lib/utils";
 
 export function ProductHistoryDrawer({
