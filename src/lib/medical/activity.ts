@@ -31,6 +31,8 @@ export interface Activity {
     reason?: string;
     engine_status?: string;
     tier?: ClientTier;
+    source_platform?: string;
+    portal_reference?: string;
   };
 }
 
