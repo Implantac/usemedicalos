@@ -59,8 +59,6 @@ export function AppHeader({ onReset, children }: { onReset: () => void; children
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           <TenantSwitcher />
 
-
-        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           {children}
           <SlaAlertBell />
           <Button
