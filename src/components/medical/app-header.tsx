@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { TENANT } from "@/lib/medical/mock-data";
 import { cn } from "@/lib/utils";
+import { SlaAlertBell } from "./sla-alert-bell";
 
 const NAV = [
   { to: "/", label: "Inbox", icon: Inbox },
@@ -53,6 +54,7 @@ export function AppHeader({ onReset, children }: { onReset: () => void; children
 
         <div className="ml-auto flex items-center gap-2">
           {children}
+          <SlaAlertBell />
           <Button
             variant="ghost"
             size="sm"

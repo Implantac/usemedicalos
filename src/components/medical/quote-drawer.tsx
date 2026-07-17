@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { AlertTriangle, CheckCircle2, FileText, Sparkles, Trash2, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Download, FileText, Sparkles, Trash2, X } from "lucide-react";
+import { generateProposalPdf } from "@/lib/medical/proposal-pdf";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -227,13 +228,28 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
               value={quote.status}
               onValueChange={(v) => onUpdateQuote(quote.id, { status: v as QuoteStatus })}
             >
-              <SelectTrigger className="h-9 sm:w-56"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-9 sm:w-48"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {(Object.keys(STATUS_LABEL) as QuoteStatus[]).map((s) => (
                   <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            <Button
+              variant="outline"
+              className="h-9 gap-1.5"
+              onClick={() => {
+                try {
+                  generateProposalPdf(quote);
+                  toast.success("Proposta PDF gerada.");
+                } catch (e) {
+                  console.error(e);
+                  toast.error("Falha ao gerar PDF.");
+                }
+              }}
+            >
+              <Download className="h-4 w-4" /> PDF
+            </Button>
             <Button
               className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
               disabled={submitting || !marginOk}
