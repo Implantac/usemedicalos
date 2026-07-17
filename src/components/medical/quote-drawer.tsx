@@ -378,7 +378,9 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
                   ? "Enviando ao Use Sistemas…"
                   : complianceBlocked
                     ? "Bloqueado (Compliance)"
-                    : "Gerar Proposta & Enviar"}
+                    : complianceRequiresConfirm && !complianceConfirmed
+                      ? "Confirme o checklist para enviar"
+                      : "Gerar Proposta & Enviar"}
               </span>
             </Button>
           </div>
