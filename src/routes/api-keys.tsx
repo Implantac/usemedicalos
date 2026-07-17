@@ -106,9 +106,10 @@ function ApiKeysPage() {
               onChange={(e) => setLabel(e.target.value)}
               className="h-8 text-xs"
             />
-            <Button size="sm" onClick={submit} className="gap-1.5">
+            <Button size="sm" onClick={submit} disabled={!canManage} className="gap-1.5">
               <KeyRound className="h-4 w-4" /> Gerar
             </Button>
+
           </div>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div>
@@ -188,13 +189,14 @@ function ApiKeysPage() {
                       </div>
                       <div className="flex shrink-0 gap-1">
                         {!revoked && (
-                          <Button size="sm" variant="outline" onClick={() => revoke(k.id)} className="h-7 gap-1 px-2 text-[10px]">
+                          <Button size="sm" variant="outline" disabled={!canManage} onClick={() => revoke(k.id)} className="h-7 gap-1 px-2 text-[10px]">
                             <XCircle className="h-3 w-3" /> Revogar
                           </Button>
                         )}
-                        <Button size="sm" variant="ghost" onClick={() => remove(k.id)} className="h-7 gap-1 px-2 text-[10px] text-destructive">
+                        <Button size="sm" variant="ghost" disabled={!canManage} onClick={() => remove(k.id)} className="h-7 gap-1 px-2 text-[10px] text-destructive">
                           <Trash2 className="h-3 w-3" /> Excluir
                         </Button>
+
                       </div>
                     </div>
                     <div className="mt-2 grid gap-1 sm:grid-cols-2">
