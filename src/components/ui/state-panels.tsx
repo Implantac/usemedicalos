@@ -210,6 +210,7 @@ export function LoadingState({
   const dict = useDict();
   const [slow, setSlow] = useState(false);
   const ref = useManagedFocus<HTMLDivElement>(autoFocus);
+  useFocusReturn(true);
 
   useEffect(() => {
     const t = window.setTimeout(() => setSlow(true), slowThresholdMs);
