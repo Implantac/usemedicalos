@@ -300,7 +300,49 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
               <Trash2 className="h-3.5 w-3.5" /> Excluir
             </Button>
           )}
+
+          <div className="ml-auto flex items-center gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 gap-1 px-2 text-[11px]"
+              onClick={handleShare}
+              title="Copiar link com os filtros atuais"
+            >
+              <Share2 className="h-3.5 w-3.5" /> Compartilhar
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 gap-1 px-2 text-[11px]"
+              onClick={handleExport}
+              disabled={views.length === 0}
+              title="Baixar todas as visualizações em JSON"
+            >
+              <Download className="h-3.5 w-3.5" /> Exportar
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 gap-1 px-2 text-[11px]"
+              onClick={() => fileRef.current?.click()}
+              title="Importar visualizações de um JSON"
+            >
+              <Upload className="h-3.5 w-3.5" /> Importar
+            </Button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleImport(f);
+              }}
+            />
+          </div>
         </div>
+
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="relative flex-1">
