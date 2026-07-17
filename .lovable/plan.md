@@ -1,65 +1,86 @@
-# Plano — 4 frentes solicitadas
+## Ingestion Engine — Monitoramento de Cotações em Tempo Real
 
-Antes de codar, quero alinhar escopo e ordem — são 4 frentes grandes e algumas já têm base implementada no projeto. Vou marcar o que **já existe**, o que é **refinamento** e o que é **novo**.
+Vamos transformar o USE Medical de "sistema passivo" em "sistema ativo" adicionando um motor de ingestão que recebe cotações capturadas de portais externos (Bionexo, Apoio, ClickMed, etc.) via API autenticada, gera alertas imediatos e mede o SLA "portal → resposta".
 
----
-
-## 1. Carga Cognitiva — Inbox "3 colunas + expandir"
-
-Estado atual: `QuoteInbox` mostra ~7 colunas (cliente, segmento, SLA, prioridade, margem, itens, origem, ações) em linhas densas (`py-1.5`).
-
-**Refatoração proposta (só frontend):**
-- Modo padrão "Foco": 3 colunas — **Cliente**, **Prazo SLA** (cronômetro colorido), **Margem calculada** (pill verde/amarelo/vermelho).
-- Chevron por linha → expande inline uma faixa com segmento, prioridade, itens, origem, ações rápidas (avançar status, abrir drawer completo).
-- Toggle no topo: **Foco (3 col)** ↔ **Detalhada (tudo)** — persistido em `localStorage`.
-- Prioridade/alerta reforçados por cor da barra lateral esquerda (já existe, vou intensificar em urgente/atrasado).
-- Filtro rápido "Somente pendentes urgentes" no topo (aproveita o sino de SLA existente).
-- Notificações já cobertas por `use-sla-notifications` + `SlaAlertBell` — só amarro o CTA "ativar alertas" quando `Notification.permission === 'default'`.
-
-Fora do escopo agora: refazer o sistema de filtros salvos (já existe em `use-inbox-views`).
-
-## 2. Precificação Inteligente — regra + alerta de margem negativa
-
-Estado atual: `suggestPrice()` em `pricing.ts` já faz markup ponderado (target 28% + histórico + ajuste de volume) e `isMarginOk` usa `MIN_MARGIN = 12%`. Compliance CMED já limita teto.
-
-**Refinamento (não substituir a IA existente, adicionar guarda):**
-- Nova função `basePrice(cost) = cost * 1.25` como **piso comercial** exposto ao lado da sugestão da IA no `QuoteDrawer`.
-- Validação por item:
-  - `unit_price < cost_price` → campo em vermelho + banner "Margem negativa: ajuste necessário" (bloqueia "Gerar Proposta", igual ao gate de compliance).
-  - `unit_price < basePrice` → aviso amarelo "Abaixo do piso de 25%".
-- Regras por tipo de produto (serviço vs físico): campo `product.unit` já existe; adiciono `product.pricing_profile` (`fisico` default | `servico`) com targets diferentes (28% físico, 40% serviço).
-- Revisão/aprovação e ML ficam **fora deste sprint** — anoto no roadmap; ML precisa de volume de dados que ainda não temos.
-
-## 3. Multi-tenant + RLS
-
-Estado atual: schema completo em `docs/supabase-schema.md` já contempla `tenant_id` em todas as tabelas, `is_tenant_member()` SECURITY DEFINER, `user_roles` separado, políticas RLS por tenant, GRANTs explícitos. Está **pronto para aplicar** assim que Lovable Cloud for ativado.
-
-**Ação neste sprint:**
-- **Não** ativar Cloud automaticamente (você decide quando — consome créditos).
-- Revisar o schema documentado, adicionar o que faltou nas Fases 2/3 recentes (api_keys, compliance_overrides, erp_mappings) para ficar 100% pronto.
-- Adicionar checklist de migração em `docs/supabase-schema.md`: backup, ordem de aplicação, seed inicial de tenant/membership.
-
-Quando você mandar "ativar Cloud", eu chamo `supabase--enable`, rodo o SQL via migration tool e migro os hooks `useQuotes`/`useProducts` para server functions com `requireSupabaseAuth`.
-
-## 4. Conectores ERP — página de configuração
-
-Estado atual: já existe `/integracoes` com sandbox de mapping ERP (`erp-mapping.ts` + `use-erp-mappings`) e webhook HMAC. Falta a **camada de seleção de provedor**.
-
-**Adição:**
-- Nova aba em `/integracoes` chamada "Conectores": grid de cards com TOTVS Protheus (renomeado Use Sistemas conforme sua regra anterior), Sankhya, Senior, "Custom (webhook genérico)".
-- Cada card abre um wizard de 3 passos: **Selecionar ERP → Credenciais (mock, salvo em `api_keys`) → Mapeamento de campos (reusa o sandbox existente)**.
-- Registry `src/lib/medical/erp-connectors.ts` com metadata de cada provedor (nome, campos de auth, endpoint base, docs URL). Fácil plugar novos.
-- Adaptador comum `ErpAdapter` interface — implementação real fica para quando Cloud subir; por ora, tudo é mock que grava em localStorage.
+Continua tudo no mock localStorage (fase B da tese multi-tenant). O endpoint público já é HTTP real — pronto para receber requests de uma extensão de navegador ou scraper headless quando o Cloud for ativado.
 
 ---
 
-## Ordem de execução sugerida
+### 1. Endpoint público `POST /api/v1/ingest`
 
-Posso fazer tudo em sequência num único sprint, mas recomendo esta ordem:
+Novo arquivo `src/routes/api/v1/ingest.ts` (server route TanStack, prefixo `/api/public` via alias interno para bypassar auth em produção):
 
-1. **Inbox foco/detalhada** (impacto imediato de UX, baixo risco)
-2. **Precificação com alertas** (evita prejuízo, alta prioridade de negócio)
-3. **Registry ERP + wizard** (destrava roadmap comercial)
-4. **Revisão do schema** (só docs, sem código de runtime)
+- Payload validado com Zod:
+  ```
+  {
+    source_platform: "bionexo" | "apoio" | "clickmed" | "portal_gov" | "outro",
+    portal_reference: string,       // ID da RFQ no portal externo
+    portal_opened_at: string,       // ISO — quando a cotação apareceu no portal
+    customer_name: string,
+    customer_segment?: string,
+    raw_data: unknown,              // JSON bruto do portal (auditoria)
+    items: Array<{ sku, name, quantity, unit?, target_price? }>
+  }
+  ```
+- Autenticação: header `x-api-key` obrigatório, validado contra as chaves geradas em `/api-keys` (reuso do `src/lib/medical/api-keys.ts`, escopado por tenant).
+- Rate limit: reuso de `src/lib/medical/rate-limit.ts` (60 req/min por chave).
+- Resposta 201 com `{ quote_id, status: "pending_review" }` ou 4xx com erro estruturado.
+- CORS aberto (`OPTIONS` + headers) — a extensão vai chamar de origem externa.
 
-Confirma que posso tocar tudo, ou prefere que eu comece só pelas frentes 1 e 2?
+### 2. Novo status `pending_review` + campos de portal
+
+Extensão do modelo `Quote` em `src/lib/medical/types.ts`:
+- Adiciona `"pending_review"` ao union `QuoteStatus`.
+- Novo bloco opcional `portal_meta`: `{ source_platform, portal_reference, portal_opened_at, ingested_at, response_at? }`.
+
+Ajusta labels (`STATUS_LABEL`), badges (`badges.tsx`) e pipeline (`pipeline.ts`) para reconhecer o novo status como "início do funil ativo".
+
+### 3. Ingestion service (compartilhado entre API real e simulador)
+
+Novo `src/lib/medical/ingestion.ts`:
+- `ingestQuote(payload, apiKey)`: valida tenant via chave, cria a quote com status `pending_review`, popula `portal_meta`, aplica `classify()` no `raw_data`, empurra `appendActivity({type:"ingested_from_portal"})` e dispara notificação SLA via `outbound-webhooks`.
+- Reaproveitado tanto pelo endpoint HTTP quanto por um "botão simulador" na UI (para demo sem extensão instalada).
+
+### 4. Painel Conectores → aba "Portais em tempo real"
+
+Em `src/routes/integracoes.tsx`, nova seção `PortalMonitorCard`:
+- **Live log**: lista das últimas 50 cotações ingeridas (source_platform, cliente, itens, tempo desde o portal, status). Auto-refresh a cada 5s via `useEffect` + polling.
+- **Simulador**: dropdown de portal + botão "Simular RFQ recebida" que chama `ingestQuote()` localmente com um payload fake (útil enquanto a extensão não existe).
+- **Snippet de integração**: bloco copiável mostrando `curl` de exemplo com a API Key ativa e a URL `https://<preview>/api/v1/ingest`.
+
+### 5. Dashboard "SLA Watchdog"
+
+Novo route `src/routes/sla-watchdog.tsx` (aparece no header entre "Inteligência" e "Exceções"):
+- **Hero KPI**: tempo médio "portal → primeira resposta" nas últimas 24h/7d/30d, colorido pelo SLA config do tenant.
+- **Ranking de portais**: qual portal está com maior atraso, quantas RFQs pendentes.
+- **Tabela de RFQs em risco**: cotações `pending_review` ou `aguardando_precificacao` com origem portal, ordenadas por `portal_opened_at` ASC, com botão "Assumir" (muda status → `aguardando_precificacao` e grava `response_at`).
+- Reuso de `KpiCard`, `SlaIndicator` e utilitários de `analytics.ts`.
+
+### 6. Notificação ativa
+
+- `SlaAlertBell` já existe; estende com badge extra para `pending_review` (tom laranja "Nova RFQ do portal").
+- Ao ingerir, dispara `notifyPushSubscribers()` (native Notification API) com título "Nova RFQ Bionexo · margem estimada X%" quando o usuário permitiu push.
+
+### 7. Testes
+
+- `src/lib/medical/ingestion.test.ts`: valida payload, rejeita API key inválida, cria quote com status correto, grava `portal_meta`, aciona activity log.
+- Update do smoke Playwright para abrir `/sla-watchdog` e verificar render.
+
+### 8. Documentação
+
+- `docs/ingestion-api.md`: contrato do endpoint, exemplos de payload por portal (Bionexo, Apoio), header de autenticação, códigos de erro, rate limit.
+- Referência à futura extensão em `docs/roadmap/browser-agent.md` (esqueleto do manifest MV3, comunicação com o endpoint, roadmap fase B: scraper headless).
+
+---
+
+## Fora do escopo desta sprint
+
+- Código real da extensão Chrome (MV3) — fica como esqueleto documentado; podemos gerar em sprint separada.
+- Scraper headless (Playwright/Puppeteer server-side) — requer Cloud + worker dedicado.
+- "Resposta automática" com preço pré-preenchido — depende de tier do cliente + histórico. Sprint seguinte, depois que o watchdog validar volume.
+
+## Depois desta sprint (ordem sugerida)
+
+1. Gerar a extensão Chrome MV3 (`extension/` + zip em `public/`) com content-script para Bionexo.
+2. Ativar Lovable Cloud e migrar `ingestQuote` para persistir em `quotes` real (com trigger de notificação via `pg_net`).
+3. Fase 2 — resposta automática para clientes tier A com histórico ≥ 3 wins.

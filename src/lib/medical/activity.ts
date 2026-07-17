@@ -13,7 +13,9 @@ export type ActivityType =
   | "sent_use_sistemas"
   | "compliance_override"
   | "compliance_override_revoked"
-  | "client_tier_changed";
+  | "client_tier_changed"
+  | "ingested_from_portal"
+  | "portal_response_taken";
 
 export interface Activity {
   id: string;
@@ -29,6 +31,8 @@ export interface Activity {
     reason?: string;
     engine_status?: string;
     tier?: ClientTier;
+    source_platform?: string;
+    portal_reference?: string;
   };
 }
 

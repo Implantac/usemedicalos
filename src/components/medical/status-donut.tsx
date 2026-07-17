@@ -2,6 +2,7 @@ import type { QuoteStatus } from "@/lib/medical/types";
 import { STATUS_LABEL } from "@/lib/medical/types";
 
 const COLORS: Record<QuoteStatus, string> = {
+  pending_review: "oklch(0.72 0.18 55)", // brand/orange
   aguardando_precificacao: "oklch(0.75 0.14 75)", // warning
   em_negociacao: "oklch(0.32 0.08 255)", // primary
   enviado: "oklch(0.55 0.12 200)", // teal-ish

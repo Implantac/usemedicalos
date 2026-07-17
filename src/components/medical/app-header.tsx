@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Inbox, KeyRound, LayoutDashboard, LineChart, Package, Plug, RefreshCw, ShieldAlert, ShieldCheck } from "lucide-react";
+import { Inbox, KeyRound, LayoutDashboard, LineChart, Package, Plug, Radio, RefreshCw, ShieldAlert, ShieldCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ import logoAsset from "@/assets/use-medical-logo.png.asset.json";
 const NAV = [
   { to: "/", label: "Inbox", icon: Inbox },
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/sla-watchdog", label: "SLA Watchdog", icon: Radio },
   { to: "/produtos", label: "Produtos", icon: Package },
   { to: "/inteligencia", label: "Inteligência", icon: LineChart },
   { to: "/integracoes", label: "Integrações", icon: Plug },

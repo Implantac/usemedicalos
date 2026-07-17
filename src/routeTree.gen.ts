@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SlaWatchdogRouteImport } from './routes/sla-watchdog'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as QuarentenaRouteImport } from './routes/quarentena'
 import { Route as ProdutosRouteImport } from './routes/produtos'
@@ -19,10 +20,16 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ApiKeysRouteImport } from './routes/api-keys'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VendedorOwnerIdRouteImport } from './routes/vendedor.$ownerId'
+import { Route as ApiV1IngestRouteImport } from './routes/api/v1/ingest'
 import { Route as ApiPublicUseSistemasRouteImport } from './routes/api/public/use-sistemas'
 import { Route as ApiPublicCatalogRouteImport } from './routes/api/public/catalog'
 import { Route as ApiPublicErpIngestRouteImport } from './routes/api/public/erp.ingest'
 
+const SlaWatchdogRoute = SlaWatchdogRouteImport.update({
+  id: '/sla-watchdog',
+  path: '/sla-watchdog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -73,6 +80,11 @@ const VendedorOwnerIdRoute = VendedorOwnerIdRouteImport.update({
   path: '/vendedor/$ownerId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1IngestRoute = ApiV1IngestRouteImport.update({
+  id: '/api/v1/ingest',
+  path: '/api/v1/ingest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicUseSistemasRoute = ApiPublicUseSistemasRouteImport.update({
   id: '/api/public/use-sistemas',
   path: '/api/public/use-sistemas',
@@ -99,9 +111,11 @@ export interface FileRoutesByFullPath {
   '/produtos': typeof ProdutosRoute
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sla-watchdog': typeof SlaWatchdogRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
+  '/api/v1/ingest': typeof ApiV1IngestRoute
   '/api/public/erp/ingest': typeof ApiPublicErpIngestRoute
 }
 export interface FileRoutesByTo {
@@ -114,9 +128,11 @@ export interface FileRoutesByTo {
   '/produtos': typeof ProdutosRoute
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sla-watchdog': typeof SlaWatchdogRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
+  '/api/v1/ingest': typeof ApiV1IngestRoute
   '/api/public/erp/ingest': typeof ApiPublicErpIngestRoute
 }
 export interface FileRoutesById {
@@ -130,9 +146,11 @@ export interface FileRoutesById {
   '/produtos': typeof ProdutosRoute
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sla-watchdog': typeof SlaWatchdogRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
+  '/api/v1/ingest': typeof ApiV1IngestRoute
   '/api/public/erp/ingest': typeof ApiPublicErpIngestRoute
 }
 export interface FileRouteTypes {
@@ -147,9 +165,11 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/quarentena'
     | '/sitemap.xml'
+    | '/sla-watchdog'
     | '/vendedor/$ownerId'
     | '/api/public/catalog'
     | '/api/public/use-sistemas'
+    | '/api/v1/ingest'
     | '/api/public/erp/ingest'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -162,9 +182,11 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/quarentena'
     | '/sitemap.xml'
+    | '/sla-watchdog'
     | '/vendedor/$ownerId'
     | '/api/public/catalog'
     | '/api/public/use-sistemas'
+    | '/api/v1/ingest'
     | '/api/public/erp/ingest'
   id:
     | '__root__'
@@ -177,9 +199,11 @@ export interface FileRouteTypes {
     | '/produtos'
     | '/quarentena'
     | '/sitemap.xml'
+    | '/sla-watchdog'
     | '/vendedor/$ownerId'
     | '/api/public/catalog'
     | '/api/public/use-sistemas'
+    | '/api/v1/ingest'
     | '/api/public/erp/ingest'
   fileRoutesById: FileRoutesById
 }
@@ -193,14 +217,23 @@ export interface RootRouteChildren {
   ProdutosRoute: typeof ProdutosRoute
   QuarentenaRoute: typeof QuarentenaRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SlaWatchdogRoute: typeof SlaWatchdogRoute
   VendedorOwnerIdRoute: typeof VendedorOwnerIdRoute
   ApiPublicCatalogRoute: typeof ApiPublicCatalogRoute
   ApiPublicUseSistemasRoute: typeof ApiPublicUseSistemasRoute
+  ApiV1IngestRoute: typeof ApiV1IngestRoute
   ApiPublicErpIngestRoute: typeof ApiPublicErpIngestRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sla-watchdog': {
+      id: '/sla-watchdog'
+      path: '/sla-watchdog'
+      fullPath: '/sla-watchdog'
+      preLoaderRoute: typeof SlaWatchdogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -271,6 +304,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VendedorOwnerIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/ingest': {
+      id: '/api/v1/ingest'
+      path: '/api/v1/ingest'
+      fullPath: '/api/v1/ingest'
+      preLoaderRoute: typeof ApiV1IngestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/use-sistemas': {
       id: '/api/public/use-sistemas'
       path: '/api/public/use-sistemas'
@@ -305,21 +345,13 @@ const rootRouteChildren: RootRouteChildren = {
   ProdutosRoute: ProdutosRoute,
   QuarentenaRoute: QuarentenaRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SlaWatchdogRoute: SlaWatchdogRoute,
   VendedorOwnerIdRoute: VendedorOwnerIdRoute,
   ApiPublicCatalogRoute: ApiPublicCatalogRoute,
   ApiPublicUseSistemasRoute: ApiPublicUseSistemasRoute,
+  ApiV1IngestRoute: ApiV1IngestRoute,
   ApiPublicErpIngestRoute: ApiPublicErpIngestRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

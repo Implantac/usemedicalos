@@ -15,6 +15,7 @@ import {
   type ErpMappingConfig,
 } from "@/lib/medical/erp-mapping";
 import { ERP_CONNECTORS, type ErpConnector } from "@/lib/medical/erp-connectors";
+import { PortalMonitorCard } from "@/components/medical/portal-monitor-card";
 import { useErpMappings } from "@/hooks/use-erp-mappings";
 import { useQuotes } from "@/hooks/use-quotes";
 import { OWNERS } from "@/lib/medical/mock-data";
@@ -233,6 +234,8 @@ function IntegrationsPage() {
         )}
 
         <TenantConfigCard tenantId={tenant?.id ?? null} tenantName={tenant?.name ?? null} />
+
+        <PortalMonitorCard />
 
         <div className="grid gap-3 lg:grid-cols-2">
           <OutboundWebhooksCard />
