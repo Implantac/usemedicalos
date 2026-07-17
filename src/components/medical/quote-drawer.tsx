@@ -15,6 +15,8 @@ import { formatBRL, formatPct, itemMargin, itemTotal, quoteTotals, suggestPrice 
 import { PriorityBadge, SourceTag, StatusBadge } from "./badges";
 import { SlaIndicator } from "./sla-indicator";
 import { sendToUseSistemas } from "@/lib/medical/use-sistemas-mock";
+import { appendActivity } from "@/lib/medical/activity";
+import { QuoteTimeline } from "./quote-timeline";
 
 interface Props {
   quote: Quote | null;
