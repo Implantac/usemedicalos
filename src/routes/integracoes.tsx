@@ -1,6 +1,6 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Copy, KeyRound, Plug, PlayCircle, Save, Trash2, Send } from "lucide-react";
+import { AlertCircle, CheckCircle2, Copy, KeyRound, Plug, PlayCircle, Save, ShieldAlert, Sliders, Trash2, Send } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,12 @@ import { ERP_CONNECTORS, type ErpConnector } from "@/lib/medical/erp-connectors"
 import { useErpMappings } from "@/hooks/use-erp-mappings";
 import { useQuotes } from "@/hooks/use-quotes";
 import { OWNERS } from "@/lib/medical/mock-data";
+import { quarantine } from "@/lib/medical/quarantine";
+import { useActiveTenant } from "@/hooks/use-active-tenant";
+import { useTenantConfig } from "@/hooks/use-tenant-config";
+import { DEFAULT_TENANT_CONFIG } from "@/lib/medical/tenant-config";
 import { cn } from "@/lib/utils";
+
 
 
 export const Route = createFileRoute("/integracoes")({
@@ -39,10 +44,26 @@ function IntegrationsPage() {
   const navigate = useNavigate();
   const { mappings, saveMapping, deleteMapping } = useErpMappings();
   const { addQuote } = useQuotes();
+  const { tenant, scope } = useActiveTenant();
   const [payload, setPayload] = useState(() => JSON.stringify(SAMPLE_ERP_PAYLOAD, null, 2));
   const [mapping, setMapping] = useState(() => JSON.stringify(SAMPLE_MAPPING, null, 2));
   const [name, setName] = useState("");
   const [result, setResult] = useState<null | ReturnType<typeof applyMapping>>(null);
+
+  function sendToQuarantine() {
+    let parsedPayload: unknown = payload;
+    try { parsedPayload = JSON.parse(payload); } catch { /* mantém string crua */ }
+    const errors = result?.errors ?? [payloadErr, mappingErr].filter(Boolean) as string[];
+    quarantine({
+      tenant_id: scope === "all" ? null : scope,
+      source: "sandbox",
+      reason: result && !result.ok ? "Falha no mapeamento" : "JSON inválido",
+      errors,
+      payload_raw: parsedPayload,
+    });
+    toast.success("Payload enviado para a Quarentena.");
+  }
+
 
   const [payloadErr, mappingErr] = useMemo(() => {
     let pe: string | null = null;
@@ -180,9 +201,19 @@ function IntegrationsPage() {
               )}
             </div>
             {!result.ok && (
-              <ul className="mt-2 list-disc pl-5 text-xs text-destructive">
-                {result.errors.map((e, i) => <li key={i}>{e}</li>)}
-              </ul>
+              <>
+                <ul className="mt-2 list-disc pl-5 text-xs text-destructive">
+                  {result.errors.map((e, i) => <li key={i}>{e}</li>)}
+                </ul>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Button size="sm" variant="outline" className="gap-1.5" onClick={sendToQuarantine}>
+                    <ShieldAlert className="h-3.5 w-3.5" /> Enviar para Quarentena
+                  </Button>
+                  <Link to="/quarentena" className="text-xs font-medium text-primary underline-offset-2 hover:underline">
+                    Ver fila de quarentena
+                  </Link>
+                </div>
+              </>
             )}
             {result.ok && result.draft && (
               <pre className="mt-2 max-h-72 overflow-auto rounded bg-card p-2 text-[11px] leading-snug">
@@ -191,6 +222,9 @@ function IntegrationsPage() {
             )}
           </div>
         )}
+
+        <TenantConfigCard tenantId={tenant?.id ?? null} tenantName={tenant?.name ?? null} />
+
 
         <SignatureHelper payload={payload} mapping={mapping} disabled={!!payloadErr || !!mappingErr} />
 
@@ -205,6 +239,69 @@ function IntegrationsPage() {
     </div>
   );
 }
+
+function TenantConfigCard({ tenantId, tenantName }: { tenantId: string | null; tenantName: string | null }) {
+  const { config, update, reset } = useTenantConfig(tenantId);
+  const [minPct, setMinPct] = useState(() => (config.min_margin * 100).toFixed(1));
+  const [tgtPct, setTgtPct] = useState(() => (config.target_margin * 100).toFixed(1));
+
+  if (!tenantId) {
+    return (
+      <div className="rounded-lg border border-dashed bg-card p-3 text-xs text-muted-foreground card-shadow">
+        <div className="flex items-center gap-2 font-semibold text-foreground">
+          <Sliders className="h-4 w-4 text-brand" /> Config por tenant
+        </div>
+        <p className="mt-1">Selecione um tenant no switcher do header para editar o piso de margem e o alvo da IA.</p>
+      </div>
+    );
+  }
+
+  function save() {
+    const mn = Number(minPct) / 100;
+    const tg = Number(tgtPct) / 100;
+    if (!Number.isFinite(mn) || mn < 0 || mn > 0.9) return toast.error("Margem mínima inválida (0–90%).");
+    if (!Number.isFinite(tg) || tg < mn) return toast.error("Alvo deve ser ≥ ao piso.");
+    update({ min_margin: mn, target_margin: tg });
+    toast.success("Config atualizada.");
+  }
+
+  return (
+    <div className="rounded-lg border bg-card p-3 card-shadow">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-sm font-semibold">
+          <Sliders className="h-4 w-4 text-brand" /> Margem — {tenantName}
+        </div>
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          padrão {(DEFAULT_TENANT_CONFIG.min_margin * 100).toFixed(0)}% / {(DEFAULT_TENANT_CONFIG.target_margin * 100).toFixed(0)}%
+        </span>
+      </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <label className="block text-xs">
+          <span className="mb-1 block font-medium text-muted-foreground">Piso duro (bloqueia envio) %</span>
+          <Input value={minPct} onChange={(e) => setMinPct(e.target.value)} inputMode="decimal" className="h-8 text-xs" />
+        </label>
+        <label className="block text-xs">
+          <span className="mb-1 block font-medium text-muted-foreground">Alvo da IA %</span>
+          <Input value={tgtPct} onChange={(e) => setTgtPct(e.target.value)} inputMode="decimal" className="h-8 text-xs" />
+        </label>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button size="sm" variant="outline" className="gap-1.5" onClick={save}>
+          <Save className="h-3.5 w-3.5" /> Salvar
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="gap-1.5"
+          onClick={() => { reset(); setMinPct((DEFAULT_TENANT_CONFIG.min_margin * 100).toFixed(1)); setTgtPct((DEFAULT_TENANT_CONFIG.target_margin * 100).toFixed(1)); toast.success("Restaurado ao padrão."); }}
+        >
+          Restaurar padrão
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 
 function Editor({
   title, value, onChange, error,

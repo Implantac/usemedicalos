@@ -10,13 +10,14 @@ export function basePrice(cost: number): number {
 
 export type PricingSignal = "negative" | "below_base" | "below_min" | "ok";
 
-export function pricingSignal(item: QuoteItem): PricingSignal {
+export function pricingSignal(item: QuoteItem, minMargin: number = MIN_MARGIN): PricingSignal {
   if (item.unit_price <= 0) return "negative";
   if (item.unit_price < item.cost_price) return "negative";
   if (item.unit_price < basePrice(item.cost_price)) return "below_base";
-  if (itemMargin(item) < MIN_MARGIN) return "below_min";
+  if (itemMargin(item) < minMargin) return "below_min";
   return "ok";
 }
+
 
 
 export function itemMargin(item: QuoteItem): number {
@@ -49,9 +50,10 @@ export function suggestPrice(item: QuoteItem, targetMargin = 0.28): number {
   return Math.round(blended * 100) / 100;
 }
 
-export function isMarginOk(margin: number): boolean {
-  return margin >= MIN_MARGIN;
+export function isMarginOk(margin: number, minMargin: number = MIN_MARGIN): boolean {
+  return margin >= minMargin;
 }
+
 
 export function formatBRL(v: number): string {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });

@@ -10,8 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { Quote, QuoteStatus } from "@/lib/medical/types";
-import { STATUS_LABEL, MIN_MARGIN } from "@/lib/medical/types";
+import { STATUS_LABEL } from "@/lib/medical/types";
 import { basePrice, formatBRL, formatPct, itemMargin, itemTotal, pricingSignal, quoteTotals, suggestPrice } from "@/lib/medical/pricing";
+import { useTenantConfig } from "@/hooks/use-tenant-config";
+
 import { PriorityBadge, SourceTag, StatusBadge } from "./badges";
 import { SlaIndicator } from "./sla-indicator";
 import { sendToUseSistemas } from "@/lib/medical/use-sistemas-mock";
@@ -47,9 +49,12 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
     [quote?.id, overrideVersion],
   );
   if (!quote) return null;
+  const { config: tenantConfig } = useTenantConfig(quote.tenant_id);
+  const minMargin = tenantConfig.min_margin;
   const totals = quoteTotals(quote.items);
-  const marginOk = totals.margin >= MIN_MARGIN;
-  const hasNegative = quote.items.some((it) => pricingSignal(it) === "negative");
+  const marginOk = totals.margin >= minMargin;
+  const hasNegative = quote.items.some((it) => pricingSignal(it, minMargin) === "negative");
+
 
   const compliance = checkQuote(quote, overriddenSkus);
   const complianceBlocked = compliance.status === "blocked";
@@ -197,9 +202,10 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
             <div className="space-y-2">
               {quote.items.map((it, idx) => {
                 const m = itemMargin(it);
-                const suggested = suggestPrice(it);
+                const suggested = suggestPrice(it, tenantConfig.target_margin);
                 const base = basePrice(it.cost_price);
-                const signal = pricingSignal(it);
+                const signal = pricingSignal(it, minMargin);
+
                 const ok = signal === "ok";
                 const negative = signal === "negative";
                 const belowBase = signal === "below_base";
@@ -358,7 +364,7 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
           {!marginOk && (
             <div className="mb-2 flex items-start gap-2 rounded-md border border-danger/30 bg-danger/10 p-2 text-xs text-danger">
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-              <span>Margem abaixo de {formatPct(MIN_MARGIN)}. Ajuste antes de enviar a proposta.</span>
+              <span>Margem abaixo de {formatPct(minMargin)}. Ajuste antes de enviar a proposta.</span>
             </div>
           )}
 
