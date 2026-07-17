@@ -181,6 +181,91 @@ create policy "sla_tracking: escrita por membro" on public.sla_tracking
   for all to authenticated
   using (public.is_tenant_member(tenant_id))
   with check (public.is_tenant_member(tenant_id));
+
+-- ============= COMMISSIONS (Fase 1) =============
+create table public.commission_rules (
+  tenant_id uuid primary key references public.tenants(id) on delete cascade,
+  tiers jsonb not null,
+  sla_bonus_rate numeric(6,4) not null default 0.005,
+  won_bonus_rate numeric(6,4) not null default 0.005,
+  updated_at timestamptz not null default now()
+);
+grant select on public.commission_rules to authenticated;
+grant all on public.commission_rules to service_role;
+alter table public.commission_rules enable row level security;
+create policy "commission_rules: leitura tenant" on public.commission_rules
+  for select to authenticated using (public.is_tenant_member(tenant_id));
+
+create table public.commissions (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null references public.tenants(id) on delete cascade,
+  quote_id uuid not null references public.quotes(id) on delete cascade,
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  base_amount numeric(14,2) not null,
+  base_rate numeric(6,4) not null,
+  sla_bonus numeric(6,4) not null default 0,
+  won_bonus numeric(6,4) not null default 0,
+  total numeric(14,2) not null,
+  computed_at timestamptz not null default now()
+);
+grant select on public.commissions to authenticated;
+grant all on public.commissions to service_role;
+alter table public.commissions enable row level security;
+create policy "commissions: leitura tenant" on public.commissions
+  for select to authenticated using (public.is_tenant_member(tenant_id));
+
+create table public.sales_goals (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null references public.tenants(id) on delete cascade,
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  period_start date not null,
+  period_end date not null,
+  target_amount numeric(14,2) not null,
+  target_count integer not null default 0
+);
+grant select on public.sales_goals to authenticated;
+grant all on public.sales_goals to service_role;
+alter table public.sales_goals enable row level security;
+create policy "sales_goals: leitura tenant" on public.sales_goals
+  for select to authenticated using (public.is_tenant_member(tenant_id));
+
+-- ============= REGULATORY COMPLIANCE (Fase 1) =============
+create type public.compliance_status as enum ('ok', 'warning', 'blocked');
+
+create table public.regulatory_compliance (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null references public.tenants(id) on delete cascade,
+  product_id uuid not null references public.products(id) on delete cascade,
+  anvisa_code text not null,
+  cmed_pmc numeric(14,2),
+  therapeutic_class text,
+  expires_at date,
+  status public.compliance_status not null default 'ok',
+  blocked_reason text,
+  checked_at timestamptz not null default now()
+);
+grant select on public.regulatory_compliance to authenticated;
+grant all on public.regulatory_compliance to service_role;
+alter table public.regulatory_compliance enable row level security;
+create policy "compliance: leitura tenant" on public.regulatory_compliance
+  for select to authenticated using (public.is_tenant_member(tenant_id));
+
+-- ============= MARKET BENCHMARKS (Fase 2 — anonimizado) =============
+create table public.market_benchmarks (
+  id uuid primary key default gen_random_uuid(),
+  region text not null,
+  segment text not null,
+  period_start date not null,
+  period_end date not null,
+  avg_margin numeric(6,4) not null,
+  sample_size integer not null,
+  computed_at timestamptz not null default now()
+);
+grant select on public.market_benchmarks to authenticated;
+grant all on public.market_benchmarks to service_role;
+alter table public.market_benchmarks enable row level security;
+create policy "benchmarks: leitura autenticada" on public.market_benchmarks
+  for select to authenticated using (sample_size >= 5);
 ```
 
 ## Como migrar o app quando o Cloud subir
