@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Activity as ActivityIcon, CheckCircle2, FileText, MessageSquare, Package, Send, ShieldCheck, ShieldOff, Sparkles, TrendingUp, UserCog } from "lucide-react";
+import { Activity as ActivityIcon, CheckCircle2, FileText, MessageSquare, Package, Radio, Send, ShieldCheck, ShieldOff, Sparkles, TrendingUp, UserCog, Zap } from "lucide-react";
 import { getActivitiesFor, type Activity, type ActivityType } from "@/lib/medical/activity";
 
 const ICONS: Record<ActivityType, typeof ActivityIcon> = {
@@ -14,6 +14,8 @@ const ICONS: Record<ActivityType, typeof ActivityIcon> = {
   compliance_override: ShieldCheck,
   compliance_override_revoked: ShieldOff,
   client_tier_changed: UserCog,
+  ingested_from_portal: Radio,
+  portal_response_taken: Zap,
 };
 
 function formatRelative(iso: string): string {
