@@ -29,6 +29,15 @@ export interface Owner {
   territory: string;
 }
 
+export type ClientTier = "A" | "B" | "C";
+
+export interface ComplianceFlags {
+  anvisa?: boolean;
+  controlled?: boolean;
+  refrigerated?: boolean;
+  special_handling?: boolean;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -36,6 +45,12 @@ export interface Product {
   cost_price: number;
   last_suggested_price: number;
   unit: string;
+  // ===== Motor de Precificação (4 camadas) =====
+  tax_rate: number;        // 0.18 = 18% impostos totais
+  logistics_rate?: number; // 0.03 = 3% custo logístico (default 3%)
+  cmed_ceiling?: number;   // teto CMED / preço governamental
+  market_avg?: number;     // preço médio de mercado (atualizado pelo flywheel)
+  compliance_flags?: ComplianceFlags;
 }
 
 export interface QuoteItem {
@@ -56,6 +71,7 @@ export interface Quote {
   priority: Priority;
   customer_name: string;
   customer_segment: string; // hospital, clínica, distribuidor
+  client_tier?: ClientTier;
   received_at: string; // ISO
   sla_deadline: string; // ISO
   original_payload: string; // texto original recebido
@@ -98,3 +114,10 @@ export const SOURCE_LABEL: Record<SourceType, string> = {
 };
 
 export const MIN_MARGIN = 0.12; // 12%
+
+// Desconto adicional por tier (Multiplicador_Cliente)
+export const CLIENT_TIER_DISCOUNT: Record<ClientTier, number> = {
+  A: 0.02, // Tier A → 2% desconto extra
+  B: 0.01,
+  C: 0,
+};
