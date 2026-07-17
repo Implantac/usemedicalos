@@ -66,19 +66,7 @@ export function ProductHistoryDrawer({
             />
           </section>
 
-          <section className="border-b p-4">
-            <div className="flex items-center justify-between rounded-md border border-dashed border-primary/30 bg-primary/5 p-2">
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary">
-                <Sparkles className="h-3 w-3" /> Sugestão IA para novo pedido
-              </span>
-              <div className="text-right">
-                <div className="num text-sm font-bold">{formatBRL(suggested)}</div>
-                <div className="text-[10px] text-muted-foreground">
-                  markup alvo 28% · vol. {totalQty.toLocaleString("pt-BR")} un
-                </div>
-              </div>
-            </div>
-          </section>
+          <PricingSection product={product} suggestedLegacy={suggested} totalQty={totalQty} />
 
           <section className="border-b p-4">
             <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
