@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, PlayCircle, Save, Trash2, Send } from "lucide-react";
+import { AlertCircle, CheckCircle2, Copy, KeyRound, PlayCircle, Save, Trash2, Send } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import { signPayload } from "@/lib/medical/webhook-signature";
 import {
   applyMapping,
   SAMPLE_ERP_PAYLOAD,
