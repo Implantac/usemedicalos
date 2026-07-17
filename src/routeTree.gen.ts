@@ -19,6 +19,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ApiKeysRouteImport } from './routes/api-keys'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VendedorOwnerIdRouteImport } from './routes/vendedor.$ownerId'
+import { Route as ApiV1IngestRouteImport } from './routes/api/v1/ingest'
 import { Route as ApiPublicUseSistemasRouteImport } from './routes/api/public/use-sistemas'
 import { Route as ApiPublicCatalogRouteImport } from './routes/api/public/catalog'
 import { Route as ApiPublicErpIngestRouteImport } from './routes/api/public/erp.ingest'
@@ -73,6 +74,11 @@ const VendedorOwnerIdRoute = VendedorOwnerIdRouteImport.update({
   path: '/vendedor/$ownerId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1IngestRoute = ApiV1IngestRouteImport.update({
+  id: '/api/v1/ingest',
+  path: '/api/v1/ingest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicUseSistemasRoute = ApiPublicUseSistemasRouteImport.update({
   id: '/api/public/use-sistemas',
   path: '/api/public/use-sistemas',
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
+  '/api/v1/ingest': typeof ApiV1IngestRoute
   '/api/public/erp/ingest': typeof ApiPublicErpIngestRoute
 }
 export interface FileRoutesByTo {
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
+  '/api/v1/ingest': typeof ApiV1IngestRoute
   '/api/public/erp/ingest': typeof ApiPublicErpIngestRoute
 }
 export interface FileRoutesById {
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
+  '/api/v1/ingest': typeof ApiV1IngestRoute
   '/api/public/erp/ingest': typeof ApiPublicErpIngestRoute
 }
 export interface FileRouteTypes {
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/vendedor/$ownerId'
     | '/api/public/catalog'
     | '/api/public/use-sistemas'
+    | '/api/v1/ingest'
     | '/api/public/erp/ingest'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/vendedor/$ownerId'
     | '/api/public/catalog'
     | '/api/public/use-sistemas'
+    | '/api/v1/ingest'
     | '/api/public/erp/ingest'
   id:
     | '__root__'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/vendedor/$ownerId'
     | '/api/public/catalog'
     | '/api/public/use-sistemas'
+    | '/api/v1/ingest'
     | '/api/public/erp/ingest'
   fileRoutesById: FileRoutesById
 }
@@ -196,6 +208,7 @@ export interface RootRouteChildren {
   VendedorOwnerIdRoute: typeof VendedorOwnerIdRoute
   ApiPublicCatalogRoute: typeof ApiPublicCatalogRoute
   ApiPublicUseSistemasRoute: typeof ApiPublicUseSistemasRoute
+  ApiV1IngestRoute: typeof ApiV1IngestRoute
   ApiPublicErpIngestRoute: typeof ApiPublicErpIngestRoute
 }
 
@@ -271,6 +284,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VendedorOwnerIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/ingest': {
+      id: '/api/v1/ingest'
+      path: '/api/v1/ingest'
+      fullPath: '/api/v1/ingest'
+      preLoaderRoute: typeof ApiV1IngestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/use-sistemas': {
       id: '/api/public/use-sistemas'
       path: '/api/public/use-sistemas'
@@ -308,6 +328,7 @@ const rootRouteChildren: RootRouteChildren = {
   VendedorOwnerIdRoute: VendedorOwnerIdRoute,
   ApiPublicCatalogRoute: ApiPublicCatalogRoute,
   ApiPublicUseSistemasRoute: ApiPublicUseSistemasRoute,
+  ApiV1IngestRoute: ApiV1IngestRoute,
   ApiPublicErpIngestRoute: ApiPublicErpIngestRoute,
 }
 export const routeTree = rootRouteImport
