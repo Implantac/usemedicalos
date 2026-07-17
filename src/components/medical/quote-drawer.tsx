@@ -43,17 +43,22 @@ interface Props {
   onUpdateQuote: (quoteId: string, patch: Partial<Quote>) => void;
 }
 
-export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpdateQuote }: Props) {
+export function QuoteDrawer(props: Props) {
+  if (!props.quote) return null;
+  return <QuoteDrawerInner {...props} quote={props.quote} />;
+}
+
+function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdateQuote }: Props & { quote: Quote }) {
   const [submitting, setSubmitting] = useState(false);
   const [activityVersion, setActivityVersion] = useState(0);
   const [overrideVersion, setOverrideVersion] = useState(0);
   const [complianceConfirmed, setComplianceConfirmed] = useState(false);
   const overriddenSkus = useMemo(
-    () => (quote ? new Set(listOverrides(quote.id).map((o) => o.sku)) : new Set<string>()),
-    [quote?.id, overrideVersion],
+    () => new Set(listOverrides(quote.id).map((o) => o.sku)),
+    [quote.id, overrideVersion],
   );
-  if (!quote) return null;
   const { config: tenantConfig } = useTenantConfig(quote.tenant_id);
+
   const minMargin = tenantConfig.min_margin;
   const totals = quoteTotals(quote.items);
   const marginOk = totals.margin >= minMargin;
