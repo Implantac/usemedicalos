@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Inbox, KeyRound, LayoutDashboard, LineChart, Package, Plug, Radio, RefreshCw, Shield, ShieldAlert, ShieldCheck } from "lucide-react";
+import { FileSearch, Inbox, KeyRound, LayoutDashboard, LineChart, Package, Plug, Radio, RefreshCw, Shield, ShieldAlert, ShieldCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -19,8 +19,10 @@ const NAV = [
   { to: "/api-keys", label: "API Keys", icon: KeyRound },
   { to: "/excecoes", label: "Exceções", icon: ShieldCheck },
   { to: "/governanca", label: "Governança", icon: Shield },
+  { to: "/auditoria", label: "Auditoria", icon: FileSearch },
   { to: "/quarentena", label: "Quarentena", icon: ShieldAlert },
 ] as const;
+
 
 
 export function AppHeader({ onReset, children }: { onReset: () => void; children?: ReactNode }) {
