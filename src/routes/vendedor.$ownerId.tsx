@@ -6,6 +6,7 @@ import { KpiCard } from "@/components/medical/kpi-card";
 import { PriorityBadge, StatusBadge } from "@/components/medical/badges";
 import { SlaIndicator } from "@/components/medical/sla-indicator";
 import { DailyGoalRing } from "@/components/medical/daily-goal-ring";
+import { CommissionBadge } from "@/components/medical/commission-badge";
 import { useQuotes } from "@/hooks/use-quotes";
 import { OWNERS, ownerById } from "@/lib/medical/mock-data";
 import { computeKpis } from "@/lib/medical/analytics";
@@ -78,6 +79,38 @@ function OwnerPage() {
           </div>
         </div>
 
+        {/* HERO: Comissão estimada — gamificação financeira em destaque */}
+        <div className="rounded-xl border-2 border-success/40 bg-gradient-to-br from-success/15 via-success/5 to-transparent p-4 shadow-sm sm:p-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                Comissão estimada — mês atual
+              </div>
+              <div className="mt-1 flex items-baseline gap-2">
+                <span className="num text-4xl font-black tracking-tight text-success sm:text-5xl">
+                  {formatBRL(commission.mtd_total)}
+                </span>
+                <span className="text-xs font-semibold text-muted-foreground">
+                  + {formatBRL(commission.mtd_pipeline)} em pipeline
+                </span>
+              </div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                {commission.quote_count} cotação(ões) no mês · margem média{" "}
+                <span className={kpis.avgMargin >= 0.15 ? "font-bold text-success" : kpis.avgMargin >= 0.12 ? "font-bold text-warning-foreground" : "font-bold text-danger"}>
+                  {formatPct(kpis.avgMargin)}
+                </span>
+                {kpis.avgMargin < 0.15 && kpis.avgMargin >= 0.12 && " — cada +1% de margem sobe seu tier"}
+                {kpis.avgMargin < 0.12 && " — margem crítica: comissão zerada"}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="grid h-14 w-14 place-items-center rounded-full bg-success/20 text-success">
+                <Coins className="h-7 w-7" />
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
           <KpiCard label="Cotações ativas" value={kpis.activeCount} icon={Activity} tone="primary" />
           <KpiCard label="Pipeline aberto" value={formatBRL(kpis.pipeline)} icon={TrendingUp} tone="success" />
@@ -92,7 +125,7 @@ function OwnerPage() {
             label="Margem média"
             value={formatPct(kpis.avgMargin)}
             icon={DollarSign}
-            tone={kpis.avgMargin < 0.12 ? "danger" : "success"}
+            tone={kpis.avgMargin < 0.12 ? "danger" : kpis.avgMargin < 0.15 ? "warning" : "success"}
           />
         </div>
 
@@ -104,7 +137,7 @@ function OwnerPage() {
         </div>
 
         <div className="overflow-hidden rounded-lg border bg-card card-shadow">
-          <div className="border-b bg-muted/40 px-3 py-2">
+          <div className="border-b bg-muted/40 px-2 py-1">
             <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
               Cotações do vendedor ({sorted.length})
             </h3>
@@ -118,13 +151,13 @@ function OwnerPage() {
               <table className="w-full text-xs">
                 <thead className="border-b bg-muted/20 text-[10px] uppercase text-muted-foreground">
                   <tr>
-                    <th className="px-3 py-2 text-left font-semibold">Cliente</th>
-                    <th className="px-2 py-2 text-left font-semibold">Prioridade</th>
-                    <th className="px-2 py-2 text-left font-semibold">Status</th>
-                    <th className="px-2 py-2 text-right font-semibold">Itens</th>
-                    <th className="px-2 py-2 text-right font-semibold">Valor</th>
-                    <th className="px-2 py-2 text-right font-semibold">Margem</th>
-                    <th className="px-2 py-2 text-right font-semibold">SLA</th>
+                    <th className="px-2 py-1 text-left font-semibold">Cliente</th>
+                    <th className="px-2 py-1 text-left font-semibold">Prioridade</th>
+                    <th className="px-2 py-1 text-left font-semibold">Status</th>
+                    <th className="px-2 py-1 text-right font-semibold">Itens</th>
+                    <th className="px-2 py-1 text-right font-semibold">Valor</th>
+                    <th className="px-2 py-1 text-right font-semibold">Margem</th>
+                    <th className="px-2 py-1 text-right font-semibold">SLA</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -132,7 +165,7 @@ function OwnerPage() {
                     const t = quoteTotals(q.items);
                     return (
                       <tr key={q.id} className="hover:bg-accent/40">
-                        <td className="px-3 py-2">
+                        <td className="px-2 py-1">
                           <Link
                             to="/"
                             search={{ open: q.id }}
@@ -144,19 +177,19 @@ function OwnerPage() {
                             {q.customer_segment} · #{q.id.toUpperCase()}
                           </div>
                         </td>
-                        <td className="px-2 py-2"><PriorityBadge priority={q.priority} /></td>
-                        <td className="px-2 py-2"><StatusBadge status={q.status} /></td>
-                        <td className="px-2 py-2 text-right num">{q.items.length}</td>
-                        <td className="px-2 py-2 text-right num font-semibold">{formatBRL(t.revenue)}</td>
+                        <td className="px-2 py-1"><PriorityBadge priority={q.priority} /></td>
+                        <td className="px-2 py-1"><StatusBadge status={q.status} /></td>
+                        <td className="px-2 py-1 text-right num">{q.items.length}</td>
+                        <td className="px-2 py-1 text-right num font-semibold">{formatBRL(t.revenue)}</td>
                         <td
                           className={
-                            "px-2 py-2 text-right num font-semibold " +
+                            "px-2 py-1 text-right num font-semibold " +
                             (t.margin < 0.12 ? "text-danger" : "text-success")
                           }
                         >
                           {formatPct(t.margin)}
                         </td>
-                        <td className="px-2 py-2 text-right">
+                        <td className="px-2 py-1 text-right">
                           {q.status === "aguardando_precificacao" || q.status === "em_negociacao" ? (
                             <SlaIndicator deadline={q.sla_deadline} compact />
                           ) : (

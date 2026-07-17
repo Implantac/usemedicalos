@@ -38,6 +38,7 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
   const [submitting, setSubmitting] = useState(false);
   const [activityVersion, setActivityVersion] = useState(0);
   const [overrideVersion, setOverrideVersion] = useState(0);
+  const [complianceConfirmed, setComplianceConfirmed] = useState(false);
   if (!quote) return null;
   const totals = quoteTotals(quote.items);
   const marginOk = totals.margin >= MIN_MARGIN;
@@ -47,7 +48,10 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
   );
   const compliance = checkQuote(quote, overriddenSkus);
   const complianceBlocked = compliance.status === "blocked";
-  const canSend = marginOk && !complianceBlocked;
+  const complianceRequiresConfirm =
+    compliance.status === "warning" || compliance.status === "overridden";
+  const complianceGateOk = !complianceBlocked && (!complianceRequiresConfirm || complianceConfirmed);
+  const canSend = marginOk && complianceGateOk;
   const bumpActivity = () => setActivityVersion((v) => v + 1);
 
   const handleOverride = (sku: string) => {
@@ -139,10 +143,19 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto">
-          <section className="space-y-2 border-b p-4">
-            <ComplianceAlert report={compliance} onOverride={handleOverride} onRevoke={handleRevoke} />
+          <section className="space-y-3 border-b p-4">
             <CommissionBadge quote={quote} />
+            <ComplianceAlert
+              report={compliance}
+              confirmed={complianceConfirmed}
+              onConfirmedChange={setComplianceConfirmed}
+              onOverride={handleOverride}
+              onRevoke={handleRevoke}
+            />
           </section>
+
+
+
 
 
           {/* Payload original + IA classification */}
@@ -365,7 +378,9 @@ export function QuoteDrawer({ quote, onClose, onUpdateItem, onRemoveItem, onUpda
                   ? "Enviando ao Use Sistemas…"
                   : complianceBlocked
                     ? "Bloqueado (Compliance)"
-                    : "Gerar Proposta & Enviar"}
+                    : complianceRequiresConfirm && !complianceConfirmed
+                      ? "Confirme o checklist para enviar"
+                      : "Gerar Proposta & Enviar"}
               </span>
             </Button>
           </div>
