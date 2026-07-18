@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CommandPalette } from "../components/medical/command-palette";
+import { ShortcutsHelp } from "../components/medical/shortcuts-help";
 
 function NotFoundComponent() {
   return (
@@ -142,6 +143,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <Outlet />
       <CommandPalette />
+      <ShortcutsHelp />
     </QueryClientProvider>
   );
 }
