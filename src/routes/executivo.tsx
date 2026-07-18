@@ -4,7 +4,7 @@ import { AlertTriangle, DollarSign, ShieldCheck, TrendingUp, Users, Zap } from "
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { AppShell } from "@/components/medical/app-shell";
+import { AppHeader } from "@/components/medical/app-header";
 import { useQuotes } from "@/hooks/use-quotes";
 import { computeKpis, leaderboard } from "@/lib/medical/analytics";
 import { computeCommission } from "@/lib/medical/commission";
