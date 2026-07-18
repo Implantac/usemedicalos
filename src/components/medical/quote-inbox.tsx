@@ -235,6 +235,45 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
     else toast.success(msg, { action });
   };
 
+  // Bulk actions — aplica transição em N quotes de uma vez, com Undo em lote.
+  const toggleSelected = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const clearSelected = () => setSelected(new Set());
+  const selectAllVisible = () => setSelected(new Set(filtered.map((x) => x.id)));
+
+  const runBulk = (kind: "advance" | "regress" | "lost") => {
+    const targets = filtered.filter((x) => selected.has(x.id));
+    if (targets.length === 0) return;
+    const snapshots: Array<{ id: string; from: QuoteStatus }> = [];
+    let applied = 0;
+    for (const qt of targets) {
+      const to =
+        kind === "advance" ? nextStatus(qt.status) :
+        kind === "regress" ? prevStatus(qt.status) :
+        "perdido" as QuoteStatus;
+      if (!to || to === qt.status) continue;
+      snapshots.push({ id: qt.id, from: qt.status });
+      onAdvance(qt.id, to);
+      applied++;
+    }
+    if (applied === 0) { toast("Nenhuma cotação elegível para essa ação"); return; }
+    const label =
+      kind === "advance" ? "avançadas" :
+      kind === "regress" ? "revertidas" : "marcadas como perdidas";
+    const action = { label: "Desfazer", onClick: () => {
+      snapshots.forEach((s) => onAdvance(s.id, s.from));
+      toast(`${snapshots.length} cotação(ões) restauradas`);
+    }};
+    if (kind === "lost") toast.error(`${applied} cotação(ões) ${label}`, { action });
+    else toast.success(`${applied} cotação(ões) ${label}`, { action });
+    clearSelected();
+  };
+
   const handleAdvance = (e: React.MouseEvent, qt: Quote) => {
     e.stopPropagation();
     const ns = nextStatus(qt.status);
