@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Cloud, FileSearch, Inbox, KeyRound, LayoutDashboard, LineChart, Package, Plug, Radio, RefreshCw, Shield, ShieldAlert, ShieldCheck } from "lucide-react";
+import { Cloud, FileSearch, Gauge, Inbox, KeyRound, LayoutDashboard, LineChart, Package, Plug, Radio, RefreshCw, Shield, ShieldAlert, ShieldCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
