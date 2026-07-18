@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>USE Medical Capture</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        width: 320px;
+        margin: 0;
+        padding: 16px;
+        background: #0f172a;
+        color: #f1f5f9;
+      }
+      h1 {
+        font-size: 14px;
+        margin: 0 0 4px;
+        letter-spacing: 0.02em;
+      }
+      p.hint {
+        font-size: 11px;
+        color: #94a3b8;
+        margin: 0 0 12px;
+      }
+      label {
+        display: block;
+        font-size: 11px;
+        text-transform: uppercase;
+        color: #cbd5e1;
+        margin-top: 10px;
+        letter-spacing: 0.05em;
+      }
+      input, select {
+        width: 100%;
+        margin-top: 4px;
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #334155;
+        background: #1e293b;
+        color: #f1f5f9;
+        font-size: 13px;
+        box-sizing: border-box;
+      }
+      .row {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        margin-top: 10px;
+        font-size: 12px;
+      }
+      button {
+        margin-top: 14px;
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 0;
+        background: linear-gradient(135deg, #c2410c, #ea580c);
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button.secondary {
+        background: #1e293b;
+        border: 1px solid #334155;
+      }
+      .status {
+        margin-top: 10px;
+        font-size: 11px;
+        color: #94a3b8;
+        min-height: 14px;
+      }
+      .ok { color: #4ade80; }
+      .err { color: #f87171; }
+    </style>
+  </head>
+  <body>
+    <h1>USE Medical • Portal Capture</h1>
+    <p class="hint">Configure API key do tenant e capture RFQs em 1 clique.</p>
+
+    <label>Endpoint</label>
+    <input id="endpoint" type="url" placeholder="https://usemedicalos.lovable.app/api/v1/ingest" />
+
+    <label>API Key</label>
+    <input id="apiKey" type="password" placeholder="sk_live_..." />
+
+    <label>Portal ativo</label>
+    <select id="portal">
+      <option value="bionexo">Bionexo</option>
+      <option value="apoio_cotacao">Apoio Cotação</option>
+    </select>
+
+    <div class="row">
+      <input type="checkbox" id="autoCapture" style="width:auto" />
+      <label for="autoCapture" style="margin:0; text-transform:none; letter-spacing:0">Auto-capturar novas RFQs</label>
+    </div>
+
+    <button id="save">Salvar configuração</button>
+    <button id="capture" class="secondary">Capturar página atual</button>
+
+    <div class="status" id="status"></div>
+    <script src="popup.js"></script>
+  </body>
+</html>
