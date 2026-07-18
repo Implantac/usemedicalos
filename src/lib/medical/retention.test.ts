@@ -1,6 +1,23 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { runRetentionJob } from "./retention";
 import { setTenantConfig, resetTenantConfig } from "./tenant-config";
+import { localStorageRepo } from "./repo/local-storage";
+import { TENANTS } from "./mock-data";
+import type { Quote } from "./types";
+
+// Usamos o próprio localStorageRepo (que já tem fallback in-memory p/ Node)
+// como camada de persistência nos testes. `retention.ts` compartilha o
+// mesmo QUOTES_KEY, então lê/escreve consistente.
+
+async function seed(quotes: Quote[]) {
+  // Reset e semeia via API pública do repo.
+  // Purga tudo primeiro:
+  const existing = await localStorageRepo.quotes.listByTenant("all");
+  for (const q of existing) await localStorageRepo.quotes.remove(q.id);
+  // Escreve direto no storage compartilhado:
+  const store = typeof window !== "undefined" ? window.localStorage : null;
+  if (store) store.setItem("use-medical:quotes:v2", JSON.stringify(quotes));
+}
 import { TENANTS } from "./mock-data";
 import type { Quote } from "./types";
 

@@ -19,6 +19,15 @@ const QUOTES_KEY = "use-medical:quotes:v2";
 const SESSION_KEY = "use-medical:retention:last-run";
 const MIN_INTERVAL_MS = 6 * 3600 * 1000; // no máx. 1x a cada 6h por aba
 
+const memory = new Map<string, string>();
+function store() {
+  if (typeof window !== "undefined") return window.localStorage;
+  return {
+    getItem: (k: string) => memory.get(k) ?? null,
+    setItem: (k: string, v: string) => void memory.set(k, v),
+  };
+}
+
 export interface RetentionReport {
   scanned: number;
   purged: number;
@@ -26,9 +35,8 @@ export interface RetentionReport {
 }
 
 function loadQuotes(): Quote[] {
-  if (typeof window === "undefined") return INITIAL_QUOTES;
   try {
-    const raw = window.localStorage.getItem(QUOTES_KEY);
+    const raw = store().getItem(QUOTES_KEY);
     if (!raw) return INITIAL_QUOTES;
     const parsed = JSON.parse(raw) as Quote[];
     return Array.isArray(parsed) ? parsed : INITIAL_QUOTES;
@@ -38,8 +46,7 @@ function loadQuotes(): Quote[] {
 }
 
 function saveQuotes(quotes: Quote[]) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(QUOTES_KEY, JSON.stringify(quotes));
+  store().setItem(QUOTES_KEY, JSON.stringify(quotes));
 }
 
 /** Executa a purga e retorna relatório. Dry-run se `dryRun=true`. */
