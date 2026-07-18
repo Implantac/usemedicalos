@@ -220,12 +220,25 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
     (sort !== "priority" ? 1 : 0) +
     (q.trim() ? 1 : 0);
 
+  // Transições de pipeline com Undo (toast action) — reverte para o status anterior.
+  const runTransition = (qt: Quote, to: QuoteStatus, kind: "advance" | "regress" | "lost") => {
+    const from = qt.status;
+    onAdvance(qt.id, to);
+    const msg = `${qt.customer_name}: ${STATUS_LABEL[from]} → ${STATUS_LABEL[to]}`;
+    const action = { label: "Desfazer", onClick: () => {
+      onAdvance(qt.id, from);
+      toast(`${qt.customer_name}: revertido para ${STATUS_LABEL[from]}`);
+    }};
+    if (kind === "lost") toast.error(`${qt.customer_name} marcado como perdido`, { action });
+    else if (kind === "regress") toast(msg, { action });
+    else toast.success(msg, { action });
+  };
+
   const handleAdvance = (e: React.MouseEvent, qt: Quote) => {
     e.stopPropagation();
     const ns = nextStatus(qt.status);
     if (!ns) return;
-    onAdvance(qt.id, ns);
-    toast.success(`${qt.customer_name}: ${STATUS_LABEL[qt.status]} → ${STATUS_LABEL[ns]}`);
+    runTransition(qt, ns, "advance");
   };
 
   // Navegação por teclado estilo Gmail/Superhuman:
@@ -261,8 +274,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
         const ns = nextStatus(qt.status);
         if (!ns) return;
         e.preventDefault();
-        onAdvance(qt.id, ns);
-        toast.success(`${qt.customer_name}: ${STATUS_LABEL[qt.status]} → ${STATUS_LABEL[ns]}`);
+        runTransition(qt, ns, "advance");
       }
     };
     window.addEventListener("keydown", handler);
@@ -273,14 +285,12 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
     e.stopPropagation();
     const ps = prevStatus(qt.status);
     if (!ps) return;
-    onAdvance(qt.id, ps);
-    toast(`${qt.customer_name} regredido para ${STATUS_LABEL[ps]}`);
+    runTransition(qt, ps, "regress");
   };
 
   const handleLost = (e: React.MouseEvent, qt: Quote) => {
     e.stopPropagation();
-    onAdvance(qt.id, "perdido");
-    toast.error(`${qt.customer_name} marcado como perdido`);
+    runTransition(qt, "perdido", "lost");
   };
 
   // Wrap setters so manual filter changes clear active view marker
