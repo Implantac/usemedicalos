@@ -84,6 +84,8 @@ export function AppHeader({ onReset, children }: { onReset: () => void; children
           </button>
           <TenantSwitcher />
           <RoleSwitcher />
+          <ChangelogButton />
+
 
 
           {children}
