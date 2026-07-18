@@ -16,6 +16,7 @@ import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as InteligenciaRouteImport } from './routes/inteligencia'
 import { Route as IntegracoesRouteImport } from './routes/integracoes'
 import { Route as GovernancaRouteImport } from './routes/governanca'
+import { Route as ExecutivoRouteImport } from './routes/executivo'
 import { Route as ExcecoesRouteImport } from './routes/excecoes'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ComplianceRouteImport } from './routes/compliance'
@@ -62,6 +63,11 @@ const IntegracoesRoute = IntegracoesRouteImport.update({
 const GovernancaRoute = GovernancaRouteImport.update({
   id: '/governanca',
   path: '/governanca',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExecutivoRoute = ExecutivoRouteImport.update({
+  id: '/executivo',
+  path: '/executivo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExcecoesRoute = ExcecoesRouteImport.update({
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/compliance': typeof ComplianceRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
+  '/executivo': typeof ExecutivoRoute
   '/governanca': typeof GovernancaRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/compliance': typeof ComplianceRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
+  '/executivo': typeof ExecutivoRoute
   '/governanca': typeof GovernancaRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
@@ -176,6 +184,7 @@ export interface FileRoutesById {
   '/compliance': typeof ComplianceRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
+  '/executivo': typeof ExecutivoRoute
   '/governanca': typeof GovernancaRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
@@ -199,6 +208,7 @@ export interface FileRouteTypes {
     | '/compliance'
     | '/dashboard'
     | '/excecoes'
+    | '/executivo'
     | '/governanca'
     | '/integracoes'
     | '/inteligencia'
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | '/compliance'
     | '/dashboard'
     | '/excecoes'
+    | '/executivo'
     | '/governanca'
     | '/integracoes'
     | '/inteligencia'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/compliance'
     | '/dashboard'
     | '/excecoes'
+    | '/executivo'
     | '/governanca'
     | '/integracoes'
     | '/inteligencia'
@@ -263,6 +275,7 @@ export interface RootRouteChildren {
   ComplianceRoute: typeof ComplianceRoute
   DashboardRoute: typeof DashboardRoute
   ExcecoesRoute: typeof ExcecoesRoute
+  ExecutivoRoute: typeof ExecutivoRoute
   GovernancaRoute: typeof GovernancaRoute
   IntegracoesRoute: typeof IntegracoesRoute
   InteligenciaRoute: typeof InteligenciaRoute
@@ -326,6 +339,13 @@ declare module '@tanstack/react-router' {
       path: '/governanca'
       fullPath: '/governanca'
       preLoaderRoute: typeof GovernancaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/executivo': {
+      id: '/executivo'
+      path: '/executivo'
+      fullPath: '/executivo'
+      preLoaderRoute: typeof ExecutivoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/excecoes': {
@@ -423,6 +443,7 @@ const rootRouteChildren: RootRouteChildren = {
   ComplianceRoute: ComplianceRoute,
   DashboardRoute: DashboardRoute,
   ExcecoesRoute: ExcecoesRoute,
+  ExecutivoRoute: ExecutivoRoute,
   GovernancaRoute: GovernancaRoute,
   IntegracoesRoute: IntegracoesRoute,
   InteligenciaRoute: InteligenciaRoute,
