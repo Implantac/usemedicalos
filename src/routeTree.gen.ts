@@ -18,6 +18,7 @@ import { Route as IntegracoesRouteImport } from './routes/integracoes'
 import { Route as GovernancaRouteImport } from './routes/governanca'
 import { Route as ExcecoesRouteImport } from './routes/excecoes'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ComplianceRouteImport } from './routes/compliance'
 import { Route as CloudReadinessRouteImport } from './routes/cloud-readiness'
 import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as ApiKeysRouteImport } from './routes/api-keys'
@@ -73,6 +74,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComplianceRoute = ComplianceRouteImport.update({
+  id: '/compliance',
+  path: '/compliance',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CloudReadinessRoute = CloudReadinessRouteImport.update({
   id: '/cloud-readiness',
   path: '/cloud-readiness',
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/api-keys': typeof ApiKeysRoute
   '/auditoria': typeof AuditoriaRoute
   '/cloud-readiness': typeof CloudReadinessRoute
+  '/compliance': typeof ComplianceRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
   '/governanca': typeof GovernancaRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/api-keys': typeof ApiKeysRoute
   '/auditoria': typeof AuditoriaRoute
   '/cloud-readiness': typeof CloudReadinessRoute
+  '/compliance': typeof ComplianceRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
   '/governanca': typeof GovernancaRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/api-keys': typeof ApiKeysRoute
   '/auditoria': typeof AuditoriaRoute
   '/cloud-readiness': typeof CloudReadinessRoute
+  '/compliance': typeof ComplianceRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
   '/governanca': typeof GovernancaRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/api-keys'
     | '/auditoria'
     | '/cloud-readiness'
+    | '/compliance'
     | '/dashboard'
     | '/excecoes'
     | '/governanca'
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/api-keys'
     | '/auditoria'
     | '/cloud-readiness'
+    | '/compliance'
     | '/dashboard'
     | '/excecoes'
     | '/governanca'
@@ -227,6 +238,7 @@ export interface FileRouteTypes {
     | '/api-keys'
     | '/auditoria'
     | '/cloud-readiness'
+    | '/compliance'
     | '/dashboard'
     | '/excecoes'
     | '/governanca'
@@ -248,6 +260,7 @@ export interface RootRouteChildren {
   ApiKeysRoute: typeof ApiKeysRoute
   AuditoriaRoute: typeof AuditoriaRoute
   CloudReadinessRoute: typeof CloudReadinessRoute
+  ComplianceRoute: typeof ComplianceRoute
   DashboardRoute: typeof DashboardRoute
   ExcecoesRoute: typeof ExcecoesRoute
   GovernancaRoute: typeof GovernancaRoute
@@ -329,6 +342,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/compliance': {
+      id: '/compliance'
+      path: '/compliance'
+      fullPath: '/compliance'
+      preLoaderRoute: typeof ComplianceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cloud-readiness': {
       id: '/cloud-readiness'
       path: '/cloud-readiness'
@@ -400,6 +420,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiKeysRoute: ApiKeysRoute,
   AuditoriaRoute: AuditoriaRoute,
   CloudReadinessRoute: CloudReadinessRoute,
+  ComplianceRoute: ComplianceRoute,
   DashboardRoute: DashboardRoute,
   ExcecoesRoute: ExcecoesRoute,
   GovernancaRoute: GovernancaRoute,
