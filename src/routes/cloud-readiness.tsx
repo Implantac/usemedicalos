@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { CheckCircle2, Circle, Cloud, Database, FileCode, KeyRound, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Circle, Cloud, Database, FileCode, KeyRound, Layers, ShieldCheck } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { currentBackend } from "@/lib/medical/repo";
 
 export const Route = createFileRoute("/cloud-readiness")({
   head: () => ({
@@ -85,6 +86,29 @@ function CloudReadinessPage() {
             {ready}/{preFlight.length} prontos
           </Badge>
         </header>
+
+        <section className="mb-6 rounded-xl border bg-card p-4 sm:p-5">
+          <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+            <Layers className="h-4 w-4" /> Repository backend ativo
+          </h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <Badge
+              className={cn(
+                "text-xs uppercase tracking-wider",
+                currentBackend() === "local"
+                  ? "bg-amber-500/15 text-amber-700"
+                  : "bg-emerald-500/15 text-emerald-700",
+              )}
+            >
+              {currentBackend() === "local" ? "localStorage" : "Supabase (Cloud)"}
+            </Badge>
+            <p className="text-xs text-muted-foreground">
+              Feature flag <code>VITE_USE_CLOUD</code>. Hooks consomem <code>getRepo()</code> —
+              trocar backend = trocar 1 provider (nenhuma tela precisa mudar).
+            </p>
+          </div>
+        </section>
+
 
         <section className="mb-6 rounded-xl border bg-card p-4 sm:p-5">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
