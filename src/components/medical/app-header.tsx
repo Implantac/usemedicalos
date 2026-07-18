@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { SlaAlertBell } from "./sla-alert-bell";
 import { TenantSwitcher } from "./tenant-switcher";
 import { RoleSwitcher } from "./role-switcher";
+import { ChangelogButton } from "./changelog-button";
 import logoAsset from "@/assets/use-medical-logo.png.asset.json";
 
 
