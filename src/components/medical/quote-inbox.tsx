@@ -315,11 +315,21 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
         if (!ns) return;
         e.preventDefault();
         runTransition(qt, ns, "advance");
+      } else if (e.key === " " && idx >= 0) {
+        // Space: toggle selection on focused row (multi-select estilo Gmail)
+        e.preventDefault();
+        toggleSelected(filtered[idx].id);
+      } else if (e.key === "Escape" && selected.size > 0) {
+        e.preventDefault();
+        clearSelected();
+      } else if ((e.key === "A" || e.key === "a") && e.shiftKey) {
+        e.preventDefault();
+        selectAllVisible();
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [filtered, selectedId, onSelect, onAdvance]);
+  }, [filtered, selectedId, onSelect, onAdvance, selected.size]);
 
   const handleRegress = (e: React.MouseEvent, qt: Quote) => {
     e.stopPropagation();
