@@ -66,7 +66,7 @@ function ExecutivePanel() {
       return q?.tenant_id === tenant.id;
     }) : activities;
     const chain = verifyChain(scoped);
-    const integrity = chain.total === 0 ? 1 : chain.verified / chain.total;
+    const integrity = chain.total === 0 ? 1 : chain.ok / chain.total;
     const overrides = listAllActiveOverrides().filter((o) => quotes.some((q) => q.id === o.quote_id));
 
     const lb = leaderboard(quotes).slice(0, 5);
@@ -75,7 +75,8 @@ function ExecutivePanel() {
   }, [quotes, tenant]);
 
   return (
-    <AppShell onReset={resetDemo}>
+    <>
+      <AppHeader onReset={resetDemo} />
       <div className="mx-auto max-w-[1600px] space-y-5 px-3 py-5 sm:px-4">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -115,7 +116,7 @@ function ExecutivePanel() {
             icon={ShieldCheck}
             label="Integridade auditoria"
             value={pct(data.integrity)}
-            hint={`${data.chain.verified}/${data.chain.total} elos íntegros`}
+            hint={`${data.chain.ok}/${data.chain.total} elos íntegros`}
             tone={data.integrity < 1 ? "danger" : "ok"}
           />
         </section>
@@ -205,7 +206,7 @@ function ExecutivePanel() {
           </Card>
         </section>
       </div>
-    </AppShell>
+    </>
   );
 }
 
