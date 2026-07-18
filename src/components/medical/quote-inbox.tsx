@@ -228,6 +228,47 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
     toast.success(`${qt.customer_name}: ${STATUS_LABEL[qt.status]} → ${STATUS_LABEL[ns]}`);
   };
 
+  // Navegação por teclado estilo Gmail/Superhuman:
+  //   j / ↓  → próxima linha
+  //   k / ↑  → linha anterior
+  //   Enter  → abre o drawer da linha em foco
+  //   x      → avança pipeline (nextStatus)
+  //   Ignora quando usuário está digitando em input/textarea/select/contenteditable.
+  useEffect(() => {
+    const isTyping = (el: EventTarget | null) => {
+      if (!(el instanceof HTMLElement)) return false;
+      const tag = el.tagName;
+      return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
+    };
+    const handler = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (isTyping(e.target)) return;
+      if (filtered.length === 0) return;
+      const idx = selectedId ? filtered.findIndex((x) => x.id === selectedId) : -1;
+      if (e.key === "j" || e.key === "ArrowDown") {
+        e.preventDefault();
+        const next = filtered[Math.min(filtered.length - 1, idx + 1)] ?? filtered[0];
+        onSelect(next.id);
+      } else if (e.key === "k" || e.key === "ArrowUp") {
+        e.preventDefault();
+        const next = filtered[Math.max(0, idx - 1)] ?? filtered[0];
+        onSelect(next.id);
+      } else if (e.key === "Enter" && idx >= 0) {
+        e.preventDefault();
+        onSelect(filtered[idx].id);
+      } else if (e.key === "x" && idx >= 0) {
+        const qt = filtered[idx];
+        const ns = nextStatus(qt.status);
+        if (!ns) return;
+        e.preventDefault();
+        onAdvance(qt.id, ns);
+        toast.success(`${qt.customer_name}: ${STATUS_LABEL[qt.status]} → ${STATUS_LABEL[ns]}`);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [filtered, selectedId, onSelect, onAdvance]);
+
   const handleRegress = (e: React.MouseEvent, qt: Quote) => {
     e.stopPropagation();
     const ps = prevStatus(qt.status);
