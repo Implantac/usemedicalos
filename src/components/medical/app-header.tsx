@@ -12,6 +12,7 @@ import logoAsset from "@/assets/use-medical-logo.png.asset.json";
 const NAV = [
   { to: "/", label: "Inbox", icon: Inbox },
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/executivo", label: "Executivo", icon: Gauge },
   { to: "/sla-watchdog", label: "SLA Watchdog", icon: Radio },
   { to: "/produtos", label: "Produtos", icon: Package },
   { to: "/inteligencia", label: "Inteligência", icon: LineChart },
