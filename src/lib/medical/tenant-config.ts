@@ -5,11 +5,13 @@ import { MIN_MARGIN } from "./types";
 export interface TenantConfig {
   min_margin: number; // piso duro (bloqueia envio)
   target_margin: number; // alvo da IA de sugestão
+  retention_days: number; // Data Residency: purga quotes perdidas após N dias
 }
 
 export const DEFAULT_TENANT_CONFIG: TenantConfig = {
   min_margin: MIN_MARGIN,
   target_margin: 0.28,
+  retention_days: 90,
 };
 
 const STORAGE_KEY = "use-medical:tenant-config:v1";

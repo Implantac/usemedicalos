@@ -18,6 +18,7 @@ const NAV = [
   { to: "/integracoes", label: "Integrações", icon: Plug },
   { to: "/api-keys", label: "API Keys", icon: KeyRound },
   { to: "/excecoes", label: "Exceções", icon: ShieldCheck },
+  { to: "/compliance", label: "Compliance", icon: ShieldCheck },
   { to: "/governanca", label: "Governança", icon: Shield },
   { to: "/auditoria", label: "Auditoria", icon: FileSearch },
   { to: "/quarentena", label: "Quarentena", icon: ShieldAlert },
