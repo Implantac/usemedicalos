@@ -63,8 +63,8 @@ export function runRetentionJob({ dryRun = false }: { dryRun?: boolean } = {}): 
         appendActivity({
           quote_id: q.id,
           type: "compliance_override",
-          message: `Data Residency: quote purgada após ${Math.round(ageDays)}d (limite ${cfg.retention_days}d)`,
-          meta: { tenant_id: q.tenant_id, retention_days: cfg.retention_days },
+          message: `Data Residency: quote purgada após ${Math.round(ageDays)}d (limite ${cfg.retention_days}d, tenant ${q.tenant_id})`,
+          meta: { reason: `retention_${cfg.retention_days}d` },
         });
       }
       continue;
