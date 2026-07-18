@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { SlaAlertBell } from "./sla-alert-bell";
+import { NotificationCenter } from "./notification-center";
 import { TenantSwitcher } from "./tenant-switcher";
 import { RoleSwitcher } from "./role-switcher";
 import { ChangelogButton } from "./changelog-button";
@@ -89,6 +90,7 @@ export function AppHeader({ onReset, children }: { onReset: () => void; children
 
 
           {children}
+          <NotificationCenter />
           <SlaAlertBell />
           <Button
             variant="ghost"
