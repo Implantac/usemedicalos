@@ -21,10 +21,20 @@ const QUOTES_KEY = "use-medical:quotes:v2";
 const VIEWS_KEY = "use-medical:inbox-views:v1";
 const PRODUCTS_KEY = "use-medical:products:v1";
 
+// Fallback in-memory para SSR/testes (sem `window`).
+const memory = new Map<string, string>();
+
+function getStore(): { getItem(k: string): string | null; setItem(k: string, v: string): void } {
+  if (typeof window !== "undefined") return window.localStorage;
+  return {
+    getItem: (k) => memory.get(k) ?? null,
+    setItem: (k, v) => void memory.set(k, v),
+  };
+}
+
 function readJson<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
   try {
-    const raw = window.localStorage.getItem(key);
+    const raw = getStore().getItem(key);
     if (!raw) return fallback;
     const parsed = JSON.parse(raw) as T;
     return parsed ?? fallback;
@@ -34,8 +44,7 @@ function readJson<T>(key: string, fallback: T): T {
 }
 
 function writeJson(key: string, value: unknown) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(key, JSON.stringify(value));
+  getStore().setItem(key, JSON.stringify(value));
 }
 
 // --------- Quotes ---------
