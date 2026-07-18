@@ -1,30 +1,38 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { runRetentionJob } from "./retention";
 import { setTenantConfig, resetTenantConfig } from "./tenant-config";
-import { localStorageRepo } from "./repo/local-storage";
 import { TENANTS } from "./mock-data";
 import type { Quote } from "./types";
 
-// Usamos o próprio localStorageRepo (que já tem fallback in-memory p/ Node)
-// como camada de persistência nos testes. `retention.ts` compartilha o
-// mesmo QUOTES_KEY, então lê/escreve consistente.
+// Node env — retention.ts + tenant-config.ts têm fallback in-memory.
+// Escrevemos direto no memory Map via APIs internas: usamos setTenantConfig
+// (que aceita a ausência de window) e semeamos as quotes pelo storage exposto
+// indiretamente através de runRetentionJob({dryRun}) não é possível — então
+// usamos localStorage mock global.
 
-async function seed(quotes: Quote[]) {
-  // Reset e semeia via API pública do repo.
-  // Purga tudo primeiro:
-  const existing = await localStorageRepo.quotes.listByTenant("all");
-  for (const q of existing) await localStorageRepo.quotes.remove(q.id);
-  // Escreve direto no storage compartilhado:
-  const store = typeof window !== "undefined" ? window.localStorage : null;
-  if (store) store.setItem("use-medical:quotes:v2", JSON.stringify(quotes));
+// Polyfill mínimo de localStorage para o env `node`.
+if (typeof (globalThis as any).window === "undefined") {
+  const mem = new Map<string, string>();
+  (globalThis as any).window = {
+    localStorage: {
+      getItem: (k: string) => mem.get(k) ?? null,
+      setItem: (k: string, v: string) => void mem.set(k, v),
+      removeItem: (k: string) => void mem.delete(k),
+      clear: () => mem.clear(),
+    },
+    sessionStorage: {
+      getItem: (k: string) => mem.get(`sess:${k}`) ?? null,
+      setItem: (k: string, v: string) => void mem.set(`sess:${k}`, v),
+    },
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => true,
+  };
 }
-import { TENANTS } from "./mock-data";
-import type { Quote } from "./types";
 
 const KEY = "use-medical:quotes:v2";
 
 function mkQuote(tenantId: string, status: Quote["status"], ageDays: number, id: string): Quote {
-  const receivedAt = new Date(Date.now() - ageDays * 86_400_000).toISOString();
   return {
     id,
     tenant_id: tenantId,
@@ -34,7 +42,7 @@ function mkQuote(tenantId: string, status: Quote["status"], ageDays: number, id:
     priority: "normal",
     customer_name: "Hosp X",
     customer_segment: "hospital",
-    received_at: receivedAt,
+    received_at: new Date(Date.now() - ageDays * 86_400_000).toISOString(),
     sla_deadline: new Date().toISOString(),
     original_payload: "",
     keywords: [],
@@ -44,10 +52,7 @@ function mkQuote(tenantId: string, status: Quote["status"], ageDays: number, id:
 
 describe("retention job", () => {
   beforeEach(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.clear();
-      window.sessionStorage.clear();
-    }
+    window.localStorage.clear?.();
     TENANTS.forEach((t) => resetTenantConfig(t.id));
   });
 
