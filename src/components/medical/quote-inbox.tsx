@@ -578,8 +578,32 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
         </div>
       </div>
 
+      {selected.size > 0 && (
+        <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-primary/20 bg-primary/95 px-3 py-2 text-primary-foreground shadow-sm">
+          <CheckSquare className="h-3.5 w-3.5" />
+          <span className="text-xs font-semibold">{selected.size} selecionada(s)</span>
+          <Button size="sm" variant="ghost" className="h-6 gap-1 px-2 text-[11px] text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground" onClick={selectAllVisible}>
+            Selecionar todas ({filtered.length})
+          </Button>
+          <div className="ml-auto flex flex-wrap items-center gap-1">
+            <Button size="sm" variant="secondary" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("advance")}>
+              <ArrowRight className="h-3 w-3" /> Avançar
+            </Button>
+            <Button size="sm" variant="secondary" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("regress")}>
+              <Undo2 className="h-3 w-3" /> Voltar
+            </Button>
+            <Button size="sm" variant="destructive" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("lost")}>
+              Marcar perdidas
+            </Button>
+            <Button size="sm" variant="ghost" className="h-6 gap-1 px-2 text-[11px] text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground" onClick={clearSelected}>
+              <X className="h-3 w-3" /> Limpar
+            </Button>
+          </div>
+        </div>
+      )}
 
       <ul className="flex-1 divide-y overflow-y-auto">
+
         {filtered.length === 0 && (
           <li className="flex flex-col items-center gap-2 p-10 text-center">
             <div className="grid h-10 w-10 place-items-center rounded-full bg-muted text-muted-foreground">
