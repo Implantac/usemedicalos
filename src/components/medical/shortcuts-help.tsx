@@ -13,6 +13,10 @@ const SHORTCUTS: Shortcut[] = [
   { keys: ["G", "D"], label: "Ir para Dashboard", group: "Ir para" },
   { keys: ["G", "E"], label: "Ir para Executivo", group: "Ir para" },
   { keys: ["G", "A"], label: "Ir para Auditoria", group: "Ir para" },
+  { keys: ["J"], label: "Próxima cotação (Inbox)", group: "Inbox" },
+  { keys: ["K"], label: "Cotação anterior (Inbox)", group: "Inbox" },
+  { keys: ["Enter"], label: "Abrir cotação em foco", group: "Inbox" },
+  { keys: ["X"], label: "Avançar pipeline da cotação em foco", group: "Inbox" },
 ];
 
 const GO_MAP: Record<string, string> = {
