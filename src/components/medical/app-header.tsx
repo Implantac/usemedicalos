@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Cloud, FileSearch, Gauge, Inbox, KeyRound, LayoutDashboard, LineChart, Package, Plug, Radio, RefreshCw, Shield, ShieldAlert, ShieldCheck } from "lucide-react";
+import { Cloud, FileSearch, Gauge, Inbox, KeyRound, LayoutDashboard, LineChart, Package, Plug, Radio, RefreshCw, Search, Shield, ShieldAlert, ShieldCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -67,6 +67,20 @@ export function AppHeader({ onReset, children }: { onReset: () => void; children
         </nav>
 
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              window.dispatchEvent(
+                new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true, bubbles: true }),
+              );
+            }}
+            aria-label="Buscar (⌘K)"
+            className="hidden h-8 items-center gap-2 rounded-md border border-primary-foreground/15 bg-primary-foreground/5 px-2.5 text-[11px] text-primary-foreground/70 transition-smooth hover:bg-primary-foreground/10 hover:text-primary-foreground md:inline-flex"
+          >
+            <Search className="h-3.5 w-3.5" />
+            <span>Buscar</span>
+            <kbd className="rounded bg-primary-foreground/10 px-1 font-mono text-[10px]">⌘K</kbd>
+          </button>
           <TenantSwitcher />
           <RoleSwitcher />
 
