@@ -237,6 +237,8 @@ function IntegrationsPage() {
 
         <PortalMonitorCard />
 
+        <BrowserAgentCard />
+
         <div className="grid gap-3 lg:grid-cols-2">
           <OutboundWebhooksCard />
           <PriceCacheCard />
