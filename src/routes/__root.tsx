@@ -132,6 +132,9 @@ function RootComponent() {
 
   useEffect(() => {
     void import("../lib/pwa/register-sw").then((m) => m.registerServiceWorker());
+    // Data Residency: purga quotes perdidas conforme retention_days do tenant.
+    // Rate-limitado (1x a cada 6h por aba) para não travar o boot.
+    void import("../lib/medical/retention").then((m) => m.runRetentionIfDue());
   }, []);
 
   return (
