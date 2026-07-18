@@ -143,6 +143,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <Outlet />
       <CommandPalette />
+      <ShortcutsHelp />
     </QueryClientProvider>
   );
 }
