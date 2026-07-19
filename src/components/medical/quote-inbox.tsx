@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Bookmark, BookmarkPlus, Building2, CheckSquare, Download, FileSpreadsheet, Filter, Layers, Pin, PinOff, Rows3, Search, Share2, Square, Trash2, Undo2, Upload, X } from "lucide-react";
+import { ArrowRight, Bookmark, BookmarkPlus, Building2, CheckSquare, Download, FileSpreadsheet, Filter, Flame, Inbox as InboxIcon, Layers, Pin, PinOff, Rows3, Search, Share2, Square, Timer, Trash2, Undo2, Upload, X, Zap } from "lucide-react";
 import { useInboxDensity } from "@/hooks/use-inbox-density";
 
 import type { Quote, QuoteStatus } from "@/lib/medical/types";
@@ -51,6 +51,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
   const [sort, setSort] = useState<InboxSort>("priority");
   const [activeViewId, setActiveViewId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [preset, setPreset] = useState<null | "urgentes" | "sla_risco" | "novas" | "fixadas">(null);
   const { density, setDensity } = useInboxDensity();
   const foco = density === "foco";
 
@@ -102,7 +103,14 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
 
   const clearFilters = () => {
     setQ(""); setTenant("todos"); setOwner("todos"); setSla("todos");
-    setStatuses(new Set()); setSort("priority"); setActiveViewId(null);
+    setStatuses(new Set()); setSort("priority"); setActiveViewId(null); setPreset(null);
+  };
+
+  // Presets — atalhos "1-click" para as visões que mais aparecem no dia-a-dia.
+  // Aplicar um preset zera qualquer visualização salva selecionada.
+  const togglePreset = (p: NonNullable<typeof preset>) => {
+    setActiveViewId(null);
+    setPreset((prev) => (prev === p ? null : p));
   };
 
   const handleSaveView = () => {
@@ -231,6 +239,17 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
       .filter((x) => owner === "todos" || x.owner_id === owner)
       .filter((x) => statuses.size === 0 || statuses.has(x.status))
       .filter((x) => sla === "todos" || slaBucketOf(x.sla_deadline) === sla)
+      .filter((x) => {
+        if (!preset) return true;
+        if (preset === "urgentes") return x.priority === "urgente";
+        if (preset === "sla_risco") {
+          const b = slaBucketOf(x.sla_deadline);
+          return b === "atrasado" || b === "risco";
+        }
+        if (preset === "novas") return x.status === "pending_review";
+        if (preset === "fixadas") return !!x.pinned;
+        return true;
+      })
       .filter((x) =>
         !needle
           ? true
@@ -257,13 +276,14 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         }
       }
     });
-  }, [quotes, q, tenant, owner, sla, statuses, sort]);
+  }, [quotes, q, tenant, owner, sla, statuses, sort, preset]);
 
   const activeCount =
     (tenant !== "todos" ? 1 : 0) +
     (owner !== "todos" ? 1 : 0) +
     (sla !== "todos" ? 1 : 0) +
     (statuses.size > 0 ? 1 : 0) +
+    (preset ? 1 : 0) +
     (sort !== "priority" ? 1 : 0) +
     (q.trim() ? 1 : 0);
 
@@ -569,6 +589,38 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             </SelectContent>
           </Select>
         </div>
+
+        {/* Presets — 1 clique para os recortes mais frequentes */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <Zap className="h-3 w-3" /> Presets
+          </span>
+          {([
+            { id: "urgentes", label: "Urgentes", Icon: Flame },
+            { id: "sla_risco", label: "SLA em risco", Icon: Timer },
+            { id: "novas", label: "Novas RFQs", Icon: InboxIcon },
+            { id: "fixadas", label: "Fixadas", Icon: Pin },
+          ] as const).map(({ id, label, Icon }) => {
+            const active = preset === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => togglePreset(id)}
+                aria-pressed={active}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-smooth press",
+                  active
+                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                    : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-accent hover:text-foreground",
+                )}
+              >
+                <Icon className="h-3 w-3" /> {label}
+              </button>
+            );
+          })}
+        </div>
+
 
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
