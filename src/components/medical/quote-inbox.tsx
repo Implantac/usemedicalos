@@ -1032,6 +1032,25 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             >
               <Download className="h-3 w-3" /> CSV
             </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-6 gap-1 px-2 text-[11px]"
+              title="Copiar links das cotações selecionadas"
+              onClick={async () => {
+                const targets = filtered.filter((x) => selected.has(x.id));
+                if (targets.length === 0) return;
+                const lines = targets.map((qt) => `${qt.customer_name} — ${quoteDeepLink(qt.id)}`).join("\n");
+                try {
+                  await navigator.clipboard.writeText(lines);
+                  toast.success(`${targets.length} link(s) copiado(s)`);
+                } catch {
+                  toast(`Copie manualmente:\n${lines}`);
+                }
+              }}
+            >
+              <Link2 className="h-3 w-3" /> Links
+            </Button>
             <Button size="sm" variant="destructive" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("lost")}>
               Marcar perdidas
             </Button>
