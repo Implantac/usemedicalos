@@ -1136,6 +1136,38 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             >
               <Download className="h-3 w-3" /> PDFs
             </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-6 gap-1 px-2 text-[11px]"
+              title="Sincronizar cotações elegíveis com Use Sistemas (ERP)"
+              onClick={async () => {
+                const targets = filtered.filter((x) => selected.has(x.id));
+                if (targets.length === 0) return;
+                const { sendToUseSistemas } = await import("@/lib/medical/use-sistemas-mock");
+                const { appendActivity } = await import("@/lib/medical/activity");
+                const { MIN_MARGIN } = await import("@/lib/medical/types");
+                let ok = 0, skipped = 0, failed = 0;
+                for (const qt of targets) {
+                  if (qt.use_sistemas_synced) { skipped++; continue; }
+                  const t = quoteTotals(qt);
+                  if (t.margin < MIN_MARGIN) { skipped++; continue; }
+                  try {
+                    const res = await sendToUseSistemas(qt);
+                    onAdvance(qt.id, "enviado");
+                    appendActivity({ quote_id: qt.id, type: "sent_use_sistemas", message: "Enviado ao Use Sistemas (lote)", meta: { order_id: res.order_id } });
+                    ok++;
+                    await new Promise((r) => setTimeout(r, 40));
+                  } catch { failed++; }
+                }
+                if (ok > 0) toast.success(`${ok} cotação(ões) sincronizadas ao Use Sistemas`);
+                if (skipped > 0) toast.message(`${skipped} ignorada(s) (já sincronizadas ou margem < 12%)`);
+                if (failed > 0) toast.error(`${failed} falha(s) de integração`);
+                clearSelected();
+              }}
+            >
+              <Upload className="h-3 w-3" /> ERP
+            </Button>
             <Button size="sm" variant="secondary" className="h-6 gap-1 px-2 text-[11px] bg-success text-success-foreground hover:bg-success/90" onClick={() => runBulk("won")}>
               🏆 Marcar ganhas
             </Button>
