@@ -1164,6 +1164,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
               }}
             >
               <MessageCircle className="h-3 w-3" /> WhatsApp
+            </Button>
             <Button
               size="sm"
               variant="secondary"
