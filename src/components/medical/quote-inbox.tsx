@@ -40,9 +40,23 @@ interface Props {
   onSelect: (id: string) => void;
   onAdvance: (id: string, status: QuoteStatus) => void;
   onTogglePin?: (id: string) => void;
+  onSnooze?: (id: string, until: string | null) => void;
 }
 
-export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePin }: Props) {
+type PresetId = "urgentes" | "sla_risco" | "novas" | "fixadas" | "adiadas";
+
+// Retorna ms até "amanhã 9h" na TZ local
+function tomorrow9amISO(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setHours(9, 0, 0, 0);
+  return d.toISOString();
+}
+function inHoursISO(h: number): string {
+  return new Date(Date.now() + h * 3_600_000).toISOString();
+}
+
+export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePin, onSnooze }: Props) {
   const [q, setQ] = useState("");
   const [tenant, setTenant] = useState<string>("todos");
   const [owner, setOwner] = useState<string>("todos");
@@ -51,7 +65,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
   const [sort, setSort] = useState<InboxSort>("priority");
   const [activeViewId, setActiveViewId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [preset, setPreset] = useState<null | "urgentes" | "sla_risco" | "novas" | "fixadas">(null);
+  const [preset, setPreset] = useState<null | PresetId>(null);
   const { density, setDensity } = useInboxDensity();
   const foco = density === "foco";
 
