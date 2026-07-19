@@ -174,6 +174,13 @@ export function useQuotes() {
     setAllQuotes(INITIAL_QUOTES);
   }, []);
 
+  const togglePin = useCallback((id: string) => {
+    setAllQuotes((qs) => {
+      if (!guard(id, qs)) return qs;
+      return qs.map((q) => (q.id === id ? { ...q, pinned: !q.pinned } : q));
+    });
+  }, [guard]);
+
   return {
     quotes,
     hydrated,
@@ -184,6 +191,7 @@ export function useQuotes() {
     updateItem,
     removeItem,
     setStatus,
+    togglePin,
     resetDemo,
   };
 }
