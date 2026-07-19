@@ -465,6 +465,12 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         // Copy deep-link para colar em chat/e-mail
         e.preventDefault();
         void copyQuoteLink(filtered[idx]);
+      } else if (e.key === "d" && idx >= 0 && onDuplicate) {
+        // Duplica a cotação em foco e abre a cópia no drawer.
+        e.preventDefault();
+        const qt = filtered[idx];
+        onDuplicate(qt.id);
+        toast.success(`${qt.customer_name} duplicada`);
       } else if (/^[1-9]$/.test(e.key)) {
         // Quick-switch entre as 9 primeiras visualizações salvas (1-9).
         // 0 → limpa filtros (equivalente a "Sem visualização").
