@@ -193,6 +193,19 @@ export function useQuotes() {
     });
   }, [guard]);
 
+  const reassignQuote = useCallback((id: string, ownerId: string) => {
+    setAllQuotes((qs) => {
+      const target = guard(id, qs);
+      if (!target || target.owner_id === ownerId) return qs;
+      return qs.map((q) => (q.id === id ? { ...q, owner_id: ownerId } : q));
+    });
+    appendActivity({
+      quote_id: id,
+      type: "compliance_override",
+      message: `Cotação reatribuída ao vendedor ${ownerId}`,
+    });
+  }, [guard]);
+
   return {
     quotes,
     hydrated,
@@ -205,6 +218,7 @@ export function useQuotes() {
     setStatus,
     togglePin,
     snoozeQuote,
+    reassignQuote,
     resetDemo,
   };
 }
