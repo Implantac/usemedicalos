@@ -803,6 +803,33 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 </Button>
               );
             })()}
+            {onSnooze && (() => {
+              const targets = filtered.filter((x) => selected.has(x.id));
+              const allAsleep = targets.length > 0 && targets.every((x) => x.snoozed_until && new Date(x.snoozed_until) > new Date());
+              return (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="h-6 gap-1 px-2 text-[11px]"
+                  title={allAsleep ? "Despertar selecionadas" : "Adiar 2h (Shift = amanhã 9h)"}
+                  onClick={(e) => {
+                    let n = 0;
+                    if (allAsleep) {
+                      for (const qt of targets) { onSnooze(qt.id, null); n++; }
+                      toast.success(`${n} cotação(ões) despertada(s)`);
+                    } else {
+                      const until = e.shiftKey ? tomorrow9amISO() : inHoursISO(2);
+                      for (const qt of targets) { onSnooze(qt.id, until); n++; }
+                      toast.success(`${n} cotação(ões) adiada(s) até ${new Date(until).toLocaleString("pt-BR")}`);
+                    }
+                    clearSelected();
+                  }}
+                >
+                  {allAsleep ? <Sunrise className="h-3 w-3" /> : <Moon className="h-3 w-3" />}
+                  {allAsleep ? "Despertar" : "Adiar"}
+                </Button>
+              );
+            })()}
             <Button size="sm" variant="destructive" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("lost")}>
               Marcar perdidas
             </Button>
