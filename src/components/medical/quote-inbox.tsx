@@ -44,6 +44,7 @@ interface Props {
   onSnooze?: (id: string, until: string | null) => void;
   onReassign?: (id: string, ownerId: string) => void;
   onSetPriority?: (id: string, priority: Priority) => void;
+  onSetTier?: (id: string, tier: "A" | "B" | "C") => void;
 }
 
 type PresetId = "urgentes" | "sla_risco" | "novas" | "fixadas" | "adiadas" | "nao_lidas";
@@ -80,7 +81,7 @@ async function copyQuoteLink(qt: Quote) {
   }
 }
 
-export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePin, onSnooze, onReassign, onSetPriority }: Props) {
+export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePin, onSnooze, onReassign, onSetPriority, onSetTier }: Props) {
   const [q, setQ] = useState("");
   const [tenant, setTenant] = useState<string>("todos");
   const [owner, setOwner] = useState<string>("todos");
@@ -929,6 +930,32 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                   <SelectItem value="alta" className="text-xs">⚡ Alta</SelectItem>
                   <SelectItem value="normal" className="text-xs">Normal</SelectItem>
                   <SelectItem value="baixa" className="text-xs">Baixa</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+            {onSetTier && (
+              <Select
+                value=""
+                onValueChange={(t) => {
+                  if (!t) return;
+                  const tier = t as "A" | "B" | "C";
+                  const targets = filtered.filter((x) => selected.has(x.id));
+                  let n = 0;
+                  for (const qt of targets) {
+                    if (qt.client_tier !== tier) { onSetTier(qt.id, tier); n++; }
+                  }
+                  if (n > 0) toast.success(`${n} cotação(ões) marcada(s) como Tier ${tier}`);
+                  else toast(`Todas já estão em Tier ${tier}`);
+                  clearSelected();
+                }}
+              >
+                <SelectTrigger className="h-6 w-[110px] gap-1 border-primary-foreground/30 bg-primary-foreground/10 px-2 text-[11px] text-primary-foreground hover:bg-primary-foreground/20 focus:ring-primary-foreground/40">
+                  <SelectValue placeholder="Tier…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="A" className="text-xs">🥇 Tier A</SelectItem>
+                  <SelectItem value="B" className="text-xs">🥈 Tier B</SelectItem>
+                  <SelectItem value="C" className="text-xs">🥉 Tier C</SelectItem>
                 </SelectContent>
               </Select>
             )}
