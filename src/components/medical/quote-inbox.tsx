@@ -91,6 +91,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [preset, setPreset] = useState<null | PresetId>(null);
   const { density, setDensity } = useInboxDensity();
+  const { isRead, markRead, markUnread } = useQuoteReads();
   const foco = density === "foco";
 
 
