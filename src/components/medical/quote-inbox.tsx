@@ -920,6 +920,15 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                         </button>
                       );
                     })()}
+                    <button
+                      type="button"
+                      aria-label="Copiar link da cotação"
+                      title="Copiar link (atalho: y)"
+                      onClick={(e) => { e.stopPropagation(); void copyQuoteLink(qt); }}
+                      className="shrink-0 rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:text-brand focus:opacity-100 group-hover:opacity-100"
+                    >
+                      <Link2 className="h-3.5 w-3.5" />
+                    </button>
                     <SlaIndicator deadline={qt.sla_deadline} compact />
                   </div>
                 </div>
