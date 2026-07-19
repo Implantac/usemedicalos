@@ -276,13 +276,14 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         }
       }
     });
-  }, [quotes, q, tenant, owner, sla, statuses, sort]);
+  }, [quotes, q, tenant, owner, sla, statuses, sort, preset]);
 
   const activeCount =
     (tenant !== "todos" ? 1 : 0) +
     (owner !== "todos" ? 1 : 0) +
     (sla !== "todos" ? 1 : 0) +
     (statuses.size > 0 ? 1 : 0) +
+    (preset ? 1 : 0) +
     (sort !== "priority" ? 1 : 0) +
     (q.trim() ? 1 : 0);
 
