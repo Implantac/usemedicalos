@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Bookmark, BookmarkPlus, Building2, CheckSquare, Download, Filter, Layers, Rows3, Search, Share2, Square, Trash2, Undo2, Upload, X } from "lucide-react";
+import { ArrowRight, Bookmark, BookmarkPlus, Building2, CheckSquare, Download, Filter, Layers, Pin, PinOff, Rows3, Search, Share2, Square, Trash2, Undo2, Upload, X } from "lucide-react";
 import { useInboxDensity } from "@/hooks/use-inbox-density";
 
 import type { Quote, QuoteStatus } from "@/lib/medical/types";
@@ -39,9 +39,10 @@ interface Props {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onAdvance: (id: string, status: QuoteStatus) => void;
+  onTogglePin?: (id: string) => void;
 }
 
-export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
+export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePin }: Props) {
   const [q, setQ] = useState("");
   const [tenant, setTenant] = useState<string>("todos");
   const [owner, setOwner] = useState<string>("todos");
@@ -196,6 +197,8 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
       );
 
     return list.sort((a, b) => {
+      // Pinned quotes sempre no topo, independente do modo de ordenação.
+      if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
       switch (sort) {
         case "sla":
           return slaState(a.sla_deadline).hours - slaState(b.sla_deadline).hours;
@@ -325,11 +328,16 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
       } else if ((e.key === "A" || e.key === "a") && e.shiftKey) {
         e.preventDefault();
         selectAllVisible();
+      } else if (e.key === "p" && idx >= 0 && onTogglePin) {
+        e.preventDefault();
+        const qt = filtered[idx];
+        onTogglePin(qt.id);
+        toast(qt.pinned ? `${qt.customer_name} desfixado` : `${qt.customer_name} fixado no topo`);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [filtered, selectedId, onSelect, onAdvance, selected.size]);
+  }, [filtered, selectedId, onSelect, onAdvance, selected.size, onTogglePin]);
 
   const handleRegress = (e: React.MouseEvent, qt: Quote) => {
     e.stopPropagation();
@@ -679,7 +687,30 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
                       </p>
                     )}
                   </div>
-                  <SlaIndicator deadline={qt.sla_deadline} compact />
+                  <div className="flex items-center gap-1">
+                    {onTogglePin && (
+                      <button
+                        type="button"
+                        aria-label={qt.pinned ? "Desfixar cotação" : "Fixar cotação no topo"}
+                        aria-pressed={!!qt.pinned}
+                        title={qt.pinned ? "Desfixar" : "Fixar no topo (p)"}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onTogglePin(qt.id);
+                          toast(qt.pinned ? `${qt.customer_name} desfixado` : `${qt.customer_name} fixado no topo`);
+                        }}
+                        className={cn(
+                          "shrink-0 rounded p-0.5 transition-opacity hover:text-brand",
+                          qt.pinned
+                            ? "text-brand opacity-100"
+                            : "text-muted-foreground opacity-0 group-hover:opacity-100 focus:opacity-100",
+                        )}
+                      >
+                        {qt.pinned ? <Pin className="h-3.5 w-3.5 fill-current" /> : <PinOff className="h-3.5 w-3.5" />}
+                      </button>
+                    )}
+                    <SlaIndicator deadline={qt.sla_deadline} compact />
+                  </div>
                 </div>
 
                 <div className="mt-1 flex flex-wrap items-center justify-between gap-1.5">

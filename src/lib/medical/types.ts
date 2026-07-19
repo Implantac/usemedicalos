@@ -93,6 +93,7 @@ export interface Quote {
   use_sistemas_synced?: boolean;
   use_sistemas_order_id?: string;
   portal_meta?: PortalMeta;
+  pinned?: boolean;
 }
 
 export interface SlaTracking {
