@@ -892,6 +892,26 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 </SelectContent>
               </Select>
             )}
+            {(() => {
+              const ids = filtered.filter((x) => selected.has(x.id)).map((x) => x.id);
+              const anyUnread = ids.some((id) => !isRead(id));
+              return (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="h-6 gap-1 px-2 text-[11px]"
+                  title={anyUnread ? "Marcar como lidas" : "Marcar como não lidas"}
+                  onClick={() => {
+                    if (anyUnread) { markRead(ids); toast.success(`${ids.length} marcada(s) como lida(s)`); }
+                    else { markUnread(ids); toast.success(`${ids.length} marcada(s) como não lida(s)`); }
+                    clearSelected();
+                  }}
+                >
+                  {anyUnread ? <MailOpen className="h-3 w-3" /> : <Mail className="h-3 w-3" />}
+                  {anyUnread ? "Marcar lidas" : "Não lidas"}
+                </Button>
+              );
+            })()}
             <Button size="sm" variant="destructive" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("lost")}>
               Marcar perdidas
             </Button>
