@@ -39,9 +39,10 @@ interface Props {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onAdvance: (id: string, status: QuoteStatus) => void;
+  onTogglePin?: (id: string) => void;
 }
 
-export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
+export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePin }: Props) {
   const [q, setQ] = useState("");
   const [tenant, setTenant] = useState<string>("todos");
   const [owner, setOwner] = useState<string>("todos");
