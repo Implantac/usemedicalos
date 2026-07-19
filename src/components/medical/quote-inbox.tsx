@@ -777,6 +777,19 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-primary/20 bg-primary/95 px-3 py-2 text-primary-foreground shadow-sm">
           <CheckSquare className="h-3.5 w-3.5" />
           <span className="text-xs font-semibold">{selected.size} selecionada(s)</span>
+          {(() => {
+            const targets = filtered.filter((x) => selected.has(x.id));
+            const revenue = targets.reduce((s, qt) => s + quoteTotals(qt.items).revenue, 0);
+            const avgMargin = targets.length
+              ? targets.reduce((s, qt) => s + quoteTotals(qt.items).margin, 0) / targets.length
+              : 0;
+            return (
+              <span className="hidden items-center gap-2 text-[11px] text-primary-foreground/85 sm:inline-flex">
+                <span>· Receita <strong className="font-semibold text-primary-foreground">{formatBRL(revenue)}</strong></span>
+                <span>· Margem média <strong className="font-semibold text-primary-foreground">{formatPct(avgMargin)}</strong></span>
+              </span>
+            );
+          })()}
           <Button size="sm" variant="ghost" className="h-6 gap-1 px-2 text-[11px] text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground" onClick={selectAllVisible}>
             Selecionar todas ({filtered.length})
           </Button>
