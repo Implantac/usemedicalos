@@ -293,6 +293,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         if (preset === "novas") return x.status === "pending_review";
         if (preset === "fixadas") return !!x.pinned;
         if (preset === "adiadas") return true; // já filtrado acima
+        if (preset === "nao_lidas") return !isRead(x.id);
         return true;
       })
       .filter((x) =>
