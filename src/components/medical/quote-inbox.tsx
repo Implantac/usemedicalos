@@ -649,6 +649,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             { id: "sla_risco", label: "SLA em risco", Icon: Timer },
             { id: "novas", label: "Novas RFQs", Icon: InboxIcon },
             { id: "fixadas", label: "Fixadas", Icon: Pin },
+            { id: "adiadas", label: "Adiadas", Icon: Moon },
           ] as const).map(({ id, label, Icon }) => {
             const active = preset === id;
             return (
