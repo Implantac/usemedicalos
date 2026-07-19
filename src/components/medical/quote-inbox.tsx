@@ -683,7 +683,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
               urgentes: awake.filter((x) => x.priority === "urgente").length,
               sla_risco: awake.filter((x) => {
                 const b = slaBucketOf(x.sla_deadline);
-                return b === "vencido" || b === "critico" || b === "alerta";
+                return b === "atrasado" || b === "risco";
               }).length,
               novas: awake.filter((x) => x.status === "pending_review").length,
               nao_lidas: awake.filter((x) => !isRead(x.id)).length,
