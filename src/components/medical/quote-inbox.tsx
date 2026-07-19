@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, BellOff, Bookmark, BookmarkPlus, Building2, CheckSquare, Circle, Clock, Copy, Download, FileSpreadsheet, Filter, Flame, Inbox as InboxIcon, Layers, Link2, Mail, MailOpen, Moon, Pin, PinOff, Rows3, Search, Share2, Square, Sunrise, Timer, Trash2, Undo2, Upload, X, Zap } from "lucide-react";
+import { ArrowRight, BellOff, Bookmark, BookmarkPlus, Building2, CheckSquare, Circle, Clock, Copy, Download, FileSpreadsheet, Filter, Flame, Inbox as InboxIcon, Layers, Link2, Mail, MailOpen, MessageCircle, Moon, Pin, PinOff, Rows3, Search, Share2, Square, Sunrise, Timer, Trash2, Undo2, Upload, X, Zap } from "lucide-react";
 import { useInboxDensity } from "@/hooks/use-inbox-density";
 import { useQuoteReads } from "@/hooks/use-quote-reads";
 
@@ -1137,6 +1137,33 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
               }}
             >
               <Mail className="h-3 w-3" /> E-mail
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-6 gap-1 px-2 text-[11px]"
+              title="Abrir WhatsApp Web com briefing das cotações selecionadas"
+              onClick={() => {
+                const targets = filtered.filter((x) => selected.has(x.id));
+                if (targets.length === 0) return;
+                const totalRev = targets.reduce((s, qt) => s + quoteTotals(qt.items).revenue, 0);
+                const header = `*USE Medical — ${targets.length} cotação(ões)*\nReceita potencial: *${formatBRL(totalRev)}*\n`;
+                const body = targets
+                  .slice()
+                  .sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority])
+                  .map((qt) => {
+                    const t = quoteTotals(qt.items);
+                    const sst = slaBucketOf(qt.sla_deadline);
+                    const tenantName = tenantById(qt.tenant_id)?.name ?? qt.tenant_id;
+                    return `• *${qt.customer_name}* (${tenantName})\n  ${qt.items.length} itens · ${formatBRL(t.revenue)} · margem ${formatPct(t.margin)}\n  ${STATUS_LABEL[qt.status]} · SLA: ${SLA_LABEL[sst]}\n  ${quoteDeepLink(qt.id)}`;
+                  })
+                  .join("\n\n");
+                const text = `${header}\n${body}`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+                toast.message(`WhatsApp aberto com ${targets.length} cotação(ões)`);
+              }}
+            >
+              <MessageCircle className="h-3 w-3" /> WhatsApp
             </Button>
             <Button
               size="sm"
