@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Bookmark, BookmarkPlus, Building2, CheckSquare, Download, Filter, Layers, Pin, PinOff, Rows3, Search, Share2, Square, Trash2, Undo2, Upload, X } from "lucide-react";
+import { ArrowRight, Bookmark, BookmarkPlus, Building2, CheckSquare, Download, FileSpreadsheet, Filter, Layers, Pin, PinOff, Rows3, Search, Share2, Square, Trash2, Undo2, Upload, X } from "lucide-react";
 import { useInboxDensity } from "@/hooks/use-inbox-density";
 
 import type { Quote, QuoteStatus } from "@/lib/medical/types";
