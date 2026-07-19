@@ -51,6 +51,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
   const [sort, setSort] = useState<InboxSort>("priority");
   const [activeViewId, setActiveViewId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [preset, setPreset] = useState<null | "urgentes" | "sla_risco" | "novas" | "fixadas">(null);
   const { density, setDensity } = useInboxDensity();
   const foco = density === "foco";
 
