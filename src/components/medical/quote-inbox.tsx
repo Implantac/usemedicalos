@@ -627,6 +627,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
           const ps = prevStatus(qt.status);
           const t = tenantById(qt.tenant_id);
           const ow = ownerById(qt.owner_id);
+          const isSel = selected.has(qt.id);
           return (
             <li key={qt.id}>
               <div
@@ -635,12 +636,26 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
                 onClick={() => onSelect(qt.id)}
                 onKeyDown={(e) => (e.key === "Enter" ? onSelect(qt.id) : null)}
                 className={cn(
-                  "relative w-full cursor-pointer px-3 py-1.5 pl-3.5 text-left transition-colors hover:bg-accent/40",
+                  "group relative w-full cursor-pointer px-3 py-1.5 pl-3.5 text-left transition-colors hover:bg-accent/40",
                   "before:pointer-events-none before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r-full before:bg-transparent before:transition-colors",
                   active && "bg-accent/60 before:bg-brand",
+                  isSel && "bg-primary/5 before:bg-primary",
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
+                  <button
+                    type="button"
+                    aria-label={isSel ? "Desmarcar cotação" : "Selecionar cotação"}
+                    aria-pressed={isSel}
+                    onClick={(e) => { e.stopPropagation(); toggleSelected(qt.id); }}
+                    className={cn(
+                      "mt-0.5 shrink-0 rounded p-0.5 text-muted-foreground transition-opacity hover:text-primary",
+                      isSel || selected.size > 0 ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus:opacity-100",
+                    )}
+                  >
+                    {isSel ? <CheckSquare className="h-3.5 w-3.5 text-primary" /> : <Square className="h-3.5 w-3.5" />}
+                  </button>
+
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                       <span className="truncate text-sm font-semibold text-foreground">
