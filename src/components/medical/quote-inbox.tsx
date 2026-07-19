@@ -45,6 +45,7 @@ interface Props {
   onReassign?: (id: string, ownerId: string) => void;
   onSetPriority?: (id: string, priority: Priority) => void;
   onSetTier?: (id: string, tier: "A" | "B" | "C") => void;
+  onAppendNote?: (id: string, text: string) => void;
 }
 
 type PresetId = "urgentes" | "sla_risco" | "novas" | "fixadas" | "adiadas" | "nao_lidas";
