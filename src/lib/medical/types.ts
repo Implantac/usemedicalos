@@ -94,6 +94,7 @@ export interface Quote {
   use_sistemas_order_id?: string;
   portal_meta?: PortalMeta;
   pinned?: boolean;
+  snoozed_until?: string; // ISO — cotação some da inbox até essa data
 }
 
 export interface SlaTracking {
