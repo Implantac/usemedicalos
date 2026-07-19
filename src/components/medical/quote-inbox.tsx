@@ -328,11 +328,16 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
       } else if ((e.key === "A" || e.key === "a") && e.shiftKey) {
         e.preventDefault();
         selectAllVisible();
+      } else if (e.key === "p" && idx >= 0 && onTogglePin) {
+        e.preventDefault();
+        const qt = filtered[idx];
+        onTogglePin(qt.id);
+        toast(qt.pinned ? `${qt.customer_name} desfixado` : `${qt.customer_name} fixado no topo`);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [filtered, selectedId, onSelect, onAdvance, selected.size]);
+  }, [filtered, selectedId, onSelect, onAdvance, selected.size, onTogglePin]);
 
   const handleRegress = (e: React.MouseEvent, qt: Quote) => {
     e.stopPropagation();
