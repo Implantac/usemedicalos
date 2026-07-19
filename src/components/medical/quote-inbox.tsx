@@ -445,8 +445,10 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__none__">— Sem visualização —</SelectItem>
-              {views.map((v) => (
-                <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
+              {views.map((v, i) => (
+                <SelectItem key={v.id} value={v.id}>
+                  {i < 9 ? `${i + 1}. ${v.name}` : v.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
