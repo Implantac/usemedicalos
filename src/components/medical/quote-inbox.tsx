@@ -1222,6 +1222,65 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             >
               <Upload className="h-3 w-3" /> ERP
             </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-6 gap-1 px-2 text-[11px]"
+              title="Imprimir folha de trabalho com as cotações selecionadas"
+              onClick={() => {
+                const targets = filtered.filter((x) => selected.has(x.id));
+                if (targets.length === 0) return;
+                const totalRev = targets.reduce((s, qt) => s + quoteTotals(qt.items).revenue, 0);
+                const rows = targets
+                  .slice()
+                  .sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority])
+                  .map((qt) => {
+                    const t = quoteTotals(qt.items);
+                    const sst = slaBucketOf(qt.sla_deadline);
+                    const tenantName = tenantById(qt.tenant_id)?.name ?? qt.tenant_id;
+                    return `<tr>
+                      <td>#${qt.id.toUpperCase()}</td>
+                      <td>${qt.customer_name}</td>
+                      <td>${tenantName}</td>
+                      <td style="text-align:right">${qt.items.length}</td>
+                      <td style="text-align:right">${formatBRL(t.revenue)}</td>
+                      <td style="text-align:right">${formatPct(t.margin)}</td>
+                      <td>${STATUS_LABEL[qt.status]}</td>
+                      <td>${SLA_LABEL[sst]}</td>
+                    </tr>`;
+                  })
+                  .join("");
+                const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>USE Medical — Folha de Trabalho</title>
+                  <style>
+                    body { font: 12px/1.4 -apple-system, Segoe UI, sans-serif; color: #0f172a; padding: 24px; }
+                    h1 { font-size: 16px; margin: 0 0 4px; }
+                    .meta { color: #64748b; font-size: 11px; margin-bottom: 16px; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th, td { border-bottom: 1px solid #e2e8f0; padding: 6px 8px; text-align: left; }
+                    th { background: #f8fafc; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+                    tfoot td { font-weight: 600; border-top: 2px solid #0f172a; }
+                  </style></head><body>
+                  <h1>USE Medical — Folha de Trabalho</h1>
+                  <div class="meta">${targets.length} cotação(ões) · Receita potencial ${formatBRL(totalRev)} · ${new Date().toLocaleString("pt-BR")}</div>
+                  <table><thead><tr>
+                    <th>ID</th><th>Cliente</th><th>Tenant</th><th style="text-align:right">Itens</th>
+                    <th style="text-align:right">Receita</th><th style="text-align:right">Margem</th>
+                    <th>Status</th><th>SLA</th>
+                  </tr></thead><tbody>${rows}</tbody>
+                  <tfoot><tr><td colspan="4">Total</td><td style="text-align:right">${formatBRL(totalRev)}</td><td colspan="3"></td></tr></tfoot>
+                  </table>
+                  <script>window.onload=()=>{window.print();}</script>
+                  </body></html>`;
+                const w = window.open("", "_blank", "noopener,noreferrer,width=900,height=700");
+                if (!w) { toast.error("Bloqueado pelo popup blocker"); return; }
+                w.document.open();
+                w.document.write(html);
+                w.document.close();
+                toast.message(`Folha de impressão pronta (${targets.length} cotação(ões))`);
+              }}
+            >
+              <FileSpreadsheet className="h-3 w-3" /> Imprimir
+            </Button>
             <Button size="sm" variant="secondary" className="h-6 gap-1 px-2 text-[11px] bg-success text-success-foreground hover:bg-success/90" onClick={() => runBulk("won")}>
               🏆 Marcar ganhas
             </Button>
