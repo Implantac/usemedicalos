@@ -450,6 +450,10 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
           onSnooze(qt.id, until);
           toast(`${qt.customer_name} adiada até ${new Date(until).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}`);
         }
+      } else if (e.key === "y" && idx >= 0) {
+        // Copy deep-link para colar em chat/e-mail
+        e.preventDefault();
+        void copyQuoteLink(filtered[idx]);
       } else if (/^[1-9]$/.test(e.key)) {
         // Quick-switch entre as 9 primeiras visualizações salvas (1-9).
         // 0 → limpa filtros (equivalente a "Sem visualização").
