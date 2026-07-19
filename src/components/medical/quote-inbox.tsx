@@ -590,6 +590,38 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
           </Select>
         </div>
 
+        {/* Presets — 1 clique para os recortes mais frequentes */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <Zap className="h-3 w-3" /> Presets
+          </span>
+          {([
+            { id: "urgentes", label: "Urgentes", Icon: Flame },
+            { id: "sla_risco", label: "SLA em risco", Icon: Timer },
+            { id: "novas", label: "Novas RFQs", Icon: InboxIcon },
+            { id: "fixadas", label: "Fixadas", Icon: Pin },
+          ] as const).map(({ id, label, Icon }) => {
+            const active = preset === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => togglePreset(id)}
+                aria-pressed={active}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-smooth press",
+                  active
+                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                    : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-accent hover:text-foreground",
+                )}
+              >
+                <Icon className="h-3 w-3" /> {label}
+              </button>
+            );
+          })}
+        </div>
+
+
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
             <Filter className="h-3 w-3" /> Status
