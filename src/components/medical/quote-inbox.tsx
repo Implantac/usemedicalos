@@ -396,11 +396,25 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         const qt = filtered[idx];
         onTogglePin(qt.id);
         toast(qt.pinned ? `${qt.customer_name} desfixado` : `${qt.customer_name} fixado no topo`);
+      } else if (/^[1-9]$/.test(e.key)) {
+        // Quick-switch entre as 9 primeiras visualizações salvas (1-9).
+        // 0 → limpa filtros (equivalente a "Sem visualização").
+        const n = parseInt(e.key, 10) - 1;
+        const v = views[n];
+        if (!v) return;
+        e.preventDefault();
+        applyState(v.state);
+        setActiveViewId(v.id);
+        toast(`Visualização ${e.key}: ${v.name}`);
+      } else if (e.key === "0" && (activeViewId || activeCount > 0)) {
+        e.preventDefault();
+        clearFilters();
+        toast("Filtros limpos");
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [filtered, selectedId, onSelect, onAdvance, selected.size, onTogglePin]);
+  }, [filtered, selectedId, onSelect, onAdvance, selected.size, onTogglePin, views, activeViewId, activeCount]);
 
   const handleRegress = (e: React.MouseEvent, qt: Quote) => {
     e.stopPropagation();
@@ -431,8 +445,10 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__none__">— Sem visualização —</SelectItem>
-              {views.map((v) => (
-                <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
+              {views.map((v, i) => (
+                <SelectItem key={v.id} value={v.id}>
+                  {i < 9 ? `${i + 1}. ${v.name}` : v.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
