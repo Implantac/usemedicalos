@@ -56,6 +56,27 @@ function inHoursISO(h: number): string {
   return new Date(Date.now() + h * 3_600_000).toISOString();
 }
 
+// Deep-link para uma cotação específica (abre o drawer no destino).
+function quoteDeepLink(id: string): string {
+  if (typeof window === "undefined") return `/?open=${id}`;
+  const url = new URL(window.location.href);
+  url.pathname = "/";
+  url.search = "";
+  url.searchParams.set("open", id);
+  url.hash = "";
+  return url.toString();
+}
+
+async function copyQuoteLink(qt: Quote) {
+  const link = quoteDeepLink(qt.id);
+  try {
+    await navigator.clipboard.writeText(link);
+    toast.success(`Link de ${qt.customer_name} copiado`);
+  } catch {
+    toast(link);
+  }
+}
+
 export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePin, onSnooze }: Props) {
   const [q, setQ] = useState("");
   const [tenant, setTenant] = useState<string>("todos");
