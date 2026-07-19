@@ -1256,6 +1256,43 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
           );
         })}
       </ul>
+      <Dialog open={noteOpen} onOpenChange={setNoteOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar nota às {selected.size} cotação(ões)</DialogTitle>
+          </DialogHeader>
+          <textarea
+            autoFocus
+            value={noteDraft}
+            onChange={(e) => setNoteDraft(e.target.value)}
+            rows={4}
+            placeholder="Ex.: Cliente pediu prazo estendido; revisar antes da resposta."
+            className="w-full resize-none rounded-md border border-input bg-background p-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+          <p className="text-[11px] text-muted-foreground">
+            A nota será anexada com carimbo de data/hora ao histórico de cada cotação selecionada.
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" size="sm" onClick={() => setNoteOpen(false)}>Cancelar</Button>
+            <Button
+              size="sm"
+              disabled={!noteDraft.trim() || !onAppendNote}
+              onClick={() => {
+                const text = noteDraft.trim();
+                if (!text || !onAppendNote) return;
+                const targets = filtered.filter((x) => selected.has(x.id));
+                for (const qt of targets) onAppendNote(qt.id, text);
+                toast.success(`Nota adicionada a ${targets.length} cotação(ões)`);
+                setNoteOpen(false);
+                setNoteDraft("");
+                clearSelected();
+              }}
+            >
+              Adicionar nota
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
