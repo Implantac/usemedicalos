@@ -239,6 +239,17 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
       .filter((x) => owner === "todos" || x.owner_id === owner)
       .filter((x) => statuses.size === 0 || statuses.has(x.status))
       .filter((x) => sla === "todos" || slaBucketOf(x.sla_deadline) === sla)
+      .filter((x) => {
+        if (!preset) return true;
+        if (preset === "urgentes") return x.priority === "urgente";
+        if (preset === "sla_risco") {
+          const b = slaBucketOf(x.sla_deadline);
+          return b === "atrasado" || b === "risco";
+        }
+        if (preset === "novas") return x.status === "pending_review";
+        if (preset === "fixadas") return !!x.pinned;
+        return true;
+      })
       .filter((x) =>
         !needle
           ? true
