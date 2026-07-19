@@ -1142,6 +1142,32 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
               size="sm"
               variant="secondary"
               className="h-6 gap-1 px-2 text-[11px]"
+              title="Abrir WhatsApp Web com briefing das cotações selecionadas"
+              onClick={() => {
+                const targets = filtered.filter((x) => selected.has(x.id));
+                if (targets.length === 0) return;
+                const totalRev = targets.reduce((s, qt) => s + quoteTotals(qt.items).revenue, 0);
+                const header = `*USE Medical — ${targets.length} cotação(ões)*\nReceita potencial: *${formatBRL(totalRev)}*\n`;
+                const body = targets
+                  .slice()
+                  .sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority])
+                  .map((qt) => {
+                    const t = quoteTotals(qt.items);
+                    const sst = slaBucketOf(qt.sla_deadline);
+                    const tenantName = tenantById(qt.tenant_id)?.name ?? qt.tenant_id;
+                    return `• *${qt.customer_name}* (${tenantName})\n  ${qt.items.length} itens · ${formatBRL(t.revenue)} · margem ${formatPct(t.margin)}\n  ${STATUS_LABEL[qt.status]} · SLA: ${SLA_LABEL[sst]}\n  ${quoteDeepLink(qt.id)}`;
+                  })
+                  .join("\n\n");
+                const text = `${header}\n${body}`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+                toast.message(`WhatsApp aberto com ${targets.length} cotação(ões)`);
+              }}
+            >
+              <MessageCircle className="h-3 w-3" /> WhatsApp
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-6 gap-1 px-2 text-[11px]"
               title="Gerar propostas PDF para as cotações selecionadas"
               onClick={async () => {
                 const targets = filtered.filter((x) => selected.has(x.id));
