@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Bookmark, BookmarkPlus, Building2, CheckSquare, Download, FileSpreadsheet, Filter, Flame, Inbox as InboxIcon, Layers, Pin, PinOff, Rows3, Search, Share2, Square, Timer, Trash2, Undo2, Upload, X, Zap } from "lucide-react";
+import { ArrowRight, BellOff, Bookmark, BookmarkPlus, Building2, CheckSquare, Clock, Download, FileSpreadsheet, Filter, Flame, Inbox as InboxIcon, Layers, Moon, Pin, PinOff, Rows3, Search, Share2, Square, Sunrise, Timer, Trash2, Undo2, Upload, X, Zap } from "lucide-react";
 import { useInboxDensity } from "@/hooks/use-inbox-density";
 
 import type { Quote, QuoteStatus } from "@/lib/medical/types";
@@ -40,9 +40,23 @@ interface Props {
   onSelect: (id: string) => void;
   onAdvance: (id: string, status: QuoteStatus) => void;
   onTogglePin?: (id: string) => void;
+  onSnooze?: (id: string, until: string | null) => void;
 }
 
-export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePin }: Props) {
+type PresetId = "urgentes" | "sla_risco" | "novas" | "fixadas" | "adiadas";
+
+// Retorna ms até "amanhã 9h" na TZ local
+function tomorrow9amISO(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setHours(9, 0, 0, 0);
+  return d.toISOString();
+}
+function inHoursISO(h: number): string {
+  return new Date(Date.now() + h * 3_600_000).toISOString();
+}
+
+export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePin, onSnooze }: Props) {
   const [q, setQ] = useState("");
   const [tenant, setTenant] = useState<string>("todos");
   const [owner, setOwner] = useState<string>("todos");
@@ -51,7 +65,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
   const [sort, setSort] = useState<InboxSort>("priority");
   const [activeViewId, setActiveViewId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [preset, setPreset] = useState<null | "urgentes" | "sla_risco" | "novas" | "fixadas">(null);
+  const [preset, setPreset] = useState<null | PresetId>(null);
   const { density, setDensity } = useInboxDensity();
   const foco = density === "foco";
 
@@ -234,7 +248,12 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
+    const nowMs = Date.now();
+    // Uma quote está "adormecida" se snoozed_until existe E é no futuro.
+    const isAsleep = (x: Quote) => !!x.snoozed_until && new Date(x.snoozed_until).getTime() > nowMs;
     const list = quotes
+      // Esconde adormecidas por padrão. Só aparecem no preset "adiadas".
+      .filter((x) => preset === "adiadas" ? isAsleep(x) : !isAsleep(x))
       .filter((x) => tenant === "todos" || x.tenant_id === tenant)
       .filter((x) => owner === "todos" || x.owner_id === owner)
       .filter((x) => statuses.size === 0 || statuses.has(x.status))
@@ -248,6 +267,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         }
         if (preset === "novas") return x.status === "pending_review";
         if (preset === "fixadas") return !!x.pinned;
+        if (preset === "adiadas") return true; // já filtrado acima
         return true;
       })
       .filter((x) =>
@@ -396,6 +416,19 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         const qt = filtered[idx];
         onTogglePin(qt.id);
         toast(qt.pinned ? `${qt.customer_name} desfixado` : `${qt.customer_name} fixado no topo`);
+      } else if (e.key === "s" && idx >= 0 && onSnooze) {
+        // Snooze rápido: `s` = 2h; `Shift+S` = amanhã 9h; se já adiada, desperta.
+        e.preventDefault();
+        const qt = filtered[idx];
+        const asleep = !!qt.snoozed_until && new Date(qt.snoozed_until).getTime() > Date.now();
+        if (asleep) {
+          onSnooze(qt.id, null);
+          toast(`${qt.customer_name} despertada`);
+        } else {
+          const until = e.shiftKey ? tomorrow9amISO() : inHoursISO(2);
+          onSnooze(qt.id, until);
+          toast(`${qt.customer_name} adiada até ${new Date(until).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}`);
+        }
       } else if (/^[1-9]$/.test(e.key)) {
         // Quick-switch entre as 9 primeiras visualizações salvas (1-9).
         // 0 → limpa filtros (equivalente a "Sem visualização").
@@ -414,7 +447,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [filtered, selectedId, onSelect, onAdvance, selected.size, onTogglePin, views, activeViewId, activeCount]);
+  }, [filtered, selectedId, onSelect, onAdvance, selected.size, onTogglePin, onSnooze, views, activeViewId, activeCount]);
 
   const handleRegress = (e: React.MouseEvent, qt: Quote) => {
     e.stopPropagation();
@@ -616,6 +649,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             { id: "sla_risco", label: "SLA em risco", Icon: Timer },
             { id: "novas", label: "Novas RFQs", Icon: InboxIcon },
             { id: "fixadas", label: "Fixadas", Icon: Pin },
+            { id: "adiadas", label: "Adiadas", Icon: Moon },
           ] as const).map(({ id, label, Icon }) => {
             const active = preset === id;
             return (
@@ -830,9 +864,46 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                         {qt.pinned ? <Pin className="h-3.5 w-3.5 fill-current" /> : <PinOff className="h-3.5 w-3.5" />}
                       </button>
                     )}
+                    {onSnooze && (() => {
+                      const asleep = !!qt.snoozed_until && new Date(qt.snoozed_until).getTime() > Date.now();
+                      return (
+                        <button
+                          type="button"
+                          aria-label={asleep ? "Despertar cotação" : "Adiar cotação"}
+                          title={asleep
+                            ? `Adiada até ${new Date(qt.snoozed_until!).toLocaleString("pt-BR")} — clique para despertar`
+                            : "Adiar 2h · Shift+clique = amanhã 9h · atalho: s"}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (asleep) {
+                              onSnooze(qt.id, null);
+                              toast(`${qt.customer_name} despertada`);
+                            } else {
+                              const until = e.shiftKey ? tomorrow9amISO() : inHoursISO(2);
+                              onSnooze(qt.id, until);
+                              toast(`${qt.customer_name} adiada até ${new Date(until).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}`);
+                            }
+                          }}
+                          className={cn(
+                            "shrink-0 rounded p-0.5 transition-opacity",
+                            asleep
+                              ? "text-brand opacity-100"
+                              : "text-muted-foreground opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-brand",
+                          )}
+                        >
+                          {asleep ? <Sunrise className="h-3.5 w-3.5" /> : <BellOff className="h-3.5 w-3.5" />}
+                        </button>
+                      );
+                    })()}
                     <SlaIndicator deadline={qt.sla_deadline} compact />
                   </div>
                 </div>
+                {qt.snoozed_until && new Date(qt.snoozed_until).getTime() > Date.now() && (
+                  <div className="mt-1 inline-flex items-center gap-1 rounded-md border border-brand/30 bg-brand/5 px-1.5 py-0.5 text-[10px] font-medium text-brand">
+                    <Clock className="h-3 w-3" />
+                    Adiada até {new Date(qt.snoozed_until).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}
+                  </div>
+                )}
 
                 <div className="mt-1 flex flex-wrap items-center justify-between gap-1.5">
                   <div className="flex flex-wrap items-center gap-1">

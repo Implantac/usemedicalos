@@ -28,7 +28,7 @@ export const Route = createFileRoute("/")({
 
 function InboxPage() {
   const { open } = Route.useSearch();
-  const { quotes, addQuote, updateQuote, updateItem, removeItem, setStatus, togglePin, resetDemo } = useQuotes();
+  const { quotes, addQuote, updateQuote, updateItem, removeItem, setStatus, togglePin, snoozeQuote, resetDemo } = useQuotes();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [newOpen, setNewOpen] = useState(false);
 
@@ -65,7 +65,7 @@ function InboxPage() {
         </div>
 
         <div className="overflow-hidden rounded-lg border bg-card card-shadow">
-          <QuoteInbox quotes={quotes} selectedId={selectedId} onSelect={setSelectedId} onAdvance={setStatus} onTogglePin={togglePin} />
+          <QuoteInbox quotes={quotes} selectedId={selectedId} onSelect={setSelectedId} onAdvance={setStatus} onTogglePin={togglePin} onSnooze={snoozeQuote} />
         </div>
       </main>
 

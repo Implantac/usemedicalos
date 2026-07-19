@@ -181,6 +181,18 @@ export function useQuotes() {
     });
   }, [guard]);
 
+  const snoozeQuote = useCallback((id: string, until: string | null) => {
+    setAllQuotes((qs) => {
+      if (!guard(id, qs)) return qs;
+      return qs.map((q) => (q.id === id ? { ...q, snoozed_until: until ?? undefined } : q));
+    });
+    appendActivity({
+      quote_id: id,
+      type: "compliance_override",
+      message: until ? `Cotação adiada até ${new Date(until).toLocaleString("pt-BR")}` : "Cotação despertada",
+    });
+  }, [guard]);
+
   return {
     quotes,
     hydrated,
@@ -192,6 +204,7 @@ export function useQuotes() {
     removeItem,
     setStatus,
     togglePin,
+    snoozeQuote,
     resetDemo,
   };
 }

@@ -20,6 +20,7 @@ const SHORTCUTS: Shortcut[] = [
   { keys: ["Space"], label: "Selecionar / desmarcar cotação em foco", group: "Inbox" },
   { keys: ["Shift", "A"], label: "Selecionar todas as cotações visíveis", group: "Inbox" },
   { keys: ["P"], label: "Fixar / desfixar cotação em foco", group: "Inbox" },
+  { keys: ["S"], label: "Adiar cotação em foco por 2h (Shift+S = amanhã 9h)", group: "Inbox" },
   { keys: ["Esc"], label: "Limpar seleção em lote", group: "Inbox" },
   { keys: ["1"], label: "Carregar 1ª visualização salva (2-9 análogo)", group: "Inbox" },
   { keys: ["0"], label: "Limpar filtros da Inbox", group: "Inbox" },
