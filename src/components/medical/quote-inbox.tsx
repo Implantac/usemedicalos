@@ -363,7 +363,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
   const clearSelected = () => setSelected(new Set());
   const selectAllVisible = () => setSelected(new Set(filtered.map((x) => x.id)));
 
-  const runBulk = (kind: "advance" | "regress" | "lost") => {
+  const runBulk = (kind: "advance" | "regress" | "lost" | "won") => {
     const targets = filtered.filter((x) => selected.has(x.id));
     if (targets.length === 0) return;
     const snapshots: Array<{ id: string; from: QuoteStatus }> = [];
@@ -372,7 +372,8 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
       const to =
         kind === "advance" ? nextStatus(qt.status) :
         kind === "regress" ? prevStatus(qt.status) :
-        "perdido" as QuoteStatus;
+        kind === "won" ? ("ganho" as QuoteStatus) :
+        ("perdido" as QuoteStatus);
       if (!to || to === qt.status) continue;
       snapshots.push({ id: qt.id, from: qt.status });
       onAdvance(qt.id, to);
@@ -381,12 +382,14 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
     if (applied === 0) { toast("Nenhuma cotação elegível para essa ação"); return; }
     const label =
       kind === "advance" ? "avançadas" :
-      kind === "regress" ? "revertidas" : "marcadas como perdidas";
+      kind === "regress" ? "revertidas" :
+      kind === "won" ? "marcadas como ganhas" : "marcadas como perdidas";
     const action = { label: "Desfazer", onClick: () => {
       snapshots.forEach((s) => onAdvance(s.id, s.from));
       toast(`${snapshots.length} cotação(ões) restauradas`);
     }};
     if (kind === "lost") toast.error(`${applied} cotação(ões) ${label}`, { action });
+    else if (kind === "won") toast.success(`🏆 ${applied} cotação(ões) ${label}`, { action });
     else toast.success(`${applied} cotação(ões) ${label}`, { action });
     clearSelected();
   };
