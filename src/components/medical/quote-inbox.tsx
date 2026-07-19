@@ -860,6 +860,34 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 </SelectContent>
               </Select>
             )}
+            {onSetPriority && (
+              <Select
+                value=""
+                onValueChange={(p) => {
+                  if (!p) return;
+                  const priority = p as Priority;
+                  const targets = filtered.filter((x) => selected.has(x.id));
+                  let n = 0;
+                  for (const qt of targets) {
+                    if (qt.priority !== priority) { onSetPriority(qt.id, priority); n++; }
+                  }
+                  const label = { urgente: "Urgente", alta: "Alta", normal: "Normal", baixa: "Baixa" }[priority];
+                  if (n > 0) toast.success(`${n} cotação(ões) marcada(s) como ${label}`);
+                  else toast(`Todas já estão em ${label}`);
+                  clearSelected();
+                }}
+              >
+                <SelectTrigger className="h-6 w-[140px] gap-1 border-primary-foreground/30 bg-primary-foreground/10 px-2 text-[11px] text-primary-foreground hover:bg-primary-foreground/20 focus:ring-primary-foreground/40">
+                  <SelectValue placeholder="Prioridade…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="urgente" className="text-xs">🔥 Urgente</SelectItem>
+                  <SelectItem value="alta" className="text-xs">⚡ Alta</SelectItem>
+                  <SelectItem value="normal" className="text-xs">Normal</SelectItem>
+                  <SelectItem value="baixa" className="text-xs">Baixa</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
             <Button size="sm" variant="destructive" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("lost")}>
               Marcar perdidas
             </Button>
