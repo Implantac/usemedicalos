@@ -44,6 +44,7 @@ interface Props {
   onSnooze?: (id: string, until: string | null) => void;
   onReassign?: (id: string, ownerId: string) => void;
   onSetPriority?: (id: string, priority: Priority) => void;
+  onSetTier?: (id: string, tier: "A" | "B" | "C") => void;
 }
 
 type PresetId = "urgentes" | "sla_risco" | "novas" | "fixadas" | "adiadas" | "nao_lidas";
