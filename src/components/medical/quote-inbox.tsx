@@ -322,7 +322,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         }
       }
     });
-  }, [quotes, q, tenant, owner, sla, statuses, sort, preset]);
+  }, [quotes, q, tenant, owner, sla, statuses, sort, preset, isRead]);
 
   const activeCount =
     (tenant !== "todos" ? 1 : 0) +
