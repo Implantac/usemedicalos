@@ -6,6 +6,7 @@ import { useQuoteReads } from "@/hooks/use-quote-reads";
 import type { Priority, Quote, QuoteStatus } from "@/lib/medical/types";
 import { STATUS_LABEL } from "@/lib/medical/types";
 import { quoteTotals, formatBRL, formatPct } from "@/lib/medical/pricing";
+import { generateProposalPdf } from "@/lib/medical/proposal-pdf";
 import { nextStatus, prevStatus, slaBucketOf, SLA_LABEL, type SlaBucket } from "@/lib/medical/pipeline";
 import { OWNERS, TENANTS, tenantById, ownerById } from "@/lib/medical/mock-data";
 import { slaState } from "./sla-indicator";
@@ -1109,6 +1110,31 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
               }}
             >
               <Share2 className="h-3 w-3" /> Briefing
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-6 gap-1 px-2 text-[11px]"
+              title="Gerar propostas PDF para as cotações selecionadas"
+              onClick={async () => {
+                const targets = filtered.filter((x) => selected.has(x.id));
+                if (targets.length === 0) return;
+                let ok = 0;
+                for (const qt of targets) {
+                  try {
+                    generateProposalPdf(qt);
+                    ok++;
+                    // pequena pausa evita travar a UI ao gerar muitos PDFs
+                    await new Promise((r) => setTimeout(r, 60));
+                  } catch {
+                    // segue tentando os demais
+                  }
+                }
+                if (ok > 0) toast.success(`${ok} proposta(s) PDF gerada(s)`);
+                if (ok < targets.length) toast.error(`${targets.length - ok} PDF(s) falharam`);
+              }}
+            >
+              <Download className="h-3 w-3" /> PDFs
             </Button>
             <Button size="sm" variant="secondary" className="h-6 gap-1 px-2 text-[11px] bg-success text-success-foreground hover:bg-success/90" onClick={() => runBulk("won")}>
               🏆 Marcar ganhas
