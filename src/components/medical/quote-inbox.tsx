@@ -932,37 +932,32 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 </SelectContent>
               </Select>
             )}
-            <Select
-              value=""
-              onValueChange={(t) => {
-                if (!t) return;
-                const tier = t as "A" | "B" | "C";
-                const targets = filtered.filter((x) => selected.has(x.id));
-                let n = 0;
-                for (const qt of targets) {
-                  if (qt.client_tier !== tier) {
-                    onAdvance; // no-op reference to keep lint calm
-                    // use onSetPriority-like update via onSnooze? no — we need a generic update.
-                    // Delegate via updateQuote-style: reuse onReassign path? Not available.
-                    // Fallback: dispatch tier through a dedicated event on window; parent listens.
-                    window.dispatchEvent(new CustomEvent("inbox:set-tier", { detail: { id: qt.id, tier } }));
-                    n++;
+            {onSetTier && (
+              <Select
+                value=""
+                onValueChange={(t) => {
+                  if (!t) return;
+                  const tier = t as "A" | "B" | "C";
+                  const targets = filtered.filter((x) => selected.has(x.id));
+                  let n = 0;
+                  for (const qt of targets) {
+                    if (qt.client_tier !== tier) { onSetTier(qt.id, tier); n++; }
                   }
-                }
-                if (n > 0) toast.success(`${n} cotação(ões) marcada(s) como Tier ${tier}`);
-                else toast(`Todas já estão em Tier ${tier}`);
-                clearSelected();
-              }}
-            >
-              <SelectTrigger className="h-6 w-[110px] gap-1 border-primary-foreground/30 bg-primary-foreground/10 px-2 text-[11px] text-primary-foreground hover:bg-primary-foreground/20 focus:ring-primary-foreground/40">
-                <SelectValue placeholder="Tier…" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="A" className="text-xs">🥇 Tier A</SelectItem>
-                <SelectItem value="B" className="text-xs">🥈 Tier B</SelectItem>
-                <SelectItem value="C" className="text-xs">🥉 Tier C</SelectItem>
-              </SelectContent>
-            </Select>
+                  if (n > 0) toast.success(`${n} cotação(ões) marcada(s) como Tier ${tier}`);
+                  else toast(`Todas já estão em Tier ${tier}`);
+                  clearSelected();
+                }}
+              >
+                <SelectTrigger className="h-6 w-[110px] gap-1 border-primary-foreground/30 bg-primary-foreground/10 px-2 text-[11px] text-primary-foreground hover:bg-primary-foreground/20 focus:ring-primary-foreground/40">
+                  <SelectValue placeholder="Tier…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="A" className="text-xs">🥇 Tier A</SelectItem>
+                  <SelectItem value="B" className="text-xs">🥈 Tier B</SelectItem>
+                  <SelectItem value="C" className="text-xs">🥉 Tier C</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
             {(() => {
               const ids = filtered.filter((x) => selected.has(x.id)).map((x) => x.id);
               const anyUnread = ids.some((id) => !isRead(id));
