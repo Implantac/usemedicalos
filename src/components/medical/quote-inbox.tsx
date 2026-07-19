@@ -220,6 +220,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
     a.remove();
     URL.revokeObjectURL(url);
     toast.success(`${filtered.length} cotação(ões) exportadas para CSV`);
+  };
 
 
 
