@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, BellOff, Bookmark, BookmarkPlus, Building2, CheckSquare, Clock, Download, FileSpreadsheet, Filter, Flame, Inbox as InboxIcon, Layers, Moon, Pin, PinOff, Rows3, Search, Share2, Square, Sunrise, Timer, Trash2, Undo2, Upload, X, Zap } from "lucide-react";
+import { ArrowRight, BellOff, Bookmark, BookmarkPlus, Building2, CheckSquare, Clock, Download, FileSpreadsheet, Filter, Flame, Inbox as InboxIcon, Layers, Link2, Moon, Pin, PinOff, Rows3, Search, Share2, Square, Sunrise, Timer, Trash2, Undo2, Upload, X, Zap } from "lucide-react";
 import { useInboxDensity } from "@/hooks/use-inbox-density";
 
 import type { Quote, QuoteStatus } from "@/lib/medical/types";
@@ -54,6 +54,27 @@ function tomorrow9amISO(): string {
 }
 function inHoursISO(h: number): string {
   return new Date(Date.now() + h * 3_600_000).toISOString();
+}
+
+// Deep-link para uma cotação específica (abre o drawer no destino).
+function quoteDeepLink(id: string): string {
+  if (typeof window === "undefined") return `/?open=${id}`;
+  const url = new URL(window.location.href);
+  url.pathname = "/";
+  url.search = "";
+  url.searchParams.set("open", id);
+  url.hash = "";
+  return url.toString();
+}
+
+async function copyQuoteLink(qt: Quote) {
+  const link = quoteDeepLink(qt.id);
+  try {
+    await navigator.clipboard.writeText(link);
+    toast.success(`Link de ${qt.customer_name} copiado`);
+  } catch {
+    toast(link);
+  }
 }
 
 export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePin, onSnooze }: Props) {
@@ -429,6 +450,10 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
           onSnooze(qt.id, until);
           toast(`${qt.customer_name} adiada até ${new Date(until).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}`);
         }
+      } else if (e.key === "y" && idx >= 0) {
+        // Copy deep-link para colar em chat/e-mail
+        e.preventDefault();
+        void copyQuoteLink(filtered[idx]);
       } else if (/^[1-9]$/.test(e.key)) {
         // Quick-switch entre as 9 primeiras visualizações salvas (1-9).
         // 0 → limpa filtros (equivalente a "Sem visualização").
@@ -895,6 +920,15 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                         </button>
                       );
                     })()}
+                    <button
+                      type="button"
+                      aria-label="Copiar link da cotação"
+                      title="Copiar link (atalho: y)"
+                      onClick={(e) => { e.stopPropagation(); void copyQuoteLink(qt); }}
+                      className="shrink-0 rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:text-brand focus:opacity-100 group-hover:opacity-100"
+                    >
+                      <Link2 className="h-3.5 w-3.5" />
+                    </button>
                     <SlaIndicator deadline={qt.sla_deadline} compact />
                   </div>
                 </div>
