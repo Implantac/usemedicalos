@@ -46,7 +46,7 @@ interface Props {
   onSetPriority?: (id: string, priority: Priority) => void;
 }
 
-type PresetId = "urgentes" | "sla_risco" | "novas" | "fixadas" | "adiadas";
+type PresetId = "urgentes" | "sla_risco" | "novas" | "fixadas" | "adiadas" | "nao_lidas";
 
 // Retorna ms até "amanhã 9h" na TZ local
 function tomorrow9amISO(): string {
