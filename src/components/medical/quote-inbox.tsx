@@ -1138,6 +1138,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             >
               <Mail className="h-3 w-3" /> E-mail
             </Button>
+            <Button
               size="sm"
               variant="secondary"
               className="h-6 gap-1 px-2 text-[11px]"
