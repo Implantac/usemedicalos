@@ -179,6 +179,48 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
     }
   };
 
+  // Exporta a lista atualmente filtrada como CSV — útil para análise offline
+  // e evidência de auditoria (mesmo escopo/ordenação que o operador vê).
+  const csvEscape = (v: unknown) => {
+    const s = v == null ? "" : String(v);
+    return /[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const handleExportCsv = () => {
+    if (filtered.length === 0) { toast("Nada para exportar com os filtros atuais"); return; }
+    const header = [
+      "id","cliente","segmento","tenant","vendedor","status","prioridade",
+      "sla_deadline","recebida_em","receita","margem_pct","itens","pinned",
+    ];
+    const rows = filtered.map((qt) => {
+      const totals = quoteTotals(qt.items);
+      return [
+        qt.id,
+        qt.customer_name,
+        qt.customer_segment,
+        tenantById(qt.tenant_id)?.name ?? qt.tenant_id,
+        ownerById(qt.owner_id)?.name ?? qt.owner_id,
+        STATUS_LABEL[qt.status],
+        qt.priority,
+        qt.sla_deadline,
+        qt.received_at,
+        totals.revenue.toFixed(2),
+        (totals.marginPct * 100).toFixed(2),
+        qt.items.length,
+        qt.pinned ? "sim" : "",
+      ].map(csvEscape).join(",");
+    });
+    const csv = [header.join(","), ...rows].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `inbox-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast.success(`${filtered.length} cotação(ões) exportadas para CSV`);
+
 
 
   const filtered = useMemo(() => {
