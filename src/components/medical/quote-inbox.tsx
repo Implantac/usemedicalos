@@ -103,7 +103,14 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
 
   const clearFilters = () => {
     setQ(""); setTenant("todos"); setOwner("todos"); setSla("todos");
-    setStatuses(new Set()); setSort("priority"); setActiveViewId(null);
+    setStatuses(new Set()); setSort("priority"); setActiveViewId(null); setPreset(null);
+  };
+
+  // Presets — atalhos "1-click" para as visões que mais aparecem no dia-a-dia.
+  // Aplicar um preset zera qualquer visualização salva selecionada.
+  const togglePreset = (p: NonNullable<typeof preset>) => {
+    setActiveViewId(null);
+    setPreset((prev) => (prev === p ? null : p));
   };
 
   const handleSaveView = () => {
