@@ -913,6 +913,45 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 </Button>
               );
             })()}
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-6 gap-1 px-2 text-[11px]"
+              title="Exportar selecionadas como CSV"
+              onClick={() => {
+                const targets = filtered.filter((x) => selected.has(x.id));
+                if (targets.length === 0) return;
+                const header = [
+                  "id","cliente","segmento","tenant","vendedor","status","prioridade",
+                  "sla_deadline","recebida_em","receita","margem_pct","itens","pinned",
+                ];
+                const rows = targets.map((qt) => {
+                  const totals = quoteTotals(qt.items);
+                  return [
+                    qt.id, qt.customer_name, qt.customer_segment,
+                    tenantById(qt.tenant_id)?.name ?? qt.tenant_id,
+                    ownerById(qt.owner_id)?.name ?? qt.owner_id,
+                    STATUS_LABEL[qt.status], qt.priority,
+                    qt.sla_deadline, qt.received_at,
+                    totals.revenue.toFixed(2), (totals.margin * 100).toFixed(2),
+                    qt.items.length, qt.pinned ? "sim" : "",
+                  ].map(csvEscape).join(",");
+                });
+                const csv = [header.join(","), ...rows].join("\n");
+                const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `inbox-selecao-${new Date().toISOString().slice(0, 10)}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+                toast.success(`${targets.length} cotação(ões) exportadas para CSV`);
+              }}
+            >
+              <Download className="h-3 w-3" /> CSV
+            </Button>
             <Button size="sm" variant="destructive" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("lost")}>
               Marcar perdidas
             </Button>
