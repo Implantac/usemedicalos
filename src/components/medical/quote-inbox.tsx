@@ -928,13 +928,15 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
           const t = tenantById(qt.tenant_id);
           const ow = ownerById(qt.owner_id);
           const isSel = selected.has(qt.id);
+          const unread = !isRead(qt.id);
+          const handleOpen = () => { markRead([qt.id]); onSelect(qt.id); };
           return (
             <li key={qt.id}>
               <div
                 role="button"
                 tabIndex={0}
-                onClick={() => onSelect(qt.id)}
-                onKeyDown={(e) => (e.key === "Enter" ? onSelect(qt.id) : null)}
+                onClick={handleOpen}
+                onKeyDown={(e) => (e.key === "Enter" ? handleOpen() : null)}
                 className={cn(
                   "group relative w-full cursor-pointer px-3 py-1.5 pl-3.5 text-left transition-colors hover:bg-accent/40",
                   "before:pointer-events-none before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r-full before:bg-transparent before:transition-colors",
@@ -958,7 +960,14 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
 
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                      <span className="truncate text-sm font-semibold text-foreground">
+                      {unread && (
+                        <span
+                          aria-label="Não lida"
+                          title="Não lida"
+                          className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brand shadow-[0_0_0_2px_hsl(var(--brand)/0.15)]"
+                        />
+                      )}
+                      <span className={cn("truncate text-sm text-foreground", unread ? "font-bold" : "font-semibold")}>
                         {qt.customer_name}
                       </span>
                       {!foco && <SourceTag source={qt.source_type} />}
