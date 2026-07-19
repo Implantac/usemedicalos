@@ -6,6 +6,7 @@ import { useQuoteReads } from "@/hooks/use-quote-reads";
 import type { Priority, Quote, QuoteStatus } from "@/lib/medical/types";
 import { STATUS_LABEL } from "@/lib/medical/types";
 import { quoteTotals, formatBRL, formatPct } from "@/lib/medical/pricing";
+import { generateProposalPdf } from "@/lib/medical/proposal-pdf";
 import { nextStatus, prevStatus, slaBucketOf, SLA_LABEL, type SlaBucket } from "@/lib/medical/pipeline";
 import { OWNERS, TENANTS, tenantById, ownerById } from "@/lib/medical/mock-data";
 import { slaState } from "./sla-indicator";
