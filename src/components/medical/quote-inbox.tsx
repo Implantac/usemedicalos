@@ -204,7 +204,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         qt.sla_deadline,
         qt.received_at,
         totals.revenue.toFixed(2),
-        (totals.marginPct * 100).toFixed(2),
+        (totals.margin * 100).toFixed(2),
         qt.items.length,
         qt.pinned ? "sim" : "",
       ].map(csvEscape).join(",");
