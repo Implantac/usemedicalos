@@ -675,32 +675,58 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
             <Zap className="h-3 w-3" /> Presets
           </span>
-          {([
-            { id: "urgentes", label: "Urgentes", Icon: Flame },
-            { id: "sla_risco", label: "SLA em risco", Icon: Timer },
-            { id: "novas", label: "Novas RFQs", Icon: InboxIcon },
-            { id: "nao_lidas", label: "Não lidas", Icon: Mail },
-            { id: "fixadas", label: "Fixadas", Icon: Pin },
-            { id: "adiadas", label: "Adiadas", Icon: Moon },
-          ] as const).map(({ id, label, Icon }) => {
-            const active = preset === id;
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => togglePreset(id)}
-                aria-pressed={active}
-                className={cn(
-                  "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-smooth press",
-                  active
-                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                    : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-accent hover:text-foreground",
-                )}
-              >
-                <Icon className="h-3 w-3" /> {label}
-              </button>
-            );
-          })}
+          {(() => {
+            const nowMs = Date.now();
+            const isAsleep = (x: Quote) => !!x.snoozed_until && new Date(x.snoozed_until).getTime() > nowMs;
+            const awake = quotes.filter((x) => !isAsleep(x));
+            const counts: Record<PresetId, number> = {
+              urgentes: awake.filter((x) => x.priority === "urgente").length,
+              sla_risco: awake.filter((x) => {
+                const b = slaBucketOf(x.sla_deadline);
+                return b === "atrasado" || b === "risco";
+              }).length,
+              novas: awake.filter((x) => x.status === "pending_review").length,
+              nao_lidas: awake.filter((x) => !isRead(x.id)).length,
+              fixadas: awake.filter((x) => !!x.pinned).length,
+              adiadas: quotes.filter((x) => isAsleep(x)).length,
+            };
+            return ([
+              { id: "urgentes" as const, label: "Urgentes", Icon: Flame },
+              { id: "sla_risco" as const, label: "SLA em risco", Icon: Timer },
+              { id: "novas" as const, label: "Novas RFQs", Icon: InboxIcon },
+              { id: "nao_lidas" as const, label: "Não lidas", Icon: Mail },
+              { id: "fixadas" as const, label: "Fixadas", Icon: Pin },
+              { id: "adiadas" as const, label: "Adiadas", Icon: Moon },
+            ]).map(({ id, label, Icon }) => {
+              const active = preset === id;
+              const n = counts[id];
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => togglePreset(id)}
+                  aria-pressed={active}
+                  disabled={n === 0 && !active}
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-smooth press",
+                    active
+                      ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                      : n === 0
+                      ? "border-border/60 bg-background text-muted-foreground/50 cursor-not-allowed"
+                      : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-accent hover:text-foreground",
+                  )}
+                >
+                  <Icon className="h-3 w-3" /> {label}
+                  <span className={cn(
+                    "ml-0.5 rounded-full px-1.5 py-px text-[10px] font-semibold tabular-nums",
+                    active ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-foreground/70",
+                  )}>
+                    {n}
+                  </span>
+                </button>
+              );
+            });
+          })()}
         </div>
 
 
