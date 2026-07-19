@@ -17,6 +17,9 @@ const SHORTCUTS: Shortcut[] = [
   { keys: ["K"], label: "Cotação anterior (Inbox)", group: "Inbox" },
   { keys: ["Enter"], label: "Abrir cotação em foco", group: "Inbox" },
   { keys: ["X"], label: "Avançar pipeline da cotação em foco", group: "Inbox" },
+  { keys: ["Space"], label: "Selecionar / desmarcar cotação em foco", group: "Inbox" },
+  { keys: ["Shift", "A"], label: "Selecionar todas as cotações visíveis", group: "Inbox" },
+  { keys: ["Esc"], label: "Limpar seleção em lote", group: "Inbox" },
 ];
 
 const GO_MAP: Record<string, string> = {
