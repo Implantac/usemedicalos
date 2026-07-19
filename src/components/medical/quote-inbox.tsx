@@ -1150,7 +1150,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 let ok = 0, skipped = 0, failed = 0;
                 for (const qt of targets) {
                   if (qt.use_sistemas_synced) { skipped++; continue; }
-                  const t = quoteTotals(qt);
+                  const t = quoteTotals(qt.items);
                   if (t.margin < MIN_MARGIN) { skipped++; continue; }
                   try {
                     const res = await sendToUseSistemas(qt);
