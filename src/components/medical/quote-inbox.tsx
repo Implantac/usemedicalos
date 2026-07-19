@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, BellOff, Bookmark, BookmarkPlus, Building2, CheckSquare, Circle, Clock, Copy, Download, FileSpreadsheet, Filter, Flame, Inbox as InboxIcon, Layers, Link2, Mail, MailOpen, Moon, Pin, PinOff, Rows3, Search, Share2, Square, Sunrise, Timer, Trash2, Undo2, Upload, X, Zap } from "lucide-react";
+import { ArrowRight, BellOff, Bookmark, BookmarkPlus, Building2, CheckSquare, Circle, Clock, Copy, Download, FileSpreadsheet, Filter, Flame, Inbox as InboxIcon, Layers, Link2, Mail, MailOpen, MessageCircle, Moon, Pin, PinOff, Rows3, Search, Share2, Square, Sunrise, Timer, Trash2, Undo2, Upload, X, Zap } from "lucide-react";
 import { useInboxDensity } from "@/hooks/use-inbox-density";
 import { useQuoteReads } from "@/hooks/use-quote-reads";
 
