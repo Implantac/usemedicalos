@@ -206,6 +206,22 @@ export function useQuotes() {
     });
   }, [guard]);
 
+  const appendNote = useCallback((id: string, text: string) => {
+    const stamp = new Date().toLocaleString("pt-BR");
+    const line = `[${stamp}] ${text}`;
+    setAllQuotes((qs) => {
+      if (!guard(id, qs)) return qs;
+      return qs.map((q) =>
+        q.id === id ? { ...q, notes: q.notes ? `${q.notes}\n${line}` : line } : q,
+      );
+    });
+    appendActivity({
+      quote_id: id,
+      type: "compliance_override",
+      message: `Nota adicionada: ${text.slice(0, 120)}${text.length > 120 ? "…" : ""}`,
+    });
+  }, [guard]);
+
   return {
     quotes,
     hydrated,
