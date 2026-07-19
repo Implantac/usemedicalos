@@ -1000,6 +1000,23 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 <FileSpreadsheet className="h-3 w-3" /> Nota
               </Button>
             )}
+            {onDuplicate && (
+              <Button
+                size="sm"
+                variant="secondary"
+                className="h-6 gap-1 px-2 text-[11px]"
+                title="Duplicar as cotações selecionadas"
+                onClick={() => {
+                  const targets = filtered.filter((x) => selected.has(x.id));
+                  if (targets.length === 0) return;
+                  for (const qt of targets) onDuplicate(qt.id);
+                  toast.success(`${targets.length} cotação(ões) duplicada(s)`);
+                  clearSelected();
+                }}
+              >
+                <Copy className="h-3 w-3" /> Duplicar
+              </Button>
+            )}
             <Button
               size="sm"
               variant="secondary"
