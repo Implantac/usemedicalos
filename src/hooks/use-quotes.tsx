@@ -222,6 +222,38 @@ export function useQuotes() {
     });
   }, [guard]);
 
+  const duplicateQuote = useCallback((id: string): Quote | null => {
+    const source = allQuotes.find((q) => q.id === id);
+    if (!source) return null;
+    try {
+      assertSameTenant(source, scopeRef.current);
+    } catch {
+      return null;
+    }
+    const now = new Date();
+    const sla = slaHoursFor(source.priority);
+    const copy: Quote = {
+      ...source,
+      id: `q${Date.now().toString().slice(-6)}`,
+      status: "aguardando_precificacao",
+      received_at: now.toISOString(),
+      sla_deadline: new Date(now.getTime() + sla * 3_600_000).toISOString(),
+      use_sistemas_synced: false,
+      use_sistemas_order_id: undefined,
+      pinned: false,
+      snoozed_until: undefined,
+      notes: source.notes ? `${source.notes}\n[duplicada de #${source.id.toUpperCase()}]` : `Duplicada de #${source.id.toUpperCase()}`,
+      items: source.items.map((it) => ({ ...it })),
+    };
+    setAllQuotes((qs) => [copy, ...qs]);
+    appendActivity({
+      quote_id: copy.id,
+      type: "created",
+      message: `Duplicada de #${source.id.toUpperCase()} — ${source.customer_name}`,
+    });
+    return copy;
+  }, [allQuotes]);
+
   return {
     quotes,
     hydrated,
