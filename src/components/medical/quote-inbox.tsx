@@ -780,6 +780,29 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             <Button size="sm" variant="secondary" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("regress")}>
               <Undo2 className="h-3 w-3" /> Voltar
             </Button>
+            {onTogglePin && (() => {
+              const targets = filtered.filter((x) => selected.has(x.id));
+              const allPinned = targets.length > 0 && targets.every((x) => x.pinned);
+              return (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="h-6 gap-1 px-2 text-[11px]"
+                  onClick={() => {
+                    // Bulk pin/unpin — se todas já estão fixadas, desfixa; senão, fixa as que faltam.
+                    let n = 0;
+                    for (const qt of targets) {
+                      if (allPinned ? qt.pinned : !qt.pinned) { onTogglePin(qt.id); n++; }
+                    }
+                    if (n > 0) toast.success(`${n} cotação(ões) ${allPinned ? "desfixada(s)" : "fixada(s) no topo"}`);
+                    clearSelected();
+                  }}
+                >
+                  {allPinned ? <PinOff className="h-3 w-3" /> : <Pin className="h-3 w-3" />}
+                  {allPinned ? "Desfixar" : "Fixar"}
+                </Button>
+              );
+            })()}
             <Button size="sm" variant="destructive" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("lost")}>
               Marcar perdidas
             </Button>
