@@ -853,7 +853,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 <SelectContent>
                   {OWNERS.map((o) => (
                     <SelectItem key={o.id} value={o.id} className="text-xs">
-                      {o.name} <span className="text-muted-foreground">· {o.role}</span>
+                      {o.name} <span className="text-muted-foreground">· {o.territory}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
