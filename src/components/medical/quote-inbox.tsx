@@ -864,9 +864,46 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                         {qt.pinned ? <Pin className="h-3.5 w-3.5 fill-current" /> : <PinOff className="h-3.5 w-3.5" />}
                       </button>
                     )}
+                    {onSnooze && (() => {
+                      const asleep = !!qt.snoozed_until && new Date(qt.snoozed_until).getTime() > Date.now();
+                      return (
+                        <button
+                          type="button"
+                          aria-label={asleep ? "Despertar cotação" : "Adiar cotação"}
+                          title={asleep
+                            ? `Adiada até ${new Date(qt.snoozed_until!).toLocaleString("pt-BR")} — clique para despertar`
+                            : "Adiar 2h · Shift+clique = amanhã 9h · atalho: s"}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (asleep) {
+                              onSnooze(qt.id, null);
+                              toast(`${qt.customer_name} despertada`);
+                            } else {
+                              const until = e.shiftKey ? tomorrow9amISO() : inHoursISO(2);
+                              onSnooze(qt.id, until);
+                              toast(`${qt.customer_name} adiada até ${new Date(until).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}`);
+                            }
+                          }}
+                          className={cn(
+                            "shrink-0 rounded p-0.5 transition-opacity",
+                            asleep
+                              ? "text-brand opacity-100"
+                              : "text-muted-foreground opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-brand",
+                          )}
+                        >
+                          {asleep ? <Sunrise className="h-3.5 w-3.5" /> : <BellOff className="h-3.5 w-3.5" />}
+                        </button>
+                      );
+                    })()}
                     <SlaIndicator deadline={qt.sla_deadline} compact />
                   </div>
                 </div>
+                {qt.snoozed_until && new Date(qt.snoozed_until).getTime() > Date.now() && (
+                  <div className="mt-1 inline-flex items-center gap-1 rounded-md border border-brand/30 bg-brand/5 px-1.5 py-0.5 text-[10px] font-medium text-brand">
+                    <Clock className="h-3 w-3" />
+                    Adiada até {new Date(qt.snoozed_until).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}
+                  </div>
+                )}
 
                 <div className="mt-1 flex flex-wrap items-center justify-between gap-1.5">
                   <div className="flex flex-wrap items-center gap-1">
