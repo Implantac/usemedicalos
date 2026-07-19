@@ -248,7 +248,12 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
+    const nowMs = Date.now();
+    // Uma quote está "adormecida" se snoozed_until existe E é no futuro.
+    const isAsleep = (x: Quote) => !!x.snoozed_until && new Date(x.snoozed_until).getTime() > nowMs;
     const list = quotes
+      // Esconde adormecidas por padrão. Só aparecem no preset "adiadas".
+      .filter((x) => preset === "adiadas" ? isAsleep(x) : !isAsleep(x))
       .filter((x) => tenant === "todos" || x.tenant_id === tenant)
       .filter((x) => owner === "todos" || x.owner_id === owner)
       .filter((x) => statuses.size === 0 || statuses.has(x.status))
@@ -262,6 +267,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         }
         if (preset === "novas") return x.status === "pending_review";
         if (preset === "fixadas") return !!x.pinned;
+        if (preset === "adiadas") return true; // já filtrado acima
         return true;
       })
       .filter((x) =>
