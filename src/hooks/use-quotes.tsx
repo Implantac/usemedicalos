@@ -235,6 +235,7 @@ export function useQuotes() {
     togglePin,
     snoozeQuote,
     reassignQuote,
+    appendNote,
     resetDemo,
   };
 }
