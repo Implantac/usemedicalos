@@ -416,6 +416,19 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         const qt = filtered[idx];
         onTogglePin(qt.id);
         toast(qt.pinned ? `${qt.customer_name} desfixado` : `${qt.customer_name} fixado no topo`);
+      } else if (e.key === "s" && idx >= 0 && onSnooze) {
+        // Snooze rápido: `s` = 2h; `Shift+S` = amanhã 9h; se já adiada, desperta.
+        e.preventDefault();
+        const qt = filtered[idx];
+        const asleep = !!qt.snoozed_until && new Date(qt.snoozed_until).getTime() > Date.now();
+        if (asleep) {
+          onSnooze(qt.id, null);
+          toast(`${qt.customer_name} despertada`);
+        } else {
+          const until = e.shiftKey ? tomorrow9amISO() : inHoursISO(2);
+          onSnooze(qt.id, until);
+          toast(`${qt.customer_name} adiada até ${new Date(until).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}`);
+        }
       } else if (/^[1-9]$/.test(e.key)) {
         // Quick-switch entre as 9 primeiras visualizações salvas (1-9).
         // 0 → limpa filtros (equivalente a "Sem visualização").
