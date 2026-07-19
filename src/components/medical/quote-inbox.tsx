@@ -487,6 +487,16 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             >
               <Upload className="h-3.5 w-3.5" /> Importar
             </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 gap-1 px-2 text-[11px]"
+              onClick={handleExportCsv}
+              disabled={filtered.length === 0}
+              title="Exportar cotações filtradas como CSV"
+            >
+              <FileSpreadsheet className="h-3.5 w-3.5" /> CSV
+            </Button>
             <input
               ref={fileRef}
               type="file"
