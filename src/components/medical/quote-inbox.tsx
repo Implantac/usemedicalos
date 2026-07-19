@@ -414,7 +414,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [filtered, selectedId, onSelect, onAdvance, selected.size, onTogglePin]);
+  }, [filtered, selectedId, onSelect, onAdvance, selected.size, onTogglePin, views, activeViewId, activeCount]);
 
   const handleRegress = (e: React.MouseEvent, qt: Quote) => {
     e.stopPropagation();
