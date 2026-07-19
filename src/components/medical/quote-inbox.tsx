@@ -982,6 +982,17 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 </Button>
               );
             })()}
+            {onAppendNote && (
+              <Button
+                size="sm"
+                variant="secondary"
+                className="h-6 gap-1 px-2 text-[11px]"
+                title="Adicionar nota às selecionadas"
+                onClick={() => { setNoteDraft(""); setNoteOpen(true); }}
+              >
+                <FileSpreadsheet className="h-3 w-3" /> Nota
+              </Button>
+            )}
             <Button
               size="sm"
               variant="secondary"
