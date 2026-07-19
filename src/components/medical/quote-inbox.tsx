@@ -678,6 +678,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             { id: "urgentes", label: "Urgentes", Icon: Flame },
             { id: "sla_risco", label: "SLA em risco", Icon: Timer },
             { id: "novas", label: "Novas RFQs", Icon: InboxIcon },
+            { id: "nao_lidas", label: "Não lidas", Icon: Mail },
             { id: "fixadas", label: "Fixadas", Icon: Pin },
             { id: "adiadas", label: "Adiadas", Icon: Moon },
           ] as const).map(({ id, label, Icon }) => {
