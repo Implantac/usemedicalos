@@ -268,6 +268,7 @@ export function useQuotes() {
     snoozeQuote,
     reassignQuote,
     appendNote,
+    duplicateQuote,
     resetDemo,
   };
 }
