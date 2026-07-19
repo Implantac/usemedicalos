@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, BellOff, Bookmark, BookmarkPlus, Building2, CheckSquare, Circle, Clock, Download, FileSpreadsheet, Filter, Flame, Inbox as InboxIcon, Layers, Link2, Mail, MailOpen, Moon, Pin, PinOff, Rows3, Search, Share2, Square, Sunrise, Timer, Trash2, Undo2, Upload, X, Zap } from "lucide-react";
+import { ArrowRight, BellOff, Bookmark, BookmarkPlus, Building2, CheckSquare, Circle, Clock, Copy, Download, FileSpreadsheet, Filter, Flame, Inbox as InboxIcon, Layers, Link2, Mail, MailOpen, Moon, Pin, PinOff, Rows3, Search, Share2, Square, Sunrise, Timer, Trash2, Undo2, Upload, X, Zap } from "lucide-react";
 import { useInboxDensity } from "@/hooks/use-inbox-density";
 import { useQuoteReads } from "@/hooks/use-quote-reads";
 
@@ -46,6 +46,7 @@ interface Props {
   onSetPriority?: (id: string, priority: Priority) => void;
   onSetTier?: (id: string, tier: "A" | "B" | "C") => void;
   onAppendNote?: (id: string, text: string) => void;
+  onDuplicate?: (id: string) => void;
 }
 
 type PresetId = "urgentes" | "sla_risco" | "novas" | "fixadas" | "adiadas" | "nao_lidas";
@@ -82,7 +83,7 @@ async function copyQuoteLink(qt: Quote) {
   }
 }
 
-export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePin, onSnooze, onReassign, onSetPriority, onSetTier, onAppendNote }: Props) {
+export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePin, onSnooze, onReassign, onSetPriority, onSetTier, onAppendNote, onDuplicate }: Props) {
   const [q, setQ] = useState("");
   const [tenant, setTenant] = useState<string>("todos");
   const [owner, setOwner] = useState<string>("todos");
@@ -464,6 +465,12 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         // Copy deep-link para colar em chat/e-mail
         e.preventDefault();
         void copyQuoteLink(filtered[idx]);
+      } else if (e.key === "d" && idx >= 0 && onDuplicate) {
+        // Duplica a cotação em foco e abre a cópia no drawer.
+        e.preventDefault();
+        const qt = filtered[idx];
+        onDuplicate(qt.id);
+        toast.success(`${qt.customer_name} duplicada`);
       } else if (/^[1-9]$/.test(e.key)) {
         // Quick-switch entre as 9 primeiras visualizações salvas (1-9).
         // 0 → limpa filtros (equivalente a "Sem visualização").
@@ -482,7 +489,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [filtered, selectedId, onSelect, onAdvance, selected.size, onTogglePin, onSnooze, views, activeViewId, activeCount]);
+  }, [filtered, selectedId, onSelect, onAdvance, selected.size, onTogglePin, onSnooze, onDuplicate, views, activeViewId, activeCount]);
 
   const handleRegress = (e: React.MouseEvent, qt: Quote) => {
     e.stopPropagation();
@@ -1209,6 +1216,21 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                     >
                       <Link2 className="h-3.5 w-3.5" />
                     </button>
+                    {onDuplicate && (
+                      <button
+                        type="button"
+                        aria-label="Duplicar cotação"
+                        title="Duplicar cotação (atalho: d)"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDuplicate(qt.id);
+                          toast.success(`${qt.customer_name} duplicada`);
+                        }}
+                        className="shrink-0 rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:text-brand focus:opacity-100 group-hover:opacity-100"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                     <SlaIndicator deadline={qt.sla_deadline} compact />
                   </div>
                 </div>
