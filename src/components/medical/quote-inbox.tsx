@@ -1078,6 +1078,38 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             >
               <Link2 className="h-3 w-3" /> Links
             </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-6 gap-1 px-2 text-[11px]"
+              title="Copiar briefing formatado (WhatsApp / Slack) das cotações selecionadas"
+              onClick={async () => {
+                const targets = filtered.filter((x) => selected.has(x.id));
+                if (targets.length === 0) return;
+                const totalRev = targets.reduce((s, qt) => s + quoteTotals(qt.items).revenue, 0);
+                const header = `*USE Medical — Briefing (${targets.length} cotação(ões))*\nReceita potencial: *${formatBRL(totalRev)}*\n`;
+                const body = targets
+                  .slice()
+                  .sort((a, b) => (PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]))
+                  .map((qt) => {
+                    const t = quoteTotals(qt.items);
+                    const sst = slaState(qt.sla_deadline);
+                    const flame = qt.priority === "urgente" ? "🔥 " : qt.priority === "alta" ? "⚡ " : "";
+                    const tenantName = tenantById(qt.tenant_id)?.name ?? qt.tenant_id;
+                    return `${flame}*${qt.customer_name}* (${tenantName})\n   • ${qt.items.length} item(ns) · ${formatBRL(t.revenue)} · margem ${formatPct(t.margin)}\n   • Status: ${STATUS_LABEL[qt.status]} · SLA: ${SLA_LABEL[sst]}\n   • ${quoteDeepLink(qt.id)}`;
+                  })
+                  .join("\n\n");
+                const text = `${header}\n${body}`;
+                try {
+                  await navigator.clipboard.writeText(text);
+                  toast.success(`Briefing de ${targets.length} cotação(ões) copiado`);
+                } catch {
+                  toast(text.slice(0, 200) + "…");
+                }
+              }}
+            >
+              <Share2 className="h-3 w-3" /> Briefing
+            </Button>
             <Button size="sm" variant="secondary" className="h-6 gap-1 px-2 text-[11px] bg-success text-success-foreground hover:bg-success/90" onClick={() => runBulk("won")}>
               🏆 Marcar ganhas
             </Button>
