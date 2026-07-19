@@ -65,7 +65,7 @@ function InboxPage() {
         </div>
 
         <div className="overflow-hidden rounded-lg border bg-card card-shadow">
-          <QuoteInbox quotes={quotes} selectedId={selectedId} onSelect={setSelectedId} onAdvance={setStatus} onTogglePin={togglePin} onSnooze={snoozeQuote} onReassign={reassignQuote} onSetPriority={(id, priority) => updateQuote(id, { priority })} onSetTier={(id, tier) => updateQuote(id, { client_tier: tier })} onAppendNote={appendNote} />
+          <QuoteInbox quotes={quotes} selectedId={selectedId} onSelect={setSelectedId} onAdvance={setStatus} onTogglePin={togglePin} onSnooze={snoozeQuote} onReassign={reassignQuote} onSetPriority={(id, priority) => updateQuote(id, { priority })} onSetTier={(id, tier) => updateQuote(id, { client_tier: tier })} onAppendNote={appendNote} onDuplicate={(id) => { const c = duplicateQuote(id); if (c) setSelectedId(c.id); }} />
         </div>
       </main>
 
