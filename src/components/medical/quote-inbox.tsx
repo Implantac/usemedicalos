@@ -1093,7 +1093,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                   .sort((a, b) => (PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]))
                   .map((qt) => {
                     const t = quoteTotals(qt.items);
-                    const sst = slaState(qt.sla_deadline);
+                    const sst = slaBucketOf(qt.sla_deadline);
                     const flame = qt.priority === "urgente" ? "🔥 " : qt.priority === "alta" ? "⚡ " : "";
                     const tenantName = tenantById(qt.tenant_id)?.name ?? qt.tenant_id;
                     return `${flame}*${qt.customer_name}* (${tenantName})\n   • ${qt.items.length} item(ns) · ${formatBRL(t.revenue)} · margem ${formatPct(t.margin)}\n   • Status: ${STATUS_LABEL[qt.status]} · SLA: ${SLA_LABEL[sst]}\n   • ${quoteDeepLink(qt.id)}`;
