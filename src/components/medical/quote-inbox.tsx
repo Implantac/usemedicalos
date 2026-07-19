@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, BellOff, Bookmark, BookmarkPlus, Building2, CheckSquare, Clock, Download, FileSpreadsheet, Filter, Flame, Inbox as InboxIcon, Layers, Link2, Moon, Pin, PinOff, Rows3, Search, Share2, Square, Sunrise, Timer, Trash2, Undo2, Upload, X, Zap } from "lucide-react";
+import { ArrowRight, BellOff, Bookmark, BookmarkPlus, Building2, CheckSquare, Circle, Clock, Download, FileSpreadsheet, Filter, Flame, Inbox as InboxIcon, Layers, Link2, Mail, MailOpen, Moon, Pin, PinOff, Rows3, Search, Share2, Square, Sunrise, Timer, Trash2, Undo2, Upload, X, Zap } from "lucide-react";
 import { useInboxDensity } from "@/hooks/use-inbox-density";
+import { useQuoteReads } from "@/hooks/use-quote-reads";
 
 import type { Priority, Quote, QuoteStatus } from "@/lib/medical/types";
 import { STATUS_LABEL } from "@/lib/medical/types";
@@ -45,7 +46,7 @@ interface Props {
   onSetPriority?: (id: string, priority: Priority) => void;
 }
 
-type PresetId = "urgentes" | "sla_risco" | "novas" | "fixadas" | "adiadas";
+type PresetId = "urgentes" | "sla_risco" | "novas" | "fixadas" | "adiadas" | "nao_lidas";
 
 // Retorna ms até "amanhã 9h" na TZ local
 function tomorrow9amISO(): string {
@@ -90,6 +91,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [preset, setPreset] = useState<null | PresetId>(null);
   const { density, setDensity } = useInboxDensity();
+  const { isRead, markRead, markUnread } = useQuoteReads();
   const foco = density === "foco";
 
 
@@ -291,6 +293,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         if (preset === "novas") return x.status === "pending_review";
         if (preset === "fixadas") return !!x.pinned;
         if (preset === "adiadas") return true; // já filtrado acima
+        if (preset === "nao_lidas") return !isRead(x.id);
         return true;
       })
       .filter((x) =>
@@ -319,7 +322,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         }
       }
     });
-  }, [quotes, q, tenant, owner, sla, statuses, sort, preset]);
+  }, [quotes, q, tenant, owner, sla, statuses, sort, preset, isRead]);
 
   const activeCount =
     (tenant !== "todos" ? 1 : 0) +
@@ -417,6 +420,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         onSelect(next.id);
       } else if (e.key === "Enter" && idx >= 0) {
         e.preventDefault();
+        markRead([filtered[idx].id]);
         onSelect(filtered[idx].id);
       } else if (e.key === "x" && idx >= 0) {
         const qt = filtered[idx];
@@ -675,6 +679,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             { id: "urgentes", label: "Urgentes", Icon: Flame },
             { id: "sla_risco", label: "SLA em risco", Icon: Timer },
             { id: "novas", label: "Novas RFQs", Icon: InboxIcon },
+            { id: "nao_lidas", label: "Não lidas", Icon: Mail },
             { id: "fixadas", label: "Fixadas", Icon: Pin },
             { id: "adiadas", label: "Adiadas", Icon: Moon },
           ] as const).map(({ id, label, Icon }) => {
@@ -888,6 +893,26 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 </SelectContent>
               </Select>
             )}
+            {(() => {
+              const ids = filtered.filter((x) => selected.has(x.id)).map((x) => x.id);
+              const anyUnread = ids.some((id) => !isRead(id));
+              return (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="h-6 gap-1 px-2 text-[11px]"
+                  title={anyUnread ? "Marcar como lidas" : "Marcar como não lidas"}
+                  onClick={() => {
+                    if (anyUnread) { markRead(ids); toast.success(`${ids.length} marcada(s) como lida(s)`); }
+                    else { markUnread(ids); toast.success(`${ids.length} marcada(s) como não lida(s)`); }
+                    clearSelected();
+                  }}
+                >
+                  {anyUnread ? <MailOpen className="h-3 w-3" /> : <Mail className="h-3 w-3" />}
+                  {anyUnread ? "Marcar lidas" : "Não lidas"}
+                </Button>
+              );
+            })()}
             <Button size="sm" variant="destructive" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("lost")}>
               Marcar perdidas
             </Button>
@@ -924,13 +949,15 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
           const t = tenantById(qt.tenant_id);
           const ow = ownerById(qt.owner_id);
           const isSel = selected.has(qt.id);
+          const unread = !isRead(qt.id);
+          const handleOpen = () => { markRead([qt.id]); onSelect(qt.id); };
           return (
             <li key={qt.id}>
               <div
                 role="button"
                 tabIndex={0}
-                onClick={() => onSelect(qt.id)}
-                onKeyDown={(e) => (e.key === "Enter" ? onSelect(qt.id) : null)}
+                onClick={handleOpen}
+                onKeyDown={(e) => (e.key === "Enter" ? handleOpen() : null)}
                 className={cn(
                   "group relative w-full cursor-pointer px-3 py-1.5 pl-3.5 text-left transition-colors hover:bg-accent/40",
                   "before:pointer-events-none before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r-full before:bg-transparent before:transition-colors",
@@ -954,7 +981,14 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
 
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                      <span className="truncate text-sm font-semibold text-foreground">
+                      {unread && (
+                        <span
+                          aria-label="Não lida"
+                          title="Não lida"
+                          className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brand shadow-[0_0_0_2px_hsl(var(--brand)/0.15)]"
+                        />
+                      )}
+                      <span className={cn("truncate text-sm text-foreground", unread ? "font-bold" : "font-semibold")}>
                         {qt.customer_name}
                       </span>
                       {!foco && <SourceTag source={qt.source_type} />}
