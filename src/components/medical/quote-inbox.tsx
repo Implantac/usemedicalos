@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Bookmark, BookmarkPlus, Building2, Download, Filter, Layers, Rows3, Search, Share2, Trash2, Undo2, Upload, X } from "lucide-react";
+import { ArrowRight, Bookmark, BookmarkPlus, Building2, CheckSquare, Download, Filter, Layers, Rows3, Search, Share2, Square, Trash2, Undo2, Upload, X } from "lucide-react";
 import { useInboxDensity } from "@/hooks/use-inbox-density";
 
 import type { Quote, QuoteStatus } from "@/lib/medical/types";
@@ -49,6 +49,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
   const [statuses, setStatuses] = useState<Set<QuoteStatus>>(new Set());
   const [sort, setSort] = useState<InboxSort>("priority");
   const [activeViewId, setActiveViewId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const { density, setDensity } = useInboxDensity();
   const foco = density === "foco";
 
@@ -234,6 +235,45 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
     else toast.success(msg, { action });
   };
 
+  // Bulk actions — aplica transição em N quotes de uma vez, com Undo em lote.
+  const toggleSelected = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const clearSelected = () => setSelected(new Set());
+  const selectAllVisible = () => setSelected(new Set(filtered.map((x) => x.id)));
+
+  const runBulk = (kind: "advance" | "regress" | "lost") => {
+    const targets = filtered.filter((x) => selected.has(x.id));
+    if (targets.length === 0) return;
+    const snapshots: Array<{ id: string; from: QuoteStatus }> = [];
+    let applied = 0;
+    for (const qt of targets) {
+      const to =
+        kind === "advance" ? nextStatus(qt.status) :
+        kind === "regress" ? prevStatus(qt.status) :
+        "perdido" as QuoteStatus;
+      if (!to || to === qt.status) continue;
+      snapshots.push({ id: qt.id, from: qt.status });
+      onAdvance(qt.id, to);
+      applied++;
+    }
+    if (applied === 0) { toast("Nenhuma cotação elegível para essa ação"); return; }
+    const label =
+      kind === "advance" ? "avançadas" :
+      kind === "regress" ? "revertidas" : "marcadas como perdidas";
+    const action = { label: "Desfazer", onClick: () => {
+      snapshots.forEach((s) => onAdvance(s.id, s.from));
+      toast(`${snapshots.length} cotação(ões) restauradas`);
+    }};
+    if (kind === "lost") toast.error(`${applied} cotação(ões) ${label}`, { action });
+    else toast.success(`${applied} cotação(ões) ${label}`, { action });
+    clearSelected();
+  };
+
   const handleAdvance = (e: React.MouseEvent, qt: Quote) => {
     e.stopPropagation();
     const ns = nextStatus(qt.status);
@@ -275,11 +315,21 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
         if (!ns) return;
         e.preventDefault();
         runTransition(qt, ns, "advance");
+      } else if (e.key === " " && idx >= 0) {
+        // Space: toggle selection on focused row (multi-select estilo Gmail)
+        e.preventDefault();
+        toggleSelected(filtered[idx].id);
+      } else if (e.key === "Escape" && selected.size > 0) {
+        e.preventDefault();
+        clearSelected();
+      } else if ((e.key === "A" || e.key === "a") && e.shiftKey) {
+        e.preventDefault();
+        selectAllVisible();
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [filtered, selectedId, onSelect, onAdvance]);
+  }, [filtered, selectedId, onSelect, onAdvance, selected.size]);
 
   const handleRegress = (e: React.MouseEvent, qt: Quote) => {
     e.stopPropagation();
@@ -528,8 +578,32 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
         </div>
       </div>
 
+      {selected.size > 0 && (
+        <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-primary/20 bg-primary/95 px-3 py-2 text-primary-foreground shadow-sm">
+          <CheckSquare className="h-3.5 w-3.5" />
+          <span className="text-xs font-semibold">{selected.size} selecionada(s)</span>
+          <Button size="sm" variant="ghost" className="h-6 gap-1 px-2 text-[11px] text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground" onClick={selectAllVisible}>
+            Selecionar todas ({filtered.length})
+          </Button>
+          <div className="ml-auto flex flex-wrap items-center gap-1">
+            <Button size="sm" variant="secondary" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("advance")}>
+              <ArrowRight className="h-3 w-3" /> Avançar
+            </Button>
+            <Button size="sm" variant="secondary" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("regress")}>
+              <Undo2 className="h-3 w-3" /> Voltar
+            </Button>
+            <Button size="sm" variant="destructive" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("lost")}>
+              Marcar perdidas
+            </Button>
+            <Button size="sm" variant="ghost" className="h-6 gap-1 px-2 text-[11px] text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground" onClick={clearSelected}>
+              <X className="h-3 w-3" /> Limpar
+            </Button>
+          </div>
+        </div>
+      )}
 
       <ul className="flex-1 divide-y overflow-y-auto">
+
         {filtered.length === 0 && (
           <li className="flex flex-col items-center gap-2 p-10 text-center">
             <div className="grid h-10 w-10 place-items-center rounded-full bg-muted text-muted-foreground">
@@ -553,6 +627,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
           const ps = prevStatus(qt.status);
           const t = tenantById(qt.tenant_id);
           const ow = ownerById(qt.owner_id);
+          const isSel = selected.has(qt.id);
           return (
             <li key={qt.id}>
               <div
@@ -561,12 +636,26 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance }: Props) {
                 onClick={() => onSelect(qt.id)}
                 onKeyDown={(e) => (e.key === "Enter" ? onSelect(qt.id) : null)}
                 className={cn(
-                  "relative w-full cursor-pointer px-3 py-1.5 pl-3.5 text-left transition-colors hover:bg-accent/40",
+                  "group relative w-full cursor-pointer px-3 py-1.5 pl-3.5 text-left transition-colors hover:bg-accent/40",
                   "before:pointer-events-none before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r-full before:bg-transparent before:transition-colors",
                   active && "bg-accent/60 before:bg-brand",
+                  isSel && "bg-primary/5 before:bg-primary",
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
+                  <button
+                    type="button"
+                    aria-label={isSel ? "Desmarcar cotação" : "Selecionar cotação"}
+                    aria-pressed={isSel}
+                    onClick={(e) => { e.stopPropagation(); toggleSelected(qt.id); }}
+                    className={cn(
+                      "mt-0.5 shrink-0 rounded p-0.5 text-muted-foreground transition-opacity hover:text-primary",
+                      isSel || selected.size > 0 ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus:opacity-100",
+                    )}
+                  >
+                    {isSel ? <CheckSquare className="h-3.5 w-3.5 text-primary" /> : <Square className="h-3.5 w-3.5" />}
+                  </button>
+
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                       <span className="truncate text-sm font-semibold text-foreground">
