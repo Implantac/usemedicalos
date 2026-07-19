@@ -45,6 +45,7 @@ interface Props {
   onReassign?: (id: string, ownerId: string) => void;
   onSetPriority?: (id: string, priority: Priority) => void;
   onSetTier?: (id: string, tier: "A" | "B" | "C") => void;
+  onAppendNote?: (id: string, text: string) => void;
 }
 
 type PresetId = "urgentes" | "sla_risco" | "novas" | "fixadas" | "adiadas" | "nao_lidas";
@@ -81,7 +82,7 @@ async function copyQuoteLink(qt: Quote) {
   }
 }
 
-export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePin, onSnooze, onReassign, onSetPriority, onSetTier }: Props) {
+export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePin, onSnooze, onReassign, onSetPriority, onSetTier, onAppendNote }: Props) {
   const [q, setQ] = useState("");
   const [tenant, setTenant] = useState<string>("todos");
   const [owner, setOwner] = useState<string>("todos");
@@ -98,6 +99,8 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
 
   const [saveOpen, setSaveOpen] = useState(false);
   const [viewName, setViewName] = useState("");
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [noteDraft, setNoteDraft] = useState("");
   const { views, saveView, deleteView } = useInboxViews();
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -979,6 +982,17 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 </Button>
               );
             })()}
+            {onAppendNote && (
+              <Button
+                size="sm"
+                variant="secondary"
+                className="h-6 gap-1 px-2 text-[11px]"
+                title="Adicionar nota às selecionadas"
+                onClick={() => { setNoteDraft(""); setNoteOpen(true); }}
+              >
+                <FileSpreadsheet className="h-3 w-3" /> Nota
+              </Button>
+            )}
             <Button
               size="sm"
               variant="secondary"
@@ -1242,6 +1256,43 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
           );
         })}
       </ul>
+      <Dialog open={noteOpen} onOpenChange={setNoteOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar nota às {selected.size} cotação(ões)</DialogTitle>
+          </DialogHeader>
+          <textarea
+            autoFocus
+            value={noteDraft}
+            onChange={(e) => setNoteDraft(e.target.value)}
+            rows={4}
+            placeholder="Ex.: Cliente pediu prazo estendido; revisar antes da resposta."
+            className="w-full resize-none rounded-md border border-input bg-background p-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+          <p className="text-[11px] text-muted-foreground">
+            A nota será anexada com carimbo de data/hora ao histórico de cada cotação selecionada.
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" size="sm" onClick={() => setNoteOpen(false)}>Cancelar</Button>
+            <Button
+              size="sm"
+              disabled={!noteDraft.trim() || !onAppendNote}
+              onClick={() => {
+                const text = noteDraft.trim();
+                if (!text || !onAppendNote) return;
+                const targets = filtered.filter((x) => selected.has(x.id));
+                for (const qt of targets) onAppendNote(qt.id, text);
+                toast.success(`Nota adicionada a ${targets.length} cotação(ões)`);
+                setNoteOpen(false);
+                setNoteDraft("");
+                clearSelected();
+              }}
+            >
+              Adicionar nota
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
