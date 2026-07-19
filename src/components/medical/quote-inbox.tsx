@@ -420,6 +420,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         onSelect(next.id);
       } else if (e.key === "Enter" && idx >= 0) {
         e.preventDefault();
+        markRead([filtered[idx].id]);
         onSelect(filtered[idx].id);
       } else if (e.key === "x" && idx >= 0) {
         const qt = filtered[idx];
