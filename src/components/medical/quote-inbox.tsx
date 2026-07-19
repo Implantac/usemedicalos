@@ -197,6 +197,8 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
       );
 
     return list.sort((a, b) => {
+      // Pinned quotes sempre no topo, independente do modo de ordenação.
+      if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
       switch (sort) {
         case "sla":
           return slaState(a.sla_deadline).hours - slaState(b.sla_deadline).hours;
