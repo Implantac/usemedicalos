@@ -204,6 +204,7 @@ export function useQuotes() {
     removeItem,
     setStatus,
     togglePin,
+    snoozeQuote,
     resetDemo,
   };
 }
