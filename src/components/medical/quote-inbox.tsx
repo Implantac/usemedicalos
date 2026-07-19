@@ -831,6 +831,34 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 </Button>
               );
             })()}
+            {onReassign && (
+              <Select
+                value=""
+                onValueChange={(ownerId) => {
+                  if (!ownerId) return;
+                  const targets = filtered.filter((x) => selected.has(x.id));
+                  let n = 0;
+                  for (const qt of targets) {
+                    if (qt.owner_id !== ownerId) { onReassign(qt.id, ownerId); n++; }
+                  }
+                  const label = ownerById(ownerId)?.name ?? ownerId;
+                  if (n > 0) toast.success(`${n} cotação(ões) reatribuída(s) para ${label}`);
+                  else toast(`Nada a reatribuir — já pertencem a ${label}`);
+                  clearSelected();
+                }}
+              >
+                <SelectTrigger className="h-6 w-[150px] gap-1 border-primary-foreground/30 bg-primary-foreground/10 px-2 text-[11px] text-primary-foreground hover:bg-primary-foreground/20 focus:ring-primary-foreground/40">
+                  <SelectValue placeholder="Reatribuir para…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {OWNERS.map((o) => (
+                    <SelectItem key={o.id} value={o.id} className="text-xs">
+                      {o.name} <span className="text-muted-foreground">· {o.role}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <Button size="sm" variant="destructive" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("lost")}>
               Marcar perdidas
             </Button>
