@@ -65,7 +65,7 @@ function InboxPage() {
         </div>
 
         <div className="overflow-hidden rounded-lg border bg-card card-shadow">
-          <QuoteInbox quotes={quotes} selectedId={selectedId} onSelect={setSelectedId} onAdvance={setStatus} onTogglePin={togglePin} onSnooze={snoozeQuote} onReassign={reassignQuote} />
+          <QuoteInbox quotes={quotes} selectedId={selectedId} onSelect={setSelectedId} onAdvance={setStatus} onTogglePin={togglePin} onSnooze={snoozeQuote} onReassign={reassignQuote} onSetPriority={(id, priority) => updateQuote(id, { priority })} />
         </div>
       </main>
 

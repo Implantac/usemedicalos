@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, BellOff, Bookmark, BookmarkPlus, Building2, CheckSquare, Clock, Download, FileSpreadsheet, Filter, Flame, Inbox as InboxIcon, Layers, Link2, Moon, Pin, PinOff, Rows3, Search, Share2, Square, Sunrise, Timer, Trash2, Undo2, Upload, X, Zap } from "lucide-react";
 import { useInboxDensity } from "@/hooks/use-inbox-density";
 
-import type { Quote, QuoteStatus } from "@/lib/medical/types";
+import type { Priority, Quote, QuoteStatus } from "@/lib/medical/types";
 import { STATUS_LABEL } from "@/lib/medical/types";
 import { quoteTotals, formatBRL, formatPct } from "@/lib/medical/pricing";
 import { nextStatus, prevStatus, slaBucketOf, SLA_LABEL, type SlaBucket } from "@/lib/medical/pipeline";
@@ -42,6 +42,7 @@ interface Props {
   onTogglePin?: (id: string) => void;
   onSnooze?: (id: string, until: string | null) => void;
   onReassign?: (id: string, ownerId: string) => void;
+  onSetPriority?: (id: string, priority: Priority) => void;
 }
 
 type PresetId = "urgentes" | "sla_risco" | "novas" | "fixadas" | "adiadas";
@@ -78,7 +79,7 @@ async function copyQuoteLink(qt: Quote) {
   }
 }
 
-export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePin, onSnooze, onReassign }: Props) {
+export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePin, onSnooze, onReassign, onSetPriority }: Props) {
   const [q, setQ] = useState("");
   const [tenant, setTenant] = useState<string>("todos");
   const [owner, setOwner] = useState<string>("todos");
@@ -856,6 +857,34 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                       {o.name} <span className="text-muted-foreground">· {o.territory}</span>
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            )}
+            {onSetPriority && (
+              <Select
+                value=""
+                onValueChange={(p) => {
+                  if (!p) return;
+                  const priority = p as Priority;
+                  const targets = filtered.filter((x) => selected.has(x.id));
+                  let n = 0;
+                  for (const qt of targets) {
+                    if (qt.priority !== priority) { onSetPriority(qt.id, priority); n++; }
+                  }
+                  const label = { urgente: "Urgente", alta: "Alta", normal: "Normal", baixa: "Baixa" }[priority];
+                  if (n > 0) toast.success(`${n} cotação(ões) marcada(s) como ${label}`);
+                  else toast(`Todas já estão em ${label}`);
+                  clearSelected();
+                }}
+              >
+                <SelectTrigger className="h-6 w-[140px] gap-1 border-primary-foreground/30 bg-primary-foreground/10 px-2 text-[11px] text-primary-foreground hover:bg-primary-foreground/20 focus:ring-primary-foreground/40">
+                  <SelectValue placeholder="Prioridade…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="urgente" className="text-xs">🔥 Urgente</SelectItem>
+                  <SelectItem value="alta" className="text-xs">⚡ Alta</SelectItem>
+                  <SelectItem value="normal" className="text-xs">Normal</SelectItem>
+                  <SelectItem value="baixa" className="text-xs">Baixa</SelectItem>
                 </SelectContent>
               </Select>
             )}
