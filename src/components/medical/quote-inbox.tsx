@@ -41,6 +41,7 @@ interface Props {
   onAdvance: (id: string, status: QuoteStatus) => void;
   onTogglePin?: (id: string) => void;
   onSnooze?: (id: string, until: string | null) => void;
+  onReassign?: (id: string, ownerId: string) => void;
 }
 
 type PresetId = "urgentes" | "sla_risco" | "novas" | "fixadas" | "adiadas";
