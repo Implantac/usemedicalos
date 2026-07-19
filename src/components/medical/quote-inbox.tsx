@@ -42,6 +42,7 @@ interface Props {
   onTogglePin?: (id: string) => void;
   onSnooze?: (id: string, until: string | null) => void;
   onReassign?: (id: string, ownerId: string) => void;
+  onSetPriority?: (id: string, priority: Priority) => void;
 }
 
 type PresetId = "urgentes" | "sla_risco" | "novas" | "fixadas" | "adiadas";
