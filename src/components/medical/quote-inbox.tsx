@@ -99,6 +99,8 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
 
   const [saveOpen, setSaveOpen] = useState(false);
   const [viewName, setViewName] = useState("");
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [noteDraft, setNoteDraft] = useState("");
   const { views, saveView, deleteView } = useInboxViews();
   const fileRef = useRef<HTMLInputElement | null>(null);
 
