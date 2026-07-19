@@ -687,7 +687,30 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                       </p>
                     )}
                   </div>
-                  <SlaIndicator deadline={qt.sla_deadline} compact />
+                  <div className="flex items-center gap-1">
+                    {onTogglePin && (
+                      <button
+                        type="button"
+                        aria-label={qt.pinned ? "Desfixar cotação" : "Fixar cotação no topo"}
+                        aria-pressed={!!qt.pinned}
+                        title={qt.pinned ? "Desfixar" : "Fixar no topo (p)"}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onTogglePin(qt.id);
+                          toast(qt.pinned ? `${qt.customer_name} desfixado` : `${qt.customer_name} fixado no topo`);
+                        }}
+                        className={cn(
+                          "shrink-0 rounded p-0.5 transition-opacity hover:text-brand",
+                          qt.pinned
+                            ? "text-brand opacity-100"
+                            : "text-muted-foreground opacity-0 group-hover:opacity-100 focus:opacity-100",
+                        )}
+                      >
+                        {qt.pinned ? <Pin className="h-3.5 w-3.5 fill-current" /> : <PinOff className="h-3.5 w-3.5" />}
+                      </button>
+                    )}
+                    <SlaIndicator deadline={qt.sla_deadline} compact />
+                  </div>
                 </div>
 
                 <div className="mt-1 flex flex-wrap items-center justify-between gap-1.5">
