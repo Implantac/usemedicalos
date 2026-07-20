@@ -26,7 +26,11 @@ export const Route = createFileRoute("/compliance")({
       },
     ],
   }),
-  component: CompliancePage,
+  component: () => (
+    <PermissionGate perm="compliance.override" title="Compliance restrito">
+      <CompliancePage />
+    </PermissionGate>
+  ),
 });
 
 interface TenantScore {

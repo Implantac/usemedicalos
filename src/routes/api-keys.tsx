@@ -26,7 +26,11 @@ export const Route = createFileRoute("/api-keys")({
       },
     ],
   }),
-  component: ApiKeysPage,
+  component: () => (
+    <PermissionGate perm="api_keys.manage" title="API Keys restrito">
+      <ApiKeysPage />
+    </PermissionGate>
+  ),
 });
 
 const ALL_SCOPES: { id: ApiScope; label: string; desc: string }[] = [

@@ -22,7 +22,11 @@ export const Route = createFileRoute("/auditoria")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: AuditoriaPage,
+  component: () => (
+    <PermissionGate perm="governance.manage" title="Auditoria restrita">
+      <AuditoriaPage />
+    </PermissionGate>
+  ),
 });
 
 const TYPE_LABEL: Record<ActivityType, string> = {

@@ -19,7 +19,11 @@ export const Route = createFileRoute("/produtos")({
       { name: "description", content: "Catálogo de produtos hospitalares com motor de precificação de 4 camadas (floor, CMED, mercado, estratégia) e governança regulatória." },
     ],
   }),
-  component: ProdutosPage,
+  component: () => (
+    <PermissionGate perm="pricing.governance" title="Produtos restrito">
+      <ProdutosPage />
+    </PermissionGate>
+  ),
 });
 
 function ProdutosPage() {

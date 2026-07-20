@@ -17,7 +17,11 @@ export const Route = createFileRoute("/excecoes")({
       { name: "description", content: "Auditoria de liberações de gestor sobre bloqueios ANVISA/CMED." },
     ],
   }),
-  component: ExceptionsPage,
+  component: () => (
+    <PermissionGate perm="compliance.override" title="Exceções restrito">
+      <ExceptionsPage />
+    </PermissionGate>
+  ),
 });
 
 function ExceptionsPage() {

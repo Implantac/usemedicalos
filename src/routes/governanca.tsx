@@ -47,7 +47,11 @@ export const Route = createFileRoute("/governanca")({
       },
     ],
   }),
-  component: GovernancePage,
+  component: () => (
+    <PermissionGate perm="governance.manage" title="Governança restrita">
+      <GovernancePage />
+    </PermissionGate>
+  ),
 });
 
 const ROLES: GovRole[] = ["viewer", "vendedor", "gestor", "admin"];

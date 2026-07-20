@@ -17,7 +17,11 @@ export const Route = createFileRoute("/cloud-readiness")({
       },
     ],
   }),
-  component: CloudReadinessPage,
+  component: () => (
+    <PermissionGate perm="tenant.configure" title="Cloud readiness restrito">
+      <CloudReadinessPage />
+    </PermissionGate>
+  ),
 });
 
 type Check = {

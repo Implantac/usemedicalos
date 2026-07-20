@@ -23,7 +23,11 @@ export const Route = createFileRoute("/quarentena")({
       },
     ],
   }),
-  component: QuarantinePage,
+  component: () => (
+    <PermissionGate perm="integrations.manage" title="Quarentena restrita">
+      <QuarantinePage />
+    </PermissionGate>
+  ),
 });
 
 function QuarantinePage() {

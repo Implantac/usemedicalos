@@ -48,7 +48,11 @@ export const Route = createFileRoute("/integracoes")({
       },
     ],
   }),
-  component: IntegrationsPage,
+  component: () => (
+    <PermissionGate perm="integrations.manage" title="Integrações restrito">
+      <IntegrationsPage />
+    </PermissionGate>
+  ),
 });
 
 function IntegrationsPage() {
