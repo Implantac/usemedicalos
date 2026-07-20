@@ -28,33 +28,35 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import logoAsset from "@/assets/use-medical-logo.png.asset.json";
+import { usePermissions } from "@/hooks/use-permissions";
+import { ROLE_LABEL, type Permission } from "@/lib/medical/governance";
 
-type NavItem = { to: string; label: string; icon: typeof Inbox };
+type NavItem = { to: string; label: string; icon: typeof Inbox; perm?: Permission };
 
 const OPERACAO: NavItem[] = [
-  { to: "/", label: "Inbox", icon: Inbox },
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/executivo", label: "Executivo", icon: Gauge },
-  { to: "/sla-watchdog", label: "SLA Watchdog", icon: Radio },
+  { to: "/", label: "Inbox", icon: Inbox, perm: "quotes.view" },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, perm: "quotes.view" },
+  { to: "/executivo", label: "Executivo", icon: Gauge, perm: "quotes.view" },
+  { to: "/sla-watchdog", label: "SLA Watchdog", icon: Radio, perm: "quotes.view" },
 ];
 
 const CATALOGO: NavItem[] = [
-  { to: "/produtos", label: "Produtos", icon: Package },
-  { to: "/inteligencia", label: "Inteligência", icon: LineChart },
+  { to: "/produtos", label: "Produtos", icon: Package, perm: "pricing.governance" },
+  { to: "/inteligencia", label: "Inteligência", icon: LineChart, perm: "quotes.view" },
 ];
 
 const INTEGRACAO: NavItem[] = [
-  { to: "/integracoes", label: "Integrações", icon: Plug },
-  { to: "/api-keys", label: "API Keys", icon: KeyRound },
-  { to: "/cloud-readiness", label: "Cloud", icon: Cloud },
+  { to: "/integracoes", label: "Integrações", icon: Plug, perm: "integrations.manage" },
+  { to: "/api-keys", label: "API Keys", icon: KeyRound, perm: "api_keys.manage" },
+  { to: "/cloud-readiness", label: "Cloud", icon: Cloud, perm: "tenant.configure" },
 ];
 
 const GOVERNANCA: NavItem[] = [
-  { to: "/excecoes", label: "Exceções", icon: ShieldCheck },
-  { to: "/compliance", label: "Compliance", icon: ShieldCheck },
-  { to: "/governanca", label: "Governança", icon: Shield },
-  { to: "/auditoria", label: "Auditoria", icon: FileSearch },
-  { to: "/quarentena", label: "Quarentena", icon: ShieldAlert },
+  { to: "/excecoes", label: "Exceções", icon: ShieldCheck, perm: "compliance.override" },
+  { to: "/compliance", label: "Compliance", icon: ShieldCheck, perm: "compliance.override" },
+  { to: "/governanca", label: "Governança", icon: Shield, perm: "governance.manage" },
+  { to: "/auditoria", label: "Auditoria", icon: FileSearch, perm: "governance.manage" },
+  { to: "/quarentena", label: "Quarentena", icon: ShieldAlert, perm: "integrations.manage" },
 ];
 
 function NavGroup({ label, items, currentPath }: { label: string; items: NavItem[]; currentPath: string }) {
