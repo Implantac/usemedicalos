@@ -59,13 +59,25 @@ const GOVERNANCA: NavItem[] = [
   { to: "/quarentena", label: "Quarentena", icon: ShieldAlert, perm: "integrations.manage" },
 ];
 
-function NavGroup({ label, items, currentPath }: { label: string; items: NavItem[]; currentPath: string }) {
+function NavGroup({
+  label,
+  items,
+  currentPath,
+  can,
+}: {
+  label: string;
+  items: NavItem[];
+  currentPath: string;
+  can: (p: Permission) => boolean;
+}) {
+  const visible = items.filter((n) => !n.perm || can(n.perm));
+  if (visible.length === 0) return null;
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          {items.map((n) => {
+          {visible.map((n) => {
             const Icon = n.icon;
             const active = currentPath === n.to;
             return (
