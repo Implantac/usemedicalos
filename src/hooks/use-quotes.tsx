@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Priority, Quote, QuoteItem, QuoteStatus, SourceType } from "@/lib/medical/types";
 import { INITIAL_QUOTES, PRODUCTS, TENANTS } from "@/lib/medical/mock-data";
 import { buildAutoDraft } from "@/lib/medical/auto-draft";
-import { classify, slaHoursFor } from "@/lib/medical/classifier";
+import { classify } from "@/lib/medical/classifier";
 import { appendActivity } from "@/lib/medical/activity";
 import { useActiveTenant } from "@/hooks/use-active-tenant";
 import { useTenantConfig } from "@/hooks/use-tenant-config";
