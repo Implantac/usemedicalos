@@ -101,6 +101,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
+  const { can, role } = usePermissions();
 
   return (
     <Sidebar collapsible="icon">
@@ -120,15 +121,18 @@ export function AppSidebar() {
         </Link>
       </SidebarHeader>
       <SidebarContent>
-        <NavGroup label="Operação" items={OPERACAO} currentPath={currentPath} />
-        <NavGroup label="Catálogo" items={CATALOGO} currentPath={currentPath} />
-        <NavGroup label="Integração" items={INTEGRACAO} currentPath={currentPath} />
-        <NavGroup label="Governança" items={GOVERNANCA} currentPath={currentPath} />
+        <NavGroup label="Operação" items={OPERACAO} currentPath={currentPath} can={can} />
+        <NavGroup label="Catálogo" items={CATALOGO} currentPath={currentPath} can={can} />
+        <NavGroup label="Integração" items={INTEGRACAO} currentPath={currentPath} can={can} />
+        <NavGroup label="Governança" items={GOVERNANCA} currentPath={currentPath} can={can} />
       </SidebarContent>
       <SidebarFooter>
         {!collapsed && (
-          <div className="px-2 pb-1 text-[10px] text-sidebar-foreground/50">
-            v1 · Commercial OS
+          <div className="flex items-center justify-between px-2 pb-1 text-[10px] text-sidebar-foreground/50">
+            <span>v1 · Commercial OS</span>
+            <span className="rounded bg-sidebar-accent/40 px-1.5 py-0.5 font-medium text-sidebar-foreground/70">
+              {ROLE_LABEL[role]}
+            </span>
           </div>
         )}
       </SidebarFooter>
