@@ -55,7 +55,11 @@ function writeStore(store: Store) {
 export function getTenantConfig(tenantId: string | null | undefined): TenantConfig {
   if (!tenantId) return DEFAULT_TENANT_CONFIG;
   const override = readStore()[tenantId] ?? {};
-  return { ...DEFAULT_TENANT_CONFIG, ...override };
+  return {
+    ...DEFAULT_TENANT_CONFIG,
+    ...override,
+    sla_hours: { ...DEFAULT_SLA_HOURS, ...(override.sla_hours ?? {}) },
+  };
 }
 
 export function setTenantConfig(tenantId: string, patch: Partial<TenantConfig>) {
