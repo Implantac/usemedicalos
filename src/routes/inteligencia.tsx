@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { AppHeader } from "@/components/medical/app-header";
 import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { BenchmarkPanel } from "@/components/medical/benchmark-panel";
+import { CalibrationPanel } from "@/components/medical/calibration-panel";
 import { useQuotes } from "@/hooks/use-quotes";
 import { compareByRegion, consolidatedBenchmark } from "@/lib/medical/benchmarks";
 import { Toaster } from "@/components/ui/sonner";
@@ -40,6 +41,7 @@ function BiPage() {
           </p>
         </div>
         <BenchmarkPanel rows={rows} consolidated={consolidated} />
+        <CalibrationPanel />
       </main>
       <Toaster position="top-right" richColors />
     </div>
