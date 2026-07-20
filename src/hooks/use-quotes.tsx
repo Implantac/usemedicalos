@@ -5,6 +5,8 @@ import { buildAutoDraft } from "@/lib/medical/auto-draft";
 import { classify, slaHoursFor } from "@/lib/medical/classifier";
 import { appendActivity } from "@/lib/medical/activity";
 import { useActiveTenant } from "@/hooks/use-active-tenant";
+import { useTenantConfig } from "@/hooks/use-tenant-config";
+import { slaHoursForTenant } from "@/lib/medical/tenant-config";
 import { assertSameTenant, CrossTenantWriteError, type ActiveScope } from "@/lib/medical/tenant-guard";
 
 
