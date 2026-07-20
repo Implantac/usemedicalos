@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PermissionGate } from "@/components/medical/permission-gate";
 import { useEffect, useMemo, useState } from "react";
 import { ShieldCheck, Clock, XCircle } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
