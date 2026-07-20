@@ -1281,6 +1281,67 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             >
               <FileSpreadsheet className="h-3 w-3" /> Imprimir
             </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-6 gap-1 px-2 text-[11px]"
+              title="Baixar .ics com VEVENT no deadline SLA de cada cotação selecionada"
+              onClick={() => {
+                const targets = filtered.filter((x) => selected.has(x.id));
+                if (targets.length === 0) return;
+                const pad = (n: number) => String(n).padStart(2, "0");
+                const toIcs = (iso: string) => {
+                  const d = new Date(iso);
+                  return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
+                };
+                const esc = (s: string) => s.replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n");
+                const dtstamp = toIcs(new Date().toISOString());
+                const events = targets.map((qt) => {
+                  const t = quoteTotals(qt.items);
+                  const tenantName = tenantById(qt.tenant_id)?.name ?? qt.tenant_id;
+                  const end = new Date(new Date(qt.sla_deadline).getTime() + 30 * 60_000).toISOString();
+                  const summary = `SLA ${qt.customer_name} — ${formatBRL(t.revenue)}`;
+                  const desc = `USE Medical — Cotação #${qt.id.toUpperCase()}\\nCliente: ${qt.customer_name}\\nTenant: ${tenantName}\\nItens: ${qt.items.length}\\nReceita: ${formatBRL(t.revenue)}\\nMargem: ${formatPct(t.margin)}\\nStatus: ${STATUS_LABEL[qt.status]}\\nPrioridade: ${qt.priority}\\nLink: ${quoteDeepLink(qt.id)}`;
+                  return [
+                    "BEGIN:VEVENT",
+                    `UID:${qt.id}@use-medical`,
+                    `DTSTAMP:${dtstamp}`,
+                    `DTSTART:${toIcs(qt.sla_deadline)}`,
+                    `DTEND:${toIcs(end)}`,
+                    `SUMMARY:${esc(summary)}`,
+                    `DESCRIPTION:${esc(desc)}`,
+                    `URL:${quoteDeepLink(qt.id)}`,
+                    "BEGIN:VALARM",
+                    "TRIGGER:-PT30M",
+                    "ACTION:DISPLAY",
+                    `DESCRIPTION:${esc(summary)}`,
+                    "END:VALARM",
+                    "END:VEVENT",
+                  ].join("\r\n");
+                });
+                const ics = [
+                  "BEGIN:VCALENDAR",
+                  "VERSION:2.0",
+                  "PRODID:-//USE Medical//Inbox//PT-BR",
+                  "CALSCALE:GREGORIAN",
+                  "METHOD:PUBLISH",
+                  ...events,
+                  "END:VCALENDAR",
+                ].join("\r\n");
+                const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `use-medical-sla-${new Date().toISOString().slice(0, 10)}.ics`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                toast.success(`Agenda .ics gerada (${targets.length} evento(s))`);
+              }}
+            >
+              📅 Agenda
+            </Button>
             <Button size="sm" variant="secondary" className="h-6 gap-1 px-2 text-[11px] bg-success text-success-foreground hover:bg-success/90" onClick={() => runBulk("won")}>
               🏆 Marcar ganhas
             </Button>
