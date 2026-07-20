@@ -236,7 +236,7 @@ export function useQuotes() {
       return null;
     }
     const now = new Date();
-    const sla = slaHoursFor(source.priority);
+    const sla = slaHoursForTenant(source.priority, tenantConfigRef.current);
     const copy: Quote = {
       ...source,
       id: `q${Date.now().toString().slice(-6)}`,
