@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { Radio, Timer, Zap } from "lucide-react";
+import { Radio, Timer, Zap, CheckCheck } from "lucide-react";
+import { toast } from "sonner";
 import { AppHeader } from "@/components/medical/app-header";
 import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { EmptyState } from "@/components/ui/state-panels";
@@ -104,12 +105,28 @@ function SlaWatchdogPage() {
               Meta interna: <strong className="text-foreground">≤ 30 min</strong>.
             </p>
           </div>
-          <Link
-            to="/integracoes"
-            className="text-xs text-primary underline-offset-2 hover:underline"
-          >
-            Configurar conectores de portal →
-          </Link>
+          <div className="flex items-center gap-2">
+            {kpis.pending > 0 && (
+              <button
+                onClick={() => {
+                  const pending = rows.filter((r) => r.status !== "responded");
+                  pending.forEach((r) => markPortalResponded(r.id));
+                  toast.success(`${pending.length} RFQ(s) assumidas`, {
+                    description: "Latência congelada no momento atual.",
+                  });
+                }}
+                className="inline-flex h-7 items-center gap-1 rounded border border-primary/40 bg-primary/10 px-2 text-xs font-semibold text-primary hover:bg-primary/20"
+              >
+                <CheckCheck className="h-3.5 w-3.5" /> Assumir todas ({kpis.pending})
+              </button>
+            )}
+            <Link
+              to="/integracoes"
+              className="text-xs text-primary underline-offset-2 hover:underline"
+            >
+              Configurar conectores de portal →
+            </Link>
+          </div>
         </header>
 
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
