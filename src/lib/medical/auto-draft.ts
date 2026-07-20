@@ -21,7 +21,7 @@ export function buildAutoDraft(
   quote: Quote,
   products: Product[],
   history: Quote[],
-  opts: { minMargin?: number } = {},
+  opts: { minMargin?: number; targetMargin?: number } = {},
 ): AutoDraftResult {
   const bySku = new Map(products.map((p) => [p.sku, p]));
 
@@ -42,7 +42,12 @@ export function buildAutoDraft(
       skipped += 1;
       return it;
     }
-    const breakdown = calculateSuggestedPrice(p, { tier, quantity: it.quantity, minMargin: opts.minMargin });
+    const breakdown = calculateSuggestedPrice(p, {
+      tier,
+      quantity: it.quantity,
+      minMargin: opts.minMargin,
+      targetMargin: opts.targetMargin,
+    });
     priced += 1;
     return {
       ...it,

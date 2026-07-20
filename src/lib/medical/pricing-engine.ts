@@ -25,6 +25,7 @@ export interface PricingBreakdown {
 }
 
 const DEFAULT_MIN_TECHNICAL_MARGIN = 0.05; // fallback quando o tenant não define
+const DEFAULT_TARGET_MARGIN = 0.30; // markup técnico quando não há preço de mercado
 const DEFAULT_LOGISTICS_RATE = 0.03;
 const MARKET_UNDERCUT = 0.02; // "bate mercado com 2% de desconto"
 
@@ -34,13 +35,16 @@ const MARKET_UNDERCUT = 0.02; // "bate mercado com 2% de desconto"
  * @param opts.tier - tier do cliente (A/B/C) para desconto estratégico
  * @param opts.quantity - volume, para futura escala de desconto
  * @param opts.minMargin - piso técnico do tenant (fração 0..1); default 5%
+ * @param opts.targetMargin - margem alvo do tenant (fração 0..1); usada como
+ *   markup técnico quando não há preço médio de mercado. Default 30%.
  */
 export function calculateSuggestedPrice(
   product: Pick<Product, "cost_price" | "tax_rate" | "logistics_rate" | "cmed_ceiling" | "market_avg">,
-  opts: { tier?: ClientTier; quantity?: number; minMargin?: number } = {},
+  opts: { tier?: ClientTier; quantity?: number; minMargin?: number; targetMargin?: number } = {},
 ): PricingBreakdown {
   const logistics = product.logistics_rate ?? DEFAULT_LOGISTICS_RATE;
   const minMargin = opts.minMargin ?? DEFAULT_MIN_TECHNICAL_MARGIN;
+  const targetMargin = opts.targetMargin ?? DEFAULT_TARGET_MARGIN;
 
   // ---------- Camada 1: Floor Price ----------
   const loadedCost = product.cost_price * (1 + product.tax_rate + logistics);
@@ -72,10 +76,10 @@ export function calculateSuggestedPrice(
     marketTarget = round2(product.market_avg * (1 - MARKET_UNDERCUT));
     base = marketTarget;
   } else {
-    // Fallback: sem inteligência de mercado, aplica markup de 30% sobre o floor
-    base = round2(floor * 1.3);
+    // Fallback: sem inteligência de mercado, aplica a margem alvo do tenant sobre o floor
+    base = round2(floor * (1 + targetMargin));
     statusHint = "MARKET_MISSING";
-    reason = "Sem preço médio de mercado. Usando markup técnico de 30% sobre o floor.";
+    reason = `Sem preço médio de mercado. Usando margem alvo do tenant (${(targetMargin * 100).toFixed(0)}%) sobre o floor.`;
   }
 
   // ---------- Camada 4: Strategic Margin (tier) ----------

@@ -43,6 +43,16 @@ describe("calculateSuggestedPrice — 4 camadas", () => {
     expect(r.market_target).toBeUndefined();
   });
 
+  it("MARKET_MISSING usa targetMargin do tenant como markup sobre o floor", () => {
+    const r = calculateSuggestedPrice(
+      { ...base, market_avg: undefined },
+      { targetMargin: 0.5 },
+    );
+    // floor = 10 * 1.21 * 1.05 = 12.705 → 12.71; base = 12.71 * 1.5 = 19.065 → 19.07
+    expect(r.status).toBe("MARKET_MISSING");
+    expect(r.suggested_price).toBeCloseTo(19.07, 2);
+  });
+
   it("BLOCKED quando floor excede o teto CMED", () => {
     const r = calculateSuggestedPrice({ ...base, cost_price: 100, cmed_ceiling: 50 });
     expect(r.status).toBe("BLOCKED");
