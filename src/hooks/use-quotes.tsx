@@ -38,8 +38,11 @@ export function useQuotes() {
   const [allQuotes, setAllQuotes] = useState<Quote[]>(INITIAL_QUOTES);
   const [hydrated, setHydrated] = useState(false);
   const { scope, tenant } = useActiveTenant();
+  const { config: tenantConfig } = useTenantConfig(tenant?.id);
   const scopeRef = useRef<ActiveScope>(scope);
   scopeRef.current = scope;
+  const tenantConfigRef = useRef(tenantConfig);
+  tenantConfigRef.current = tenantConfig;
 
   useEffect(() => {
     setAllQuotes(load());
