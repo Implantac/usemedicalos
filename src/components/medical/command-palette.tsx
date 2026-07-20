@@ -11,12 +11,15 @@ import {
   Package,
   Plug,
   Radio,
+  Settings2,
   Shield,
   ShieldAlert,
   ShieldCheck,
   FileText,
   Building2,
 } from "lucide-react";
+import { usePermissions } from "@/hooks/use-permissions";
+import type { Permission } from "@/lib/medical/governance";
 import {
   CommandDialog,
   CommandEmpty,
@@ -31,22 +34,31 @@ import type { Quote } from "@/lib/medical/types";
 import { STATUS_LABEL } from "@/lib/medical/types";
 import { TENANTS } from "@/lib/medical/mock-data";
 
-const NAV_ITEMS = [
-  { to: "/", label: "Inbox", icon: Inbox, keywords: "cotacoes rfq caixa" },
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, keywords: "kpi metricas" },
-  { to: "/executivo", label: "Painel Executivo", icon: Gauge, keywords: "gestor c-level" },
-  { to: "/sla-watchdog", label: "SLA Watchdog", icon: Radio, keywords: "prazo atraso" },
-  { to: "/produtos", label: "Produtos", icon: Package, keywords: "catalogo sku" },
-  { to: "/inteligencia", label: "Inteligência", icon: LineChart, keywords: "analytics benchmarks" },
-  { to: "/integracoes", label: "Integrações", icon: Plug, keywords: "erp use sistemas totvs" },
-  { to: "/api-keys", label: "API Keys", icon: KeyRound, keywords: "tokens webhook" },
-  { to: "/excecoes", label: "Exceções", icon: ShieldCheck, keywords: "compliance override" },
-  { to: "/compliance", label: "Compliance", icon: ShieldCheck, keywords: "anvisa cmed" },
-  { to: "/governanca", label: "Governança", icon: Shield, keywords: "papeis permissoes rbac" },
-  { to: "/auditoria", label: "Auditoria", icon: FileSearch, keywords: "log hash chain" },
-  { to: "/quarentena", label: "Quarentena", icon: ShieldAlert, keywords: "erro payload" },
-  { to: "/cloud-readiness", label: "Cloud Readiness", icon: Cloud, keywords: "supabase migracao" },
-] as const;
+type NavEntry = {
+  to: string;
+  label: string;
+  icon: typeof Inbox;
+  keywords: string;
+  perm?: Permission;
+};
+
+const NAV_ITEMS: NavEntry[] = [
+  { to: "/", label: "Inbox", icon: Inbox, keywords: "cotacoes rfq caixa", perm: "quotes.view" },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, keywords: "kpi metricas", perm: "quotes.view" },
+  { to: "/executivo", label: "Painel Executivo", icon: Gauge, keywords: "gestor c-level", perm: "quotes.view" },
+  { to: "/sla-watchdog", label: "SLA Watchdog", icon: Radio, keywords: "prazo atraso", perm: "quotes.view" },
+  { to: "/produtos", label: "Produtos", icon: Package, keywords: "catalogo sku", perm: "pricing.governance" },
+  { to: "/inteligencia", label: "Inteligência", icon: LineChart, keywords: "analytics benchmarks", perm: "quotes.view" },
+  { to: "/integracoes", label: "Integrações", icon: Plug, keywords: "erp use sistemas totvs", perm: "integrations.manage" },
+  { to: "/api-keys", label: "API Keys", icon: KeyRound, keywords: "tokens webhook", perm: "api_keys.manage" },
+  { to: "/excecoes", label: "Exceções", icon: ShieldCheck, keywords: "compliance override", perm: "compliance.override" },
+  { to: "/compliance", label: "Compliance", icon: ShieldCheck, keywords: "anvisa cmed", perm: "compliance.override" },
+  { to: "/governanca", label: "Governança", icon: Shield, keywords: "papeis permissoes rbac", perm: "governance.manage" },
+  { to: "/auditoria", label: "Auditoria", icon: FileSearch, keywords: "log hash chain", perm: "governance.manage" },
+  { to: "/quarentena", label: "Quarentena", icon: ShieldAlert, keywords: "erro payload", perm: "integrations.manage" },
+  { to: "/cloud-readiness", label: "Cloud Readiness", icon: Cloud, keywords: "supabase migracao", perm: "tenant.configure" },
+  { to: "/configuracoes", label: "Configurações", icon: Settings2, keywords: "margem retencao target", perm: "tenant.configure" },
+];
 
 const QUOTES_STORAGE_KEY = "use-medical:quotes:v2";
 
@@ -71,6 +83,8 @@ export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const navigate = useNavigate();
+  const { can } = usePermissions();
+  const visibleNav = useMemo(() => NAV_ITEMS.filter((n) => !n.perm || can(n.perm)), [can]);
 
   // Atalho global ⌘K / Ctrl+K
   useEffect(() => {
@@ -111,7 +125,7 @@ export function CommandPalette() {
         <CommandEmpty>Nada encontrado.</CommandEmpty>
 
         <CommandGroup heading="Navegação">
-          {NAV_ITEMS.map((n) => {
+          {visibleNav.map((n) => {
             const Icon = n.icon;
             return (
               <CommandItem
