@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useActiveTenant } from "@/hooks/use-active-tenant";
 import { useTenantConfig } from "@/hooks/use-tenant-config";
-import { DEFAULT_TENANT_CONFIG } from "@/lib/medical/tenant-config";
+import { DEFAULT_TENANT_CONFIG, DEFAULT_SLA_HOURS, type SlaHoursMap } from "@/lib/medical/tenant-config";
+import { PRIORITY_LABEL, type Priority } from "@/lib/medical/types";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/configuracoes")({
