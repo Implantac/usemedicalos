@@ -19,6 +19,7 @@ import { Route as GovernancaRouteImport } from './routes/governanca'
 import { Route as ExecutivoRouteImport } from './routes/executivo'
 import { Route as ExcecoesRouteImport } from './routes/excecoes'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ComplianceRouteImport } from './routes/compliance'
 import { Route as CloudReadinessRouteImport } from './routes/cloud-readiness'
 import { Route as AuditoriaRouteImport } from './routes/auditoria'
@@ -80,6 +81,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComplianceRoute = ComplianceRouteImport.update({
   id: '/compliance',
   path: '/compliance',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/auditoria': typeof AuditoriaRoute
   '/cloud-readiness': typeof CloudReadinessRoute
   '/compliance': typeof ComplianceRoute
+  '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
   '/executivo': typeof ExecutivoRoute
@@ -159,6 +166,7 @@ export interface FileRoutesByTo {
   '/auditoria': typeof AuditoriaRoute
   '/cloud-readiness': typeof CloudReadinessRoute
   '/compliance': typeof ComplianceRoute
+  '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
   '/executivo': typeof ExecutivoRoute
@@ -182,6 +190,7 @@ export interface FileRoutesById {
   '/auditoria': typeof AuditoriaRoute
   '/cloud-readiness': typeof CloudReadinessRoute
   '/compliance': typeof ComplianceRoute
+  '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
   '/executivo': typeof ExecutivoRoute
@@ -206,6 +215,7 @@ export interface FileRouteTypes {
     | '/auditoria'
     | '/cloud-readiness'
     | '/compliance'
+    | '/configuracoes'
     | '/dashboard'
     | '/excecoes'
     | '/executivo'
@@ -228,6 +238,7 @@ export interface FileRouteTypes {
     | '/auditoria'
     | '/cloud-readiness'
     | '/compliance'
+    | '/configuracoes'
     | '/dashboard'
     | '/excecoes'
     | '/executivo'
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '/auditoria'
     | '/cloud-readiness'
     | '/compliance'
+    | '/configuracoes'
     | '/dashboard'
     | '/excecoes'
     | '/executivo'
@@ -273,6 +285,7 @@ export interface RootRouteChildren {
   AuditoriaRoute: typeof AuditoriaRoute
   CloudReadinessRoute: typeof CloudReadinessRoute
   ComplianceRoute: typeof ComplianceRoute
+  ConfiguracoesRoute: typeof ConfiguracoesRoute
   DashboardRoute: typeof DashboardRoute
   ExcecoesRoute: typeof ExcecoesRoute
   ExecutivoRoute: typeof ExecutivoRoute
@@ -362,6 +375,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/configuracoes': {
+      id: '/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof ConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/compliance': {
       id: '/compliance'
       path: '/compliance'
@@ -441,6 +461,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuditoriaRoute: AuditoriaRoute,
   CloudReadinessRoute: CloudReadinessRoute,
   ComplianceRoute: ComplianceRoute,
+  ConfiguracoesRoute: ConfiguracoesRoute,
   DashboardRoute: DashboardRoute,
   ExcecoesRoute: ExcecoesRoute,
   ExecutivoRoute: ExecutivoRoute,
@@ -460,13 +481,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
