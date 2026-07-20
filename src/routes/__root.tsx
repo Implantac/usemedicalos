@@ -13,6 +13,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CommandPalette } from "../components/medical/command-palette";
 import { ShortcutsHelp } from "../components/medical/shortcuts-help";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/medical/app-sidebar";
 
 function NotFoundComponent() {
   return (
@@ -141,9 +143,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
-      <CommandPalette />
-      <ShortcutsHelp />
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <Outlet />
+        </SidebarInset>
+        <CommandPalette />
+        <ShortcutsHelp />
+      </SidebarProvider>
     </QueryClientProvider>
   );
 }
