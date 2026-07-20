@@ -35,13 +35,16 @@ const MARKET_UNDERCUT = 0.02; // "bate mercado com 2% de desconto"
  * @param opts.tier - tier do cliente (A/B/C) para desconto estratégico
  * @param opts.quantity - volume, para futura escala de desconto
  * @param opts.minMargin - piso técnico do tenant (fração 0..1); default 5%
+ * @param opts.targetMargin - margem alvo do tenant (fração 0..1); usada como
+ *   markup técnico quando não há preço médio de mercado. Default 30%.
  */
 export function calculateSuggestedPrice(
   product: Pick<Product, "cost_price" | "tax_rate" | "logistics_rate" | "cmed_ceiling" | "market_avg">,
-  opts: { tier?: ClientTier; quantity?: number; minMargin?: number } = {},
+  opts: { tier?: ClientTier; quantity?: number; minMargin?: number; targetMargin?: number } = {},
 ): PricingBreakdown {
   const logistics = product.logistics_rate ?? DEFAULT_LOGISTICS_RATE;
   const minMargin = opts.minMargin ?? DEFAULT_MIN_TECHNICAL_MARGIN;
+  const targetMargin = opts.targetMargin ?? DEFAULT_TARGET_MARGIN;
 
   // ---------- Camada 1: Floor Price ----------
   const loadedCost = product.cost_price * (1 + product.tax_rate + logistics);
