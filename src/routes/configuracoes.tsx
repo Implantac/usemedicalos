@@ -164,10 +164,43 @@ function Page() {
               />
             </Field>
 
+            <div className="border-t pt-4">
+              <Label className="text-xs font-medium text-foreground">
+                SLA por prioridade
+              </Label>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Horas até o deadline aplicadas quando uma nova cotação entra com a
+                prioridade correspondente.
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {(Object.keys(DEFAULT_SLA_HOURS) as Priority[]).map((p) => (
+                  <div key={p}>
+                    <Label className="text-[11px] text-muted-foreground">
+                      {PRIORITY_LABEL[p]}
+                    </Label>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        step="1"
+                        min={1}
+                        max={240}
+                        value={slaHours[p]}
+                        onChange={(e) =>
+                          setSlaHours((prev) => ({ ...prev, [p]: Number(e.target.value) }))
+                        }
+                      />
+                      <span className="text-[11px] text-muted-foreground">h</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {invalid && (
               <p className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-[11px] text-destructive">
-                Valores inválidos. Margem alvo deve ser ≥ margem mínima e retenção entre 7 e 3650
-                dias.
+                Valores inválidos. Margem alvo ≥ mínima, retenção 7–3650 dias e SLA 1–240h
+                por prioridade.
               </p>
             )}
 
