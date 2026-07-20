@@ -33,19 +33,28 @@ function Page() {
   const [minMargin, setMinMargin] = useState(config.min_margin * 100);
   const [targetMargin, setTargetMargin] = useState(config.target_margin * 100);
   const [retentionDays, setRetentionDays] = useState(config.retention_days);
+  const [slaHours, setSlaHours] = useState<SlaHoursMap>(config.sla_hours);
 
   useEffect(() => {
     if (!hydrated) return;
     setMinMargin(Number((config.min_margin * 100).toFixed(2)));
     setTargetMargin(Number((config.target_margin * 100).toFixed(2)));
     setRetentionDays(config.retention_days);
-  }, [hydrated, config.min_margin, config.target_margin, config.retention_days]);
+    setSlaHours(config.sla_hours);
+  }, [hydrated, config.min_margin, config.target_margin, config.retention_days, config.sla_hours]);
 
+  const slaDirty = (Object.keys(DEFAULT_SLA_HOURS) as Priority[]).some(
+    (p) => slaHours[p] !== config.sla_hours[p],
+  );
   const dirty =
     Math.abs(minMargin / 100 - config.min_margin) > 1e-6 ||
     Math.abs(targetMargin / 100 - config.target_margin) > 1e-6 ||
-    retentionDays !== config.retention_days;
+    retentionDays !== config.retention_days ||
+    slaDirty;
 
+  const slaInvalid = (Object.keys(DEFAULT_SLA_HOURS) as Priority[]).some(
+    (p) => !Number.isFinite(slaHours[p]) || slaHours[p] < 1 || slaHours[p] > 240,
+  );
   const invalid =
     minMargin < 0 ||
     minMargin > 100 ||
@@ -53,13 +62,14 @@ function Page() {
     targetMargin > 100 ||
     targetMargin < minMargin ||
     retentionDays < 7 ||
-    retentionDays > 3650;
+    retentionDays > 3650 ||
+    slaInvalid;
 
   const save = () => {
     if (!tenant) return;
     if (invalid) {
       toast.error("Valores inválidos", {
-        description: "Margem alvo deve ser ≥ margem mínima. Retenção 7–3650 dias.",
+        description: "Margem alvo ≥ mínima. Retenção 7–3650 dias. SLA 1–240h por prioridade.",
       });
       return;
     }
@@ -67,6 +77,7 @@ function Page() {
       min_margin: minMargin / 100,
       target_margin: targetMargin / 100,
       retention_days: retentionDays,
+      sla_hours: slaHours,
     });
     toast.success("Configurações salvas", {
       description: `${tenant.name} atualizado.`,
