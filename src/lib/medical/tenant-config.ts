@@ -1,18 +1,33 @@
 // Configuração de margem/target por tenant.
 // Hoje: localStorage. Amanhã: coluna JSON na tabela `tenants` com RLS.
-import { MIN_MARGIN } from "./types";
+import { MIN_MARGIN, type Priority } from "./types";
+
+export type SlaHoursMap = Record<Priority, number>;
 
 export interface TenantConfig {
   min_margin: number; // piso duro (bloqueia envio)
   target_margin: number; // alvo da IA de sugestão
   retention_days: number; // Data Residency: purga quotes perdidas após N dias
+  sla_hours: SlaHoursMap; // SLA por prioridade (override do default global)
 }
+
+export const DEFAULT_SLA_HOURS: SlaHoursMap = {
+  urgente: 2,
+  alta: 8,
+  normal: 24,
+  baixa: 72,
+};
 
 export const DEFAULT_TENANT_CONFIG: TenantConfig = {
   min_margin: MIN_MARGIN,
   target_margin: 0.28,
   retention_days: 90,
+  sla_hours: DEFAULT_SLA_HOURS,
 };
+
+export function slaHoursForTenant(priority: Priority, config: TenantConfig): number {
+  return config.sla_hours?.[priority] ?? DEFAULT_SLA_HOURS[priority];
+}
 
 const STORAGE_KEY = "use-medical:tenant-config:v1";
 const EVENT = "use-medical:tenant-config:change";
@@ -40,7 +55,11 @@ function writeStore(store: Store) {
 export function getTenantConfig(tenantId: string | null | undefined): TenantConfig {
   if (!tenantId) return DEFAULT_TENANT_CONFIG;
   const override = readStore()[tenantId] ?? {};
-  return { ...DEFAULT_TENANT_CONFIG, ...override };
+  return {
+    ...DEFAULT_TENANT_CONFIG,
+    ...override,
+    sla_hours: { ...DEFAULT_SLA_HOURS, ...(override.sla_hours ?? {}) },
+  };
 }
 
 export function setTenantConfig(tenantId: string, patch: Partial<TenantConfig>) {

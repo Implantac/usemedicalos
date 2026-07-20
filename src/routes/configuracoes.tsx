@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useActiveTenant } from "@/hooks/use-active-tenant";
 import { useTenantConfig } from "@/hooks/use-tenant-config";
-import { DEFAULT_TENANT_CONFIG } from "@/lib/medical/tenant-config";
+import { DEFAULT_TENANT_CONFIG, DEFAULT_SLA_HOURS, type SlaHoursMap } from "@/lib/medical/tenant-config";
+import { PRIORITY_LABEL, type Priority } from "@/lib/medical/types";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/configuracoes")({
@@ -32,19 +33,28 @@ function Page() {
   const [minMargin, setMinMargin] = useState(config.min_margin * 100);
   const [targetMargin, setTargetMargin] = useState(config.target_margin * 100);
   const [retentionDays, setRetentionDays] = useState(config.retention_days);
+  const [slaHours, setSlaHours] = useState<SlaHoursMap>(config.sla_hours);
 
   useEffect(() => {
     if (!hydrated) return;
     setMinMargin(Number((config.min_margin * 100).toFixed(2)));
     setTargetMargin(Number((config.target_margin * 100).toFixed(2)));
     setRetentionDays(config.retention_days);
-  }, [hydrated, config.min_margin, config.target_margin, config.retention_days]);
+    setSlaHours(config.sla_hours);
+  }, [hydrated, config.min_margin, config.target_margin, config.retention_days, config.sla_hours]);
 
+  const slaDirty = (Object.keys(DEFAULT_SLA_HOURS) as Priority[]).some(
+    (p) => slaHours[p] !== config.sla_hours[p],
+  );
   const dirty =
     Math.abs(minMargin / 100 - config.min_margin) > 1e-6 ||
     Math.abs(targetMargin / 100 - config.target_margin) > 1e-6 ||
-    retentionDays !== config.retention_days;
+    retentionDays !== config.retention_days ||
+    slaDirty;
 
+  const slaInvalid = (Object.keys(DEFAULT_SLA_HOURS) as Priority[]).some(
+    (p) => !Number.isFinite(slaHours[p]) || slaHours[p] < 1 || slaHours[p] > 240,
+  );
   const invalid =
     minMargin < 0 ||
     minMargin > 100 ||
@@ -52,13 +62,14 @@ function Page() {
     targetMargin > 100 ||
     targetMargin < minMargin ||
     retentionDays < 7 ||
-    retentionDays > 3650;
+    retentionDays > 3650 ||
+    slaInvalid;
 
   const save = () => {
     if (!tenant) return;
     if (invalid) {
       toast.error("Valores inválidos", {
-        description: "Margem alvo deve ser ≥ margem mínima. Retenção 7–3650 dias.",
+        description: "Margem alvo ≥ mínima. Retenção 7–3650 dias. SLA 1–240h por prioridade.",
       });
       return;
     }
@@ -66,6 +77,7 @@ function Page() {
       min_margin: minMargin / 100,
       target_margin: targetMargin / 100,
       retention_days: retentionDays,
+      sla_hours: slaHours,
     });
     toast.success("Configurações salvas", {
       description: `${tenant.name} atualizado.`,
@@ -152,10 +164,43 @@ function Page() {
               />
             </Field>
 
+            <div className="border-t pt-4">
+              <Label className="text-xs font-medium text-foreground">
+                SLA por prioridade
+              </Label>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Horas até o deadline aplicadas quando uma nova cotação entra com a
+                prioridade correspondente.
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {(Object.keys(DEFAULT_SLA_HOURS) as Priority[]).map((p) => (
+                  <div key={p}>
+                    <Label className="text-[11px] text-muted-foreground">
+                      {PRIORITY_LABEL[p]}
+                    </Label>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        step="1"
+                        min={1}
+                        max={240}
+                        value={slaHours[p]}
+                        onChange={(e) =>
+                          setSlaHours((prev) => ({ ...prev, [p]: Number(e.target.value) }))
+                        }
+                      />
+                      <span className="text-[11px] text-muted-foreground">h</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {invalid && (
               <p className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-[11px] text-destructive">
-                Valores inválidos. Margem alvo deve ser ≥ margem mínima e retenção entre 7 e 3650
-                dias.
+                Valores inválidos. Margem alvo ≥ mínima, retenção 7–3650 dias e SLA 1–240h
+                por prioridade.
               </p>
             )}
 

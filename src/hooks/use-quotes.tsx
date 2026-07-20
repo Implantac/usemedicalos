@@ -2,9 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Priority, Quote, QuoteItem, QuoteStatus, SourceType } from "@/lib/medical/types";
 import { INITIAL_QUOTES, PRODUCTS, TENANTS } from "@/lib/medical/mock-data";
 import { buildAutoDraft } from "@/lib/medical/auto-draft";
-import { classify, slaHoursFor } from "@/lib/medical/classifier";
+import { classify } from "@/lib/medical/classifier";
 import { appendActivity } from "@/lib/medical/activity";
 import { useActiveTenant } from "@/hooks/use-active-tenant";
+import { useTenantConfig } from "@/hooks/use-tenant-config";
+import { slaHoursForTenant } from "@/lib/medical/tenant-config";
 import { assertSameTenant, CrossTenantWriteError, type ActiveScope } from "@/lib/medical/tenant-guard";
 
 
@@ -36,8 +38,11 @@ export function useQuotes() {
   const [allQuotes, setAllQuotes] = useState<Quote[]>(INITIAL_QUOTES);
   const [hydrated, setHydrated] = useState(false);
   const { scope, tenant } = useActiveTenant();
+  const { config: tenantConfig } = useTenantConfig(tenant?.id);
   const scopeRef = useRef<ActiveScope>(scope);
   scopeRef.current = scope;
+  const tenantConfigRef = useRef(tenantConfig);
+  tenantConfigRef.current = tenantConfig;
 
   useEffect(() => {
     setAllQuotes(load());
@@ -107,7 +112,7 @@ export function useQuotes() {
   const addQuote = useCallback((input: NewQuoteInput): Quote => {
     const cls = classify(input.original_payload);
     const priority = input.priority_override ?? cls.priority;
-    const sla = slaHoursFor(priority);
+    const sla = slaHoursForTenant(priority, tenantConfigRef.current);
     const now = new Date();
     const targetTenantId = tenant?.id ?? TENANTS[0].id;
     const q: Quote = {
@@ -231,7 +236,7 @@ export function useQuotes() {
       return null;
     }
     const now = new Date();
-    const sla = slaHoursFor(source.priority);
+    const sla = slaHoursForTenant(source.priority, tenantConfigRef.current);
     const copy: Quote = {
       ...source,
       id: `q${Date.now().toString().slice(-6)}`,
