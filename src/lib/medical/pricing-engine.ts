@@ -24,7 +24,7 @@ export interface PricingBreakdown {
   margin: number;              // margem final sobre preço sugerido
 }
 
-const MIN_TECHNICAL_MARGIN = 0.05; // 5% acima do custo carregado
+const DEFAULT_MIN_TECHNICAL_MARGIN = 0.05; // fallback quando o tenant não define
 const DEFAULT_LOGISTICS_RATE = 0.03;
 const MARKET_UNDERCUT = 0.02; // "bate mercado com 2% de desconto"
 
@@ -33,16 +33,18 @@ const MARKET_UNDERCUT = 0.02; // "bate mercado com 2% de desconto"
  * @param product - produto com cost_price, tax_rate, cmed_ceiling, market_avg
  * @param opts.tier - tier do cliente (A/B/C) para desconto estratégico
  * @param opts.quantity - volume, para futura escala de desconto
+ * @param opts.minMargin - piso técnico do tenant (fração 0..1); default 5%
  */
 export function calculateSuggestedPrice(
   product: Pick<Product, "cost_price" | "tax_rate" | "logistics_rate" | "cmed_ceiling" | "market_avg">,
-  opts: { tier?: ClientTier; quantity?: number } = {},
+  opts: { tier?: ClientTier; quantity?: number; minMargin?: number } = {},
 ): PricingBreakdown {
   const logistics = product.logistics_rate ?? DEFAULT_LOGISTICS_RATE;
+  const minMargin = opts.minMargin ?? DEFAULT_MIN_TECHNICAL_MARGIN;
 
   // ---------- Camada 1: Floor Price ----------
   const loadedCost = product.cost_price * (1 + product.tax_rate + logistics);
-  const floor = round2(loadedCost * (1 + MIN_TECHNICAL_MARGIN));
+  const floor = round2(loadedCost * (1 + minMargin));
 
   // ---------- Camada 2: Compliance Cap ----------
   const cap = product.cmed_ceiling;
