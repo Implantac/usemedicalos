@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PermissionGate } from "@/components/medical/permission-gate";
 import { useMemo } from "react";
 import { AlertTriangle, ShieldAlert, ShieldCheck, Trash2 } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
@@ -23,7 +24,11 @@ export const Route = createFileRoute("/quarentena")({
       },
     ],
   }),
-  component: QuarantinePage,
+  component: () => (
+    <PermissionGate perm="integrations.manage" title="Quarentena restrita">
+      <QuarantinePage />
+    </PermissionGate>
+  ),
 });
 
 function QuarantinePage() {

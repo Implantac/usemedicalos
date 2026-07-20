@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PermissionGate } from "@/components/medical/permission-gate";
 import { useEffect, useMemo, useState } from "react";
 import { ShieldCheck, Clock, XCircle } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
@@ -17,7 +18,11 @@ export const Route = createFileRoute("/excecoes")({
       { name: "description", content: "Auditoria de liberações de gestor sobre bloqueios ANVISA/CMED." },
     ],
   }),
-  component: ExceptionsPage,
+  component: () => (
+    <PermissionGate perm="compliance.override" title="Exceções restrito">
+      <ExceptionsPage />
+    </PermissionGate>
+  ),
 });
 
 function ExceptionsPage() {

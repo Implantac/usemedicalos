@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PermissionGate } from "@/components/medical/permission-gate";
 import { useMemo, useState } from "react";
 import { Download, FileSearch, Filter, ShieldAlert, ShieldCheck } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
@@ -22,7 +23,11 @@ export const Route = createFileRoute("/auditoria")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: AuditoriaPage,
+  component: () => (
+    <PermissionGate perm="governance.manage" title="Auditoria restrita">
+      <AuditoriaPage />
+    </PermissionGate>
+  ),
 });
 
 const TYPE_LABEL: Record<ActivityType, string> = {

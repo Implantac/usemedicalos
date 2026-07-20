@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PermissionGate } from "@/components/medical/permission-gate";
 import { useMemo, useState } from "react";
 import { Search, TrendingUp } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
@@ -19,7 +20,11 @@ export const Route = createFileRoute("/produtos")({
       { name: "description", content: "Catálogo de produtos hospitalares com motor de precificação de 4 camadas (floor, CMED, mercado, estratégia) e governança regulatória." },
     ],
   }),
-  component: ProdutosPage,
+  component: () => (
+    <PermissionGate perm="pricing.governance" title="Produtos restrito">
+      <ProdutosPage />
+    </PermissionGate>
+  ),
 });
 
 function ProdutosPage() {

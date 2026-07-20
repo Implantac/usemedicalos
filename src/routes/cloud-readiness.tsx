@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PermissionGate } from "@/components/medical/permission-gate";
 import { useMemo } from "react";
 import { CheckCircle2, Circle, Cloud, Database, FileCode, KeyRound, Layers, ShieldCheck } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
@@ -17,7 +18,11 @@ export const Route = createFileRoute("/cloud-readiness")({
       },
     ],
   }),
-  component: CloudReadinessPage,
+  component: () => (
+    <PermissionGate perm="tenant.configure" title="Cloud readiness restrito">
+      <CloudReadinessPage />
+    </PermissionGate>
+  ),
 });
 
 type Check = {

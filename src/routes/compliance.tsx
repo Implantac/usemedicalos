@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PermissionGate } from "@/components/medical/permission-gate";
 import { useEffect, useMemo, useState } from "react";
 import { Download, ShieldAlert, ShieldCheck, Trash2 } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
@@ -26,7 +27,11 @@ export const Route = createFileRoute("/compliance")({
       },
     ],
   }),
-  component: CompliancePage,
+  component: () => (
+    <PermissionGate perm="compliance.override" title="Compliance restrito">
+      <CompliancePage />
+    </PermissionGate>
+  ),
 });
 
 interface TenantScore {

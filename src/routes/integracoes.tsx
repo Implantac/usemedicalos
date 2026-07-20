@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { PermissionGate } from "@/components/medical/permission-gate";
 import { useMemo, useState } from "react";
 import { AlertCircle, Bell, CheckCircle2, Copy, Gauge, KeyRound, Plug, PlayCircle, Power, Save, ShieldAlert, Sliders, Trash2, Send, Zap } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
@@ -48,7 +49,11 @@ export const Route = createFileRoute("/integracoes")({
       },
     ],
   }),
-  component: IntegrationsPage,
+  component: () => (
+    <PermissionGate perm="integrations.manage" title="Integrações restrito">
+      <IntegrationsPage />
+    </PermissionGate>
+  ),
 });
 
 function IntegrationsPage() {

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PermissionGate } from "@/components/medical/permission-gate";
 import { useState } from "react";
 import { Copy, KeyRound, Lock, Plus, Trash2, XCircle } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
@@ -26,7 +27,11 @@ export const Route = createFileRoute("/api-keys")({
       },
     ],
   }),
-  component: ApiKeysPage,
+  component: () => (
+    <PermissionGate perm="api_keys.manage" title="API Keys restrito">
+      <ApiKeysPage />
+    </PermissionGate>
+  ),
 });
 
 const ALL_SCOPES: { id: ApiScope; label: string; desc: string }[] = [
