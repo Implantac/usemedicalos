@@ -112,7 +112,7 @@ export function useQuotes() {
   const addQuote = useCallback((input: NewQuoteInput): Quote => {
     const cls = classify(input.original_payload);
     const priority = input.priority_override ?? cls.priority;
-    const sla = slaHoursFor(priority);
+    const sla = slaHoursForTenant(priority, tenantConfigRef.current);
     const now = new Date();
     const targetTenantId = tenant?.id ?? TENANTS[0].id;
     const q: Quote = {
