@@ -245,7 +245,7 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
                 const m = itemMargin(it);
                 const catalogProduct = productBySku.get(it.sku);
                 const engine = catalogProduct
-                  ? calculateSuggestedPrice(catalogProduct, { tier: quote.client_tier ?? "B", quantity: it.quantity, minMargin })
+                  ? calculateSuggestedPrice(catalogProduct, { tier: quote.client_tier ?? "B", quantity: it.quantity, minMargin, targetMargin: tenantConfig.target_margin })
                   : null;
                 const suggested = engine ? engine.suggested_price : suggestPrice(it, tenantConfig.target_margin);
                 const base = basePrice(it.cost_price);
