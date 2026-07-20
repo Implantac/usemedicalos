@@ -76,10 +76,10 @@ export function calculateSuggestedPrice(
     marketTarget = round2(product.market_avg * (1 - MARKET_UNDERCUT));
     base = marketTarget;
   } else {
-    // Fallback: sem inteligência de mercado, aplica markup de 30% sobre o floor
-    base = round2(floor * 1.3);
+    // Fallback: sem inteligência de mercado, aplica a margem alvo do tenant sobre o floor
+    base = round2(floor * (1 + targetMargin));
     statusHint = "MARKET_MISSING";
-    reason = "Sem preço médio de mercado. Usando markup técnico de 30% sobre o floor.";
+    reason = `Sem preço médio de mercado. Usando margem alvo do tenant (${(targetMargin * 100).toFixed(0)}%) sobre o floor.`;
   }
 
   // ---------- Camada 4: Strategic Margin (tier) ----------
