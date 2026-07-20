@@ -25,6 +25,7 @@ export interface PricingBreakdown {
 }
 
 const DEFAULT_MIN_TECHNICAL_MARGIN = 0.05; // fallback quando o tenant não define
+const DEFAULT_TARGET_MARGIN = 0.30; // markup técnico quando não há preço de mercado
 const DEFAULT_LOGISTICS_RATE = 0.03;
 const MARKET_UNDERCUT = 0.02; // "bate mercado com 2% de desconto"
 
