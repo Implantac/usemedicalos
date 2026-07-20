@@ -142,7 +142,10 @@ export function useQuotes() {
       // Auto-draft: pré-precifica itens via engine e sugere tier via histórico.
       let drafted = quote;
       try {
-        drafted = buildAutoDraft(quote, PRODUCTS, qs).quote;
+        drafted = buildAutoDraft(quote, PRODUCTS, qs, {
+          minMargin: tenantConfigRef.current.min_margin,
+          targetMargin: tenantConfigRef.current.target_margin,
+        }).quote;
       } catch (err) {
         console.warn("[auto-draft] falhou, seguindo com quote original", err);
       }
