@@ -10,6 +10,7 @@ import {
   Package,
   Plug,
   Radio,
+  Settings2,
   Shield,
   ShieldAlert,
   ShieldCheck,
@@ -57,6 +58,7 @@ const GOVERNANCA: NavItem[] = [
   { to: "/governanca", label: "Governança", icon: Shield, perm: "governance.manage" },
   { to: "/auditoria", label: "Auditoria", icon: FileSearch, perm: "governance.manage" },
   { to: "/quarentena", label: "Quarentena", icon: ShieldAlert, perm: "integrations.manage" },
+  { to: "/configuracoes", label: "Configurações", icon: Settings2, perm: "tenant.configure" },
 ];
 
 function NavGroup({
