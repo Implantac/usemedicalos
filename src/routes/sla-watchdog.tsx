@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { Radio, Timer, Zap } from "lucide-react";
+import { Radio, Timer, Zap, CheckCheck } from "lucide-react";
+import { toast } from "sonner";
 import { AppHeader } from "@/components/medical/app-header";
 import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { EmptyState } from "@/components/ui/state-panels";
