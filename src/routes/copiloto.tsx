@@ -58,14 +58,14 @@ function CopilotoInner() {
   const bundle: CopilotBundle | null = useMemo(() => {
     if (!active) return null;
     return generateCopilot(active, PRODUCTS, quotes, {
-      minMargin: config?.minMargin,
-      targetMargin: config?.targetMargin,
+      minMargin: config?.min_margin,
+      targetMargin: config?.target_margin,
     });
   }, [active, quotes, config]);
 
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader />
+      <AppHeader onReset={() => window.location.reload()} />
       <Toaster richColors position="top-right" />
       <main className="mx-auto max-w-[1400px] px-4 py-6 md:px-6">
         <header className="mb-6 flex items-start justify-between gap-4">
