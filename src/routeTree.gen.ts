@@ -22,6 +22,7 @@ import { Route as GovernancaRouteImport } from './routes/governanca'
 import { Route as ExecutivoRouteImport } from './routes/executivo'
 import { Route as ExcecoesRouteImport } from './routes/excecoes'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CopilotoRouteImport } from './routes/copiloto'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ComplianceRouteImport } from './routes/compliance'
 import { Route as CloudReadinessRouteImport } from './routes/cloud-readiness'
@@ -100,6 +101,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CopilotoRoute = CopilotoRouteImport.update({
+  id: '/copiloto',
+  path: '/copiloto',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
   id: '/configuracoes',
   path: '/configuracoes',
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/cloud-readiness': typeof CloudReadinessRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/copiloto': typeof CopilotoRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
   '/executivo': typeof ExecutivoRoute
@@ -196,6 +203,7 @@ export interface FileRoutesByTo {
   '/cloud-readiness': typeof CloudReadinessRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/copiloto': typeof CopilotoRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
   '/executivo': typeof ExecutivoRoute
@@ -224,6 +232,7 @@ export interface FileRoutesById {
   '/cloud-readiness': typeof CloudReadinessRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/copiloto': typeof CopilotoRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
   '/executivo': typeof ExecutivoRoute
@@ -253,6 +262,7 @@ export interface FileRouteTypes {
     | '/cloud-readiness'
     | '/compliance'
     | '/configuracoes'
+    | '/copiloto'
     | '/dashboard'
     | '/excecoes'
     | '/executivo'
@@ -280,6 +290,7 @@ export interface FileRouteTypes {
     | '/cloud-readiness'
     | '/compliance'
     | '/configuracoes'
+    | '/copiloto'
     | '/dashboard'
     | '/excecoes'
     | '/executivo'
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/cloud-readiness'
     | '/compliance'
     | '/configuracoes'
+    | '/copiloto'
     | '/dashboard'
     | '/excecoes'
     | '/executivo'
@@ -335,6 +347,7 @@ export interface RootRouteChildren {
   CloudReadinessRoute: typeof CloudReadinessRoute
   ComplianceRoute: typeof ComplianceRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
+  CopilotoRoute: typeof CopilotoRoute
   DashboardRoute: typeof DashboardRoute
   ExcecoesRoute: typeof ExcecoesRoute
   ExecutivoRoute: typeof ExecutivoRoute
@@ -448,6 +461,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/copiloto': {
+      id: '/copiloto'
+      path: '/copiloto'
+      fullPath: '/copiloto'
+      preLoaderRoute: typeof CopilotoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/configuracoes': {
       id: '/configuracoes'
       path: '/configuracoes'
@@ -543,6 +563,7 @@ const rootRouteChildren: RootRouteChildren = {
   CloudReadinessRoute: CloudReadinessRoute,
   ComplianceRoute: ComplianceRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
+  CopilotoRoute: CopilotoRoute,
   DashboardRoute: DashboardRoute,
   ExcecoesRoute: ExcecoesRoute,
   ExecutivoRoute: ExecutivoRoute,
