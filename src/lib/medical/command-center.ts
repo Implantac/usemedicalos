@@ -102,7 +102,7 @@ export function estimateWinChance(
   else if (quote.client_tier === "C") base -= 0.05;
   // SLA saudável = melhor engajamento
   const sla = slaState(quote.sla_deadline);
-  if (sla.tone === "critical") base -= 0.1;
+  if (sla.tone === "danger") base -= 0.1;
   else if (sla.tone === "warning") base -= 0.04;
   // Margem muito baixa = tende a perder pra concorrente ou nem responder
   const totals = quoteTotals(quote.items);
@@ -119,7 +119,7 @@ export function scoreQuotes(quotes: Quote[]): QuoteScore[] {
       const winChance = estimateWinChance(q, profiles);
       const expectedProfit = totals.revenue * totals.margin * winChance;
       const sla = slaState(q.sla_deadline);
-      const urgencyMult = sla.tone === "critical" ? 1.4 : sla.tone === "warning" ? 1.15 : 1;
+      const urgencyMult = sla.tone === "danger" ? 1.4 : sla.tone === "warning" ? 1.15 : 1;
       const score = expectedProfit * urgencyMult;
       const p = profiles.get(q.customer_name.trim().toLowerCase().replace(/\s+/g, " "));
       const reason = buildReason(q, winChance, totals, p, sla);
@@ -139,7 +139,7 @@ function buildReason(
   if (winChance >= 0.7) bits.push(`chance ${Math.round(winChance * 100)}%`);
   if (profile && profile.wins >= 2) bits.push(`${profile.wins} vitórias com o cliente`);
   if (totals.margin >= 0.18) bits.push(`margem ${Math.round(totals.margin * 100)}%`);
-  if (sla.tone === "critical") bits.push("SLA crítico");
+  if (sla.tone === "danger") bits.push("SLA crítico");
   else if (sla.tone === "warning") bits.push("SLA em risco");
   if (q.priority === "urgente") bits.push("urgência marcada");
   return bits.slice(0, 3).join(" · ") || "oportunidade aberta";
