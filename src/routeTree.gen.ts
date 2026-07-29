@@ -24,6 +24,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ComplianceRouteImport } from './routes/compliance'
 import { Route as CloudReadinessRouteImport } from './routes/cloud-readiness'
+import { Route as BenchmarkingRouteImport } from './routes/benchmarking'
 import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as ApiKeysRouteImport } from './routes/api-keys'
 import { Route as IndexRouteImport } from './routes/index'
@@ -108,6 +109,11 @@ const CloudReadinessRoute = CloudReadinessRouteImport.update({
   path: '/cloud-readiness',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BenchmarkingRoute = BenchmarkingRouteImport.update({
+  id: '/benchmarking',
+  path: '/benchmarking',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuditoriaRoute = AuditoriaRouteImport.update({
   id: '/auditoria',
   path: '/auditoria',
@@ -153,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api-keys': typeof ApiKeysRoute
   '/auditoria': typeof AuditoriaRoute
+  '/benchmarking': typeof BenchmarkingRoute
   '/cloud-readiness': typeof CloudReadinessRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -178,6 +185,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api-keys': typeof ApiKeysRoute
   '/auditoria': typeof AuditoriaRoute
+  '/benchmarking': typeof BenchmarkingRoute
   '/cloud-readiness': typeof CloudReadinessRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -204,6 +212,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/api-keys': typeof ApiKeysRoute
   '/auditoria': typeof AuditoriaRoute
+  '/benchmarking': typeof BenchmarkingRoute
   '/cloud-readiness': typeof CloudReadinessRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -231,6 +240,7 @@ export interface FileRouteTypes {
     | '/'
     | '/api-keys'
     | '/auditoria'
+    | '/benchmarking'
     | '/cloud-readiness'
     | '/compliance'
     | '/configuracoes'
@@ -256,6 +266,7 @@ export interface FileRouteTypes {
     | '/'
     | '/api-keys'
     | '/auditoria'
+    | '/benchmarking'
     | '/cloud-readiness'
     | '/compliance'
     | '/configuracoes'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '/'
     | '/api-keys'
     | '/auditoria'
+    | '/benchmarking'
     | '/cloud-readiness'
     | '/compliance'
     | '/configuracoes'
@@ -307,6 +319,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiKeysRoute: typeof ApiKeysRoute
   AuditoriaRoute: typeof AuditoriaRoute
+  BenchmarkingRoute: typeof BenchmarkingRoute
   CloudReadinessRoute: typeof CloudReadinessRoute
   ComplianceRoute: typeof ComplianceRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
@@ -436,6 +449,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CloudReadinessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/benchmarking': {
+      id: '/benchmarking'
+      path: '/benchmarking'
+      fullPath: '/benchmarking'
+      preLoaderRoute: typeof BenchmarkingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auditoria': {
       id: '/auditoria'
       path: '/auditoria'
@@ -499,6 +519,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiKeysRoute: ApiKeysRoute,
   AuditoriaRoute: AuditoriaRoute,
+  BenchmarkingRoute: BenchmarkingRoute,
   CloudReadinessRoute: CloudReadinessRoute,
   ComplianceRoute: ComplianceRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
