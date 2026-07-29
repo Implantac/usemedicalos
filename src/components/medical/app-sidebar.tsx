@@ -17,6 +17,7 @@ import {
   Shield,
   ShieldAlert,
   ShieldCheck,
+  Sparkles,
   Store,
 } from "lucide-react";
 import {
@@ -42,6 +43,7 @@ const OPERACAO: NavItem[] = [
   { to: "/command", label: "Command Center", icon: Radar, perm: "quotes.view" },
   { to: "/inbox", label: "Inbox Universal", icon: Inbox, perm: "quotes.view" },
   { to: "/orquestracao", label: "Orquestração", icon: GitFork, perm: "quotes.respond" },
+  { to: "/copiloto", label: "Copiloto IA", icon: Sparkles, perm: "quotes.respond" },
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, perm: "quotes.view" },
   { to: "/executivo", label: "Executivo", icon: Gauge, perm: "quotes.view" },
   { to: "/sla-watchdog", label: "SLA Watchdog", icon: Radio, perm: "quotes.view" },
