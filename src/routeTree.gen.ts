@@ -13,6 +13,7 @@ import { Route as SlaWatchdogRouteImport } from './routes/sla-watchdog'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as QuarentenaRouteImport } from './routes/quarentena'
 import { Route as ProdutosRouteImport } from './routes/produtos'
+import { Route as OrquestracaoRouteImport } from './routes/orquestracao'
 import { Route as InteligenciaRouteImport } from './routes/inteligencia'
 import { Route as IntegracoesRouteImport } from './routes/integracoes'
 import { Route as InboxRouteImport } from './routes/inbox'
@@ -50,6 +51,11 @@ const QuarentenaRoute = QuarentenaRouteImport.update({
 const ProdutosRoute = ProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrquestracaoRoute = OrquestracaoRouteImport.update({
+  id: '/orquestracao',
+  path: '/orquestracao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InteligenciaRoute = InteligenciaRouteImport.update({
@@ -157,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/inbox': typeof InboxRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
+  '/orquestracao': typeof OrquestracaoRoute
   '/produtos': typeof ProdutosRoute
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -181,6 +188,7 @@ export interface FileRoutesByTo {
   '/inbox': typeof InboxRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
+  '/orquestracao': typeof OrquestracaoRoute
   '/produtos': typeof ProdutosRoute
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -206,6 +214,7 @@ export interface FileRoutesById {
   '/inbox': typeof InboxRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
+  '/orquestracao': typeof OrquestracaoRoute
   '/produtos': typeof ProdutosRoute
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -232,6 +241,7 @@ export interface FileRouteTypes {
     | '/inbox'
     | '/integracoes'
     | '/inteligencia'
+    | '/orquestracao'
     | '/produtos'
     | '/quarentena'
     | '/sitemap.xml'
@@ -256,6 +266,7 @@ export interface FileRouteTypes {
     | '/inbox'
     | '/integracoes'
     | '/inteligencia'
+    | '/orquestracao'
     | '/produtos'
     | '/quarentena'
     | '/sitemap.xml'
@@ -280,6 +291,7 @@ export interface FileRouteTypes {
     | '/inbox'
     | '/integracoes'
     | '/inteligencia'
+    | '/orquestracao'
     | '/produtos'
     | '/quarentena'
     | '/sitemap.xml'
@@ -305,6 +317,7 @@ export interface RootRouteChildren {
   InboxRoute: typeof InboxRoute
   IntegracoesRoute: typeof IntegracoesRoute
   InteligenciaRoute: typeof InteligenciaRoute
+  OrquestracaoRoute: typeof OrquestracaoRoute
   ProdutosRoute: typeof ProdutosRoute
   QuarentenaRoute: typeof QuarentenaRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -344,6 +357,13 @@ declare module '@tanstack/react-router' {
       path: '/produtos'
       fullPath: '/produtos'
       preLoaderRoute: typeof ProdutosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orquestracao': {
+      id: '/orquestracao'
+      path: '/orquestracao'
+      fullPath: '/orquestracao'
+      preLoaderRoute: typeof OrquestracaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inteligencia': {
@@ -489,6 +509,7 @@ const rootRouteChildren: RootRouteChildren = {
   InboxRoute: InboxRoute,
   IntegracoesRoute: IntegracoesRoute,
   InteligenciaRoute: InteligenciaRoute,
+  OrquestracaoRoute: OrquestracaoRoute,
   ProdutosRoute: ProdutosRoute,
   QuarentenaRoute: QuarentenaRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
