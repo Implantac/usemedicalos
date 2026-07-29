@@ -105,21 +105,26 @@ describe("splitLargeQuote", () => {
   });
 
   it("splits when different items favor different owners", () => {
+    // Ana domina cliente "Hospital Alpha" (histórico com cliente pesa muito)
+    // Bruno domina cliente "Hospital Beta"
+    // Big quote é do "Hospital Alpha" mas metade dos itens tem keyword de Bruno
     const history: Quote[] = [
-      // Ana ganha em "Hospital privado"
-      q("h1", "a", "ganho", { customer_segment: "Hospital privado" }),
-      q("h2", "a", "ganho", { customer_segment: "Hospital privado" }),
-      // Bruno ganha keyword "cateter"
-      q("h3", "b", "ganho", { keywords: ["cateter"] }),
-      q("h4", "b", "ganho", { keywords: ["cateter"] }),
+      q("h1", "a", "ganho", { customer_name: "Hospital Alpha" }),
+      q("h2", "a", "ganho", { customer_name: "Hospital Alpha" }),
+      q("h3", "b", "ganho", { customer_name: "Hospital Alpha", keywords: ["cateter", "seringa"] }),
+      q("h4", "b", "ganho", { customer_name: "Hospital Alpha", keywords: ["cateter", "seringa"] }),
+      q("h5", "b", "ganho", { customer_name: "Hospital Alpha", keywords: ["cateter"] }),
     ];
     const big = q("big", "a", "aguardando_precificacao", {
-      customer_segment: "Hospital privado",
+      customer_name: "Hospital Alpha",
+      customer_segment: "Outros",
       items: [
-        item("p1"), item("p2"), item("p3"),
+        { ...item("sut1"), name: "Sutura 3-0" },
+        { ...item("sut2"), name: "Sutura 4-0" },
+        { ...item("gaz1"), name: "Gaze estéril" },
         { ...item("cat1"), name: "cateter venoso 20g" },
         { ...item("cat2"), name: "cateter venoso 22g" },
-        { ...item("cat3"), name: "cateter longo cateter" },
+        { ...item("cat3"), name: "cateter longo" },
       ],
     });
     const split = splitLargeQuote(big, history, OWNERS);
