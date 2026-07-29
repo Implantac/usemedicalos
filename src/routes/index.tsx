@@ -89,7 +89,7 @@ function CommandCenterPage() {
           </div>
           <div className="flex items-center gap-2">
             <Link
-              to="/"
+              to="/inbox"
               className="inline-flex h-8 items-center gap-1.5 rounded-md border bg-card px-3 text-xs font-semibold text-foreground transition-smooth hover:bg-accent"
             >
               Abrir Inbox <ArrowRight className="h-3.5 w-3.5" />
