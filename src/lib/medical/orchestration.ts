@@ -172,9 +172,10 @@ export function suggestOwner(
         specialtyScore += Math.min(10, s.wins * 3 + s.win_rate * 6);
       }
     }
-    if (specialty.strong_keywords.some((k) => keywords.includes(k))) {
-      const kw = specialty.strong_keywords.find((k) => keywords.includes(k))!;
-      reasons.push(`especialidade em "${kw}"`);
+    const strongHit = specialty.strong_keywords.find((k) => keywords.includes(k));
+    if (strongHit) {
+      specialtyScore += 15; // sinal forte de expertise casada
+      reasons.push(`especialidade em "${strongHit}"`);
     }
 
     // Carga (peso: 0..25 — inverso)
