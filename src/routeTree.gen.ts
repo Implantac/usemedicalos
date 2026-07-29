@@ -13,6 +13,8 @@ import { Route as SlaWatchdogRouteImport } from './routes/sla-watchdog'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as QuarentenaRouteImport } from './routes/quarentena'
 import { Route as ProdutosRouteImport } from './routes/produtos'
+import { Route as OrquestracaoRouteImport } from './routes/orquestracao'
+import { Route as MarketplaceRouteImport } from './routes/marketplace'
 import { Route as InteligenciaRouteImport } from './routes/inteligencia'
 import { Route as IntegracoesRouteImport } from './routes/integracoes'
 import { Route as InboxRouteImport } from './routes/inbox'
@@ -23,6 +25,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ComplianceRouteImport } from './routes/compliance'
 import { Route as CloudReadinessRouteImport } from './routes/cloud-readiness'
+import { Route as BenchmarkingRouteImport } from './routes/benchmarking'
 import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as ApiKeysRouteImport } from './routes/api-keys'
 import { Route as IndexRouteImport } from './routes/index'
@@ -50,6 +53,16 @@ const QuarentenaRoute = QuarentenaRouteImport.update({
 const ProdutosRoute = ProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrquestracaoRoute = OrquestracaoRouteImport.update({
+  id: '/orquestracao',
+  path: '/orquestracao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketplaceRoute = MarketplaceRouteImport.update({
+  id: '/marketplace',
+  path: '/marketplace',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InteligenciaRoute = InteligenciaRouteImport.update({
@@ -102,6 +115,11 @@ const CloudReadinessRoute = CloudReadinessRouteImport.update({
   path: '/cloud-readiness',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BenchmarkingRoute = BenchmarkingRouteImport.update({
+  id: '/benchmarking',
+  path: '/benchmarking',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuditoriaRoute = AuditoriaRouteImport.update({
   id: '/auditoria',
   path: '/auditoria',
@@ -147,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api-keys': typeof ApiKeysRoute
   '/auditoria': typeof AuditoriaRoute
+  '/benchmarking': typeof BenchmarkingRoute
   '/cloud-readiness': typeof CloudReadinessRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -157,6 +176,8 @@ export interface FileRoutesByFullPath {
   '/inbox': typeof InboxRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/orquestracao': typeof OrquestracaoRoute
   '/produtos': typeof ProdutosRoute
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -171,6 +192,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api-keys': typeof ApiKeysRoute
   '/auditoria': typeof AuditoriaRoute
+  '/benchmarking': typeof BenchmarkingRoute
   '/cloud-readiness': typeof CloudReadinessRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -181,6 +203,8 @@ export interface FileRoutesByTo {
   '/inbox': typeof InboxRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/orquestracao': typeof OrquestracaoRoute
   '/produtos': typeof ProdutosRoute
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -196,6 +220,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/api-keys': typeof ApiKeysRoute
   '/auditoria': typeof AuditoriaRoute
+  '/benchmarking': typeof BenchmarkingRoute
   '/cloud-readiness': typeof CloudReadinessRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
@@ -206,6 +231,8 @@ export interface FileRoutesById {
   '/inbox': typeof InboxRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/orquestracao': typeof OrquestracaoRoute
   '/produtos': typeof ProdutosRoute
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -222,6 +249,7 @@ export interface FileRouteTypes {
     | '/'
     | '/api-keys'
     | '/auditoria'
+    | '/benchmarking'
     | '/cloud-readiness'
     | '/compliance'
     | '/configuracoes'
@@ -232,6 +260,8 @@ export interface FileRouteTypes {
     | '/inbox'
     | '/integracoes'
     | '/inteligencia'
+    | '/marketplace'
+    | '/orquestracao'
     | '/produtos'
     | '/quarentena'
     | '/sitemap.xml'
@@ -246,6 +276,7 @@ export interface FileRouteTypes {
     | '/'
     | '/api-keys'
     | '/auditoria'
+    | '/benchmarking'
     | '/cloud-readiness'
     | '/compliance'
     | '/configuracoes'
@@ -256,6 +287,8 @@ export interface FileRouteTypes {
     | '/inbox'
     | '/integracoes'
     | '/inteligencia'
+    | '/marketplace'
+    | '/orquestracao'
     | '/produtos'
     | '/quarentena'
     | '/sitemap.xml'
@@ -270,6 +303,7 @@ export interface FileRouteTypes {
     | '/'
     | '/api-keys'
     | '/auditoria'
+    | '/benchmarking'
     | '/cloud-readiness'
     | '/compliance'
     | '/configuracoes'
@@ -280,6 +314,8 @@ export interface FileRouteTypes {
     | '/inbox'
     | '/integracoes'
     | '/inteligencia'
+    | '/marketplace'
+    | '/orquestracao'
     | '/produtos'
     | '/quarentena'
     | '/sitemap.xml'
@@ -295,6 +331,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiKeysRoute: typeof ApiKeysRoute
   AuditoriaRoute: typeof AuditoriaRoute
+  BenchmarkingRoute: typeof BenchmarkingRoute
   CloudReadinessRoute: typeof CloudReadinessRoute
   ComplianceRoute: typeof ComplianceRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
@@ -305,6 +342,8 @@ export interface RootRouteChildren {
   InboxRoute: typeof InboxRoute
   IntegracoesRoute: typeof IntegracoesRoute
   InteligenciaRoute: typeof InteligenciaRoute
+  MarketplaceRoute: typeof MarketplaceRoute
+  OrquestracaoRoute: typeof OrquestracaoRoute
   ProdutosRoute: typeof ProdutosRoute
   QuarentenaRoute: typeof QuarentenaRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -344,6 +383,20 @@ declare module '@tanstack/react-router' {
       path: '/produtos'
       fullPath: '/produtos'
       preLoaderRoute: typeof ProdutosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orquestracao': {
+      id: '/orquestracao'
+      path: '/orquestracao'
+      fullPath: '/orquestracao'
+      preLoaderRoute: typeof OrquestracaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketplace': {
+      id: '/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof MarketplaceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inteligencia': {
@@ -416,6 +469,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CloudReadinessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/benchmarking': {
+      id: '/benchmarking'
+      path: '/benchmarking'
+      fullPath: '/benchmarking'
+      preLoaderRoute: typeof BenchmarkingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auditoria': {
       id: '/auditoria'
       path: '/auditoria'
@@ -479,6 +539,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiKeysRoute: ApiKeysRoute,
   AuditoriaRoute: AuditoriaRoute,
+  BenchmarkingRoute: BenchmarkingRoute,
   CloudReadinessRoute: CloudReadinessRoute,
   ComplianceRoute: ComplianceRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
@@ -489,6 +550,8 @@ const rootRouteChildren: RootRouteChildren = {
   InboxRoute: InboxRoute,
   IntegracoesRoute: IntegracoesRoute,
   InteligenciaRoute: InteligenciaRoute,
+  MarketplaceRoute: MarketplaceRoute,
+  OrquestracaoRoute: OrquestracaoRoute,
   ProdutosRoute: ProdutosRoute,
   QuarentenaRoute: QuarentenaRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
@@ -502,13 +565,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

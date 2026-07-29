@@ -1,8 +1,10 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
+  BarChart3,
   Cloud,
   FileSearch,
   Gauge,
+  GitFork,
   Inbox,
   KeyRound,
   LayoutDashboard,
@@ -15,6 +17,7 @@ import {
   Shield,
   ShieldAlert,
   ShieldCheck,
+  Store,
 } from "lucide-react";
 import {
   Sidebar,
@@ -38,6 +41,7 @@ type NavItem = { to: string; label: string; icon: typeof Inbox; perm?: Permissio
 const OPERACAO: NavItem[] = [
   { to: "/command", label: "Command Center", icon: Radar, perm: "quotes.view" },
   { to: "/inbox", label: "Inbox Universal", icon: Inbox, perm: "quotes.view" },
+  { to: "/orquestracao", label: "Orquestração", icon: GitFork, perm: "quotes.respond" },
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, perm: "quotes.view" },
   { to: "/executivo", label: "Executivo", icon: Gauge, perm: "quotes.view" },
   { to: "/sla-watchdog", label: "SLA Watchdog", icon: Radio, perm: "quotes.view" },
@@ -46,9 +50,11 @@ const OPERACAO: NavItem[] = [
 const CATALOGO: NavItem[] = [
   { to: "/produtos", label: "Produtos", icon: Package, perm: "pricing.governance" },
   { to: "/inteligencia", label: "Inteligência", icon: LineChart, perm: "quotes.view" },
+  { to: "/benchmarking", label: "Benchmarking", icon: BarChart3, perm: "quotes.view" },
 ];
 
 const INTEGRACAO: NavItem[] = [
+  { to: "/marketplace", label: "Marketplace", icon: Store, perm: "integrations.manage" },
   { to: "/integracoes", label: "Integrações", icon: Plug, perm: "integrations.manage" },
   { to: "/api-keys", label: "API Keys", icon: KeyRound, perm: "api_keys.manage" },
   { to: "/cloud-readiness", label: "Cloud", icon: Cloud, perm: "tenant.configure" },
