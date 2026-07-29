@@ -14,6 +14,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as QuarentenaRouteImport } from './routes/quarentena'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as OrquestracaoRouteImport } from './routes/orquestracao'
+import { Route as MarketplaceRouteImport } from './routes/marketplace'
 import { Route as InteligenciaRouteImport } from './routes/inteligencia'
 import { Route as IntegracoesRouteImport } from './routes/integracoes'
 import { Route as InboxRouteImport } from './routes/inbox'
@@ -57,6 +58,11 @@ const ProdutosRoute = ProdutosRouteImport.update({
 const OrquestracaoRoute = OrquestracaoRouteImport.update({
   id: '/orquestracao',
   path: '/orquestracao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketplaceRoute = MarketplaceRouteImport.update({
+  id: '/marketplace',
+  path: '/marketplace',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InteligenciaRoute = InteligenciaRouteImport.update({
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/inbox': typeof InboxRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
+  '/marketplace': typeof MarketplaceRoute
   '/orquestracao': typeof OrquestracaoRoute
   '/produtos': typeof ProdutosRoute
   '/quarentena': typeof QuarentenaRoute
@@ -196,6 +203,7 @@ export interface FileRoutesByTo {
   '/inbox': typeof InboxRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
+  '/marketplace': typeof MarketplaceRoute
   '/orquestracao': typeof OrquestracaoRoute
   '/produtos': typeof ProdutosRoute
   '/quarentena': typeof QuarentenaRoute
@@ -223,6 +231,7 @@ export interface FileRoutesById {
   '/inbox': typeof InboxRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
+  '/marketplace': typeof MarketplaceRoute
   '/orquestracao': typeof OrquestracaoRoute
   '/produtos': typeof ProdutosRoute
   '/quarentena': typeof QuarentenaRoute
@@ -251,6 +260,7 @@ export interface FileRouteTypes {
     | '/inbox'
     | '/integracoes'
     | '/inteligencia'
+    | '/marketplace'
     | '/orquestracao'
     | '/produtos'
     | '/quarentena'
@@ -277,6 +287,7 @@ export interface FileRouteTypes {
     | '/inbox'
     | '/integracoes'
     | '/inteligencia'
+    | '/marketplace'
     | '/orquestracao'
     | '/produtos'
     | '/quarentena'
@@ -303,6 +314,7 @@ export interface FileRouteTypes {
     | '/inbox'
     | '/integracoes'
     | '/inteligencia'
+    | '/marketplace'
     | '/orquestracao'
     | '/produtos'
     | '/quarentena'
@@ -330,6 +342,7 @@ export interface RootRouteChildren {
   InboxRoute: typeof InboxRoute
   IntegracoesRoute: typeof IntegracoesRoute
   InteligenciaRoute: typeof InteligenciaRoute
+  MarketplaceRoute: typeof MarketplaceRoute
   OrquestracaoRoute: typeof OrquestracaoRoute
   ProdutosRoute: typeof ProdutosRoute
   QuarentenaRoute: typeof QuarentenaRoute
@@ -377,6 +390,13 @@ declare module '@tanstack/react-router' {
       path: '/orquestracao'
       fullPath: '/orquestracao'
       preLoaderRoute: typeof OrquestracaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketplace': {
+      id: '/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof MarketplaceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inteligencia': {
@@ -530,6 +550,7 @@ const rootRouteChildren: RootRouteChildren = {
   InboxRoute: InboxRoute,
   IntegracoesRoute: IntegracoesRoute,
   InteligenciaRoute: InteligenciaRoute,
+  MarketplaceRoute: MarketplaceRoute,
   OrquestracaoRoute: OrquestracaoRoute,
   ProdutosRoute: ProdutosRoute,
   QuarentenaRoute: QuarentenaRoute,
