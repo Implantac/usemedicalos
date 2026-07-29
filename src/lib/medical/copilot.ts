@@ -68,7 +68,7 @@ export function repriceForResponse(
     return { ...it, unit_price: br.suggested_price, cost_price: p.cost_price };
   });
   const totals = quoteTotals(items);
-  return { items, total: totals.total, margin: totals.margin };
+  return { items, total: totals.revenue, margin: totals.margin };
 }
 
 /**
@@ -136,10 +136,11 @@ function complianceDisclaimers(quote: Quote): { risks: string[]; disclaimers: st
   const risks: string[] = [];
   const disclaimers: string[] = [];
   for (const check of report.checks) {
+    const reason = check.reason ?? "revisão regulatória necessária";
     if (check.status === "warning") {
-      risks.push(`${check.sku}: ${check.message}`);
+      risks.push(`${check.sku}: ${reason}`);
     } else if (check.status === "blocked") {
-      risks.push(`⚠ ${check.sku}: BLOQUEIO — ${check.message}`);
+      risks.push(`⚠ ${check.sku}: BLOQUEIO — ${reason}`);
       disclaimers.push(`${check.sku}: sujeito a revisão de compliance antes do envio.`);
     }
   }
