@@ -43,6 +43,7 @@ type NavEntry = {
 };
 
 const NAV_ITEMS: NavEntry[] = [
+  { to: "/command", label: "Command Center", icon: Radio, keywords: "noc centro operacoes ao vivo tempo real", perm: "quotes.view" },
   { to: "/", label: "Inbox", icon: Inbox, keywords: "cotacoes rfq caixa", perm: "quotes.view" },
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, keywords: "kpi metricas", perm: "quotes.view" },
   { to: "/executivo", label: "Painel Executivo", icon: Gauge, keywords: "gestor c-level", perm: "quotes.view" },

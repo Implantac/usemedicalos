@@ -21,6 +21,7 @@ import { Route as ExcecoesRouteImport } from './routes/excecoes'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ComplianceRouteImport } from './routes/compliance'
+import { Route as CommandRouteImport } from './routes/command'
 import { Route as CloudReadinessRouteImport } from './routes/cloud-readiness'
 import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as ApiKeysRouteImport } from './routes/api-keys'
@@ -91,6 +92,11 @@ const ComplianceRoute = ComplianceRouteImport.update({
   path: '/compliance',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommandRoute = CommandRouteImport.update({
+  id: '/command',
+  path: '/command',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CloudReadinessRoute = CloudReadinessRouteImport.update({
   id: '/cloud-readiness',
   path: '/cloud-readiness',
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/api-keys': typeof ApiKeysRoute
   '/auditoria': typeof AuditoriaRoute
   '/cloud-readiness': typeof CloudReadinessRoute
+  '/command': typeof CommandRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/api-keys': typeof ApiKeysRoute
   '/auditoria': typeof AuditoriaRoute
   '/cloud-readiness': typeof CloudReadinessRoute
+  '/command': typeof CommandRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
@@ -189,6 +197,7 @@ export interface FileRoutesById {
   '/api-keys': typeof ApiKeysRoute
   '/auditoria': typeof AuditoriaRoute
   '/cloud-readiness': typeof CloudReadinessRoute
+  '/command': typeof CommandRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
@@ -214,6 +223,7 @@ export interface FileRouteTypes {
     | '/api-keys'
     | '/auditoria'
     | '/cloud-readiness'
+    | '/command'
     | '/compliance'
     | '/configuracoes'
     | '/dashboard'
@@ -237,6 +247,7 @@ export interface FileRouteTypes {
     | '/api-keys'
     | '/auditoria'
     | '/cloud-readiness'
+    | '/command'
     | '/compliance'
     | '/configuracoes'
     | '/dashboard'
@@ -260,6 +271,7 @@ export interface FileRouteTypes {
     | '/api-keys'
     | '/auditoria'
     | '/cloud-readiness'
+    | '/command'
     | '/compliance'
     | '/configuracoes'
     | '/dashboard'
@@ -284,6 +296,7 @@ export interface RootRouteChildren {
   ApiKeysRoute: typeof ApiKeysRoute
   AuditoriaRoute: typeof AuditoriaRoute
   CloudReadinessRoute: typeof CloudReadinessRoute
+  CommandRoute: typeof CommandRoute
   ComplianceRoute: typeof ComplianceRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   DashboardRoute: typeof DashboardRoute
@@ -389,6 +402,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComplianceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/command': {
+      id: '/command'
+      path: '/command'
+      fullPath: '/command'
+      preLoaderRoute: typeof CommandRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cloud-readiness': {
       id: '/cloud-readiness'
       path: '/cloud-readiness'
@@ -460,6 +480,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiKeysRoute: ApiKeysRoute,
   AuditoriaRoute: AuditoriaRoute,
   CloudReadinessRoute: CloudReadinessRoute,
+  CommandRoute: CommandRoute,
   ComplianceRoute: ComplianceRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   DashboardRoute: DashboardRoute,
@@ -481,13 +502,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

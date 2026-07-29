@@ -9,6 +9,7 @@ import {
   LineChart,
   Package,
   Plug,
+  Radar,
   Radio,
   Settings2,
   Shield,
@@ -35,7 +36,8 @@ import { ROLE_LABEL, type Permission } from "@/lib/medical/governance";
 type NavItem = { to: string; label: string; icon: typeof Inbox; perm?: Permission };
 
 const OPERACAO: NavItem[] = [
-  { to: "/", label: "Inbox", icon: Inbox, perm: "quotes.view" },
+  { to: "/command", label: "Command Center", icon: Radar, perm: "quotes.view" },
+  { to: "/", label: "Inbox Universal", icon: Inbox, perm: "quotes.view" },
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, perm: "quotes.view" },
   { to: "/executivo", label: "Executivo", icon: Gauge, perm: "quotes.view" },
   { to: "/sla-watchdog", label: "SLA Watchdog", icon: Radio, perm: "quotes.view" },
