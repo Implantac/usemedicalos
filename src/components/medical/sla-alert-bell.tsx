@@ -95,7 +95,7 @@ export function SlaAlertBell() {
             return (
               <Link
                 key={q.id}
-                to="/"
+                to="/inbox"
                 search={{ open: q.id }}
                 onClick={() => setOpen(false)}
                 className="block border-b px-3 py-2 text-left transition-colors hover:bg-muted"

@@ -178,7 +178,7 @@ function OwnerPage() {
                       <tr key={q.id} className="hover:bg-accent/40">
                         <td className="px-2 py-1">
                           <Link
-                            to="/"
+                            to="/inbox"
                             search={{ open: q.id }}
                             className="font-semibold text-foreground hover:text-primary"
                           >

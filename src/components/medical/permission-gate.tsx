@@ -38,7 +38,7 @@ export function PermissionGate({ perm, title, children }: Props) {
           </p>
           <div className="mt-4 flex justify-center gap-2">
             <Button asChild size="sm" variant="outline">
-              <Link to="/">Voltar à Inbox</Link>
+              <Link to="/inbox">Voltar à Inbox</Link>
             </Button>
             <Button asChild size="sm">
               <Link to="/governanca">Ver governança</Link>

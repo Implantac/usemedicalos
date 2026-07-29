@@ -15,13 +15,13 @@ import { Route as QuarentenaRouteImport } from './routes/quarentena'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as InteligenciaRouteImport } from './routes/inteligencia'
 import { Route as IntegracoesRouteImport } from './routes/integracoes'
+import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as GovernancaRouteImport } from './routes/governanca'
 import { Route as ExecutivoRouteImport } from './routes/executivo'
 import { Route as ExcecoesRouteImport } from './routes/excecoes'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ComplianceRouteImport } from './routes/compliance'
-import { Route as CommandRouteImport } from './routes/command'
 import { Route as CloudReadinessRouteImport } from './routes/cloud-readiness'
 import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as ApiKeysRouteImport } from './routes/api-keys'
@@ -62,6 +62,11 @@ const IntegracoesRoute = IntegracoesRouteImport.update({
   path: '/integracoes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InboxRoute = InboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GovernancaRoute = GovernancaRouteImport.update({
   id: '/governanca',
   path: '/governanca',
@@ -90,11 +95,6 @@ const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
 const ComplianceRoute = ComplianceRouteImport.update({
   id: '/compliance',
   path: '/compliance',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CommandRoute = CommandRouteImport.update({
-  id: '/command',
-  path: '/command',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CloudReadinessRoute = CloudReadinessRouteImport.update({
@@ -148,13 +148,13 @@ export interface FileRoutesByFullPath {
   '/api-keys': typeof ApiKeysRoute
   '/auditoria': typeof AuditoriaRoute
   '/cloud-readiness': typeof CloudReadinessRoute
-  '/command': typeof CommandRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
   '/executivo': typeof ExecutivoRoute
   '/governanca': typeof GovernancaRoute
+  '/inbox': typeof InboxRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
   '/produtos': typeof ProdutosRoute
@@ -172,13 +172,13 @@ export interface FileRoutesByTo {
   '/api-keys': typeof ApiKeysRoute
   '/auditoria': typeof AuditoriaRoute
   '/cloud-readiness': typeof CloudReadinessRoute
-  '/command': typeof CommandRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
   '/executivo': typeof ExecutivoRoute
   '/governanca': typeof GovernancaRoute
+  '/inbox': typeof InboxRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
   '/produtos': typeof ProdutosRoute
@@ -197,13 +197,13 @@ export interface FileRoutesById {
   '/api-keys': typeof ApiKeysRoute
   '/auditoria': typeof AuditoriaRoute
   '/cloud-readiness': typeof CloudReadinessRoute
-  '/command': typeof CommandRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/dashboard': typeof DashboardRoute
   '/excecoes': typeof ExcecoesRoute
   '/executivo': typeof ExecutivoRoute
   '/governanca': typeof GovernancaRoute
+  '/inbox': typeof InboxRoute
   '/integracoes': typeof IntegracoesRoute
   '/inteligencia': typeof InteligenciaRoute
   '/produtos': typeof ProdutosRoute
@@ -223,13 +223,13 @@ export interface FileRouteTypes {
     | '/api-keys'
     | '/auditoria'
     | '/cloud-readiness'
-    | '/command'
     | '/compliance'
     | '/configuracoes'
     | '/dashboard'
     | '/excecoes'
     | '/executivo'
     | '/governanca'
+    | '/inbox'
     | '/integracoes'
     | '/inteligencia'
     | '/produtos'
@@ -247,13 +247,13 @@ export interface FileRouteTypes {
     | '/api-keys'
     | '/auditoria'
     | '/cloud-readiness'
-    | '/command'
     | '/compliance'
     | '/configuracoes'
     | '/dashboard'
     | '/excecoes'
     | '/executivo'
     | '/governanca'
+    | '/inbox'
     | '/integracoes'
     | '/inteligencia'
     | '/produtos'
@@ -271,13 +271,13 @@ export interface FileRouteTypes {
     | '/api-keys'
     | '/auditoria'
     | '/cloud-readiness'
-    | '/command'
     | '/compliance'
     | '/configuracoes'
     | '/dashboard'
     | '/excecoes'
     | '/executivo'
     | '/governanca'
+    | '/inbox'
     | '/integracoes'
     | '/inteligencia'
     | '/produtos'
@@ -296,13 +296,13 @@ export interface RootRouteChildren {
   ApiKeysRoute: typeof ApiKeysRoute
   AuditoriaRoute: typeof AuditoriaRoute
   CloudReadinessRoute: typeof CloudReadinessRoute
-  CommandRoute: typeof CommandRoute
   ComplianceRoute: typeof ComplianceRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   DashboardRoute: typeof DashboardRoute
   ExcecoesRoute: typeof ExcecoesRoute
   ExecutivoRoute: typeof ExecutivoRoute
   GovernancaRoute: typeof GovernancaRoute
+  InboxRoute: typeof InboxRoute
   IntegracoesRoute: typeof IntegracoesRoute
   InteligenciaRoute: typeof InteligenciaRoute
   ProdutosRoute: typeof ProdutosRoute
@@ -360,6 +360,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IntegracoesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/inbox': {
+      id: '/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof InboxRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/governanca': {
       id: '/governanca'
       path: '/governanca'
@@ -400,13 +407,6 @@ declare module '@tanstack/react-router' {
       path: '/compliance'
       fullPath: '/compliance'
       preLoaderRoute: typeof ComplianceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/command': {
-      id: '/command'
-      path: '/command'
-      fullPath: '/command'
-      preLoaderRoute: typeof CommandRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cloud-readiness': {
@@ -480,13 +480,13 @@ const rootRouteChildren: RootRouteChildren = {
   ApiKeysRoute: ApiKeysRoute,
   AuditoriaRoute: AuditoriaRoute,
   CloudReadinessRoute: CloudReadinessRoute,
-  CommandRoute: CommandRoute,
   ComplianceRoute: ComplianceRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   DashboardRoute: DashboardRoute,
   ExcecoesRoute: ExcecoesRoute,
   ExecutivoRoute: ExecutivoRoute,
   GovernancaRoute: GovernancaRoute,
+  InboxRoute: InboxRoute,
   IntegracoesRoute: IntegracoesRoute,
   InteligenciaRoute: InteligenciaRoute,
   ProdutosRoute: ProdutosRoute,

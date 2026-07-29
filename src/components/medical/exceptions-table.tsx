@@ -39,7 +39,7 @@ export function ExceptionsTable({ quotes }: { quotes: Quote[] }) {
                   <tr key={q.id} className="hover:bg-accent/40">
                     <td className="px-3 py-2">
                       <Link
-                        to="/"
+                        to="/inbox"
                         search={{ open: q.id }}
                         className="font-semibold text-foreground hover:text-primary"
                       >

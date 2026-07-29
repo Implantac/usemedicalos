@@ -126,7 +126,7 @@ function IntegrationsPage() {
       })),
     });
     toast.success(`Cotação ${q.id} criada a partir do ERP.`);
-    navigate({ to: "/", search: { open: q.id } });
+    navigate({ to: "/inbox", search: { open: q.id } });
   }
 
   return (
