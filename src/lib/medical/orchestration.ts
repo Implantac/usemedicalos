@@ -263,10 +263,14 @@ export function splitLargeQuote(
 
   // Para cada item, avaliamos qual owner é melhor tratando-o como "mini cotação".
   const itemOwnerVotes = quote.items.map((item) => {
+    const tokens = item.name
+      .toLowerCase()
+      .split(/[^a-z0-9à-ÿ]+/i)
+      .filter((t) => t.length >= 3);
     const mini: Pick<Quote, "customer_name" | "customer_segment" | "keywords" | "items" | "priority"> = {
       customer_name: quote.customer_name,
       customer_segment: quote.customer_segment,
-      keywords: [item.name.toLowerCase(), ...(quote.keywords ?? [])],
+      keywords: [...tokens, ...(quote.keywords ?? [])],
       items: [item],
       priority: quote.priority,
     };
