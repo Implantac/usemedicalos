@@ -95,7 +95,7 @@ function ExceptionsPage() {
                     <tr key={`${o.quote_id}-${o.sku}`} className="border-b border-border last:border-b-0 hover:bg-muted/30">
                       <td className="px-3 py-2">
                         {q ? (
-                          <Link to="/" search={{ open: q.id }} className="font-semibold text-primary hover:underline">
+                          <Link to="/inbox" search={{ open: q.id }} className="font-semibold text-primary hover:underline">
                             {q.customer_name}
                           </Link>
                         ) : (

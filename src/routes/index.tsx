@@ -63,7 +63,7 @@ function CommandCenterPage() {
   const antiRec = useMemo(() => antiRecommendation(quotes), [quotes]);
   const timeline = useMemo(() => recentTimeline(loadActivities(), 10), [quotes, now]);
 
-  const openQuote = (id: string) => navigate({ to: "/", search: { open: id } });
+  const openQuote = (id: string) => navigate({ to: "/inbox", search: { open: id } });
 
   return (
     <div className="min-h-screen bg-background">
