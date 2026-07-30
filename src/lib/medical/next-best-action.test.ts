@@ -17,7 +17,7 @@ function makeQuote(over: Partial<Quote>): Quote {
     sla_deadline: new Date(Date.now() + 6 * 3600_000).toISOString(),
     original_payload: "",
     items: [
-      { product_id: "p1", description: "Luva", quantity: 100, unit_cost: 10, unit_price: 14 },
+      { product_id: "p1", sku: "LV-1", name: "Luva", quantity: 100, cost_price: 10, unit_price: 14 },
     ],
   } as unknown as Quote;
   return { ...base, ...over } as Quote;
@@ -29,7 +29,7 @@ describe("next-best-action", () => {
     const thin = makeQuote({
       id: "thin",
       items: [
-        { product_id: "p1", description: "Luva", quantity: 100, unit_cost: 10, unit_price: 10.3 },
+        { product_id: "p1", sku: "LV-1", name: "Luva", quantity: 100, cost_price: 10, unit_price: 10.3 },
       ] as Quote["items"],
     });
     const actions = computeNextBestActions([healthy, thin]);
