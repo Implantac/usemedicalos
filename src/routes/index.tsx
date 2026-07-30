@@ -16,6 +16,7 @@ import { AppHeader } from "@/components/medical/app-header";
 import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { Toaster } from "@/components/ui/sonner";
 import { useQuotes } from "@/hooks/use-quotes";
+import { useHydrated } from "@/hooks/use-hydrated";
 import {
   antiRecommendation,
   computeOpportunities,
@@ -50,10 +51,16 @@ export const Route = createFileRoute("/")({
 function CommandCenterPage() {
   const navigate = useNavigate();
   const { quotes, resetDemo } = useQuotes();
+  const hydrated = useHydrated();
 
   const [now, setNow] = useState(() => Date.now());
+  const [clockTime, setClockTime] = useState("");
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 30_000);
+    setClockTime(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
+    const t = setInterval(() => {
+      setNow(Date.now());
+      setClockTime(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
+    }, 30_000);
     return () => clearInterval(t);
   }, []);
 
@@ -103,8 +110,8 @@ function CommandCenterPage() {
             <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
               Oportunidades
             </h2>
-            <span className="num text-[10px] text-muted-foreground">
-              {new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+<span className="num text-[10px] text-muted-foreground">
+              {clockTime}
             </span>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">

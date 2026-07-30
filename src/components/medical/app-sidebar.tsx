@@ -40,7 +40,7 @@ import { ROLE_LABEL, type Permission } from "@/lib/medical/governance";
 type NavItem = { to: string; label: string; icon: typeof Inbox; perm?: Permission };
 
 const OPERACAO: NavItem[] = [
-  { to: "/command", label: "Command Center", icon: Radar, perm: "quotes.view" },
+  { to: "/", label: "Command Center", icon: Radar, perm: "quotes.view" },
   { to: "/inbox", label: "Inbox Universal", icon: Inbox, perm: "quotes.view" },
   { to: "/orquestracao", label: "Orquestração", icon: GitFork, perm: "quotes.respond" },
   { to: "/copiloto", label: "Copiloto IA", icon: Sparkles, perm: "quotes.respond" },
