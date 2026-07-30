@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Activity, DollarSign, Percent, ShieldCheck, Ticket, TrendingUp } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
-import { IaInsightBar } from "@/components/medical/ia-insight-bar";
 import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { KpiCard } from "@/components/medical/kpi-card";
 import { SlaTimeline } from "@/components/medical/sla-timeline";
@@ -10,7 +9,6 @@ import { StatusDonut } from "@/components/medical/status-donut";
 import { LeaderboardTable } from "@/components/medical/leaderboard-table";
 import { ExceptionsTable } from "@/components/medical/exceptions-table";
 import { useQuotes } from "@/hooks/use-quotes";
-import { scoreQuotes } from "@/lib/medical/command-center";
 import {
   computeKpis,
   dailySeries,
@@ -20,7 +18,7 @@ import {
   sourceDistribution,
   statusDistribution,
 } from "@/lib/medical/analytics";
-import { formatBRL, formatPct, quoteTotals } from "@/lib/medical/pricing";
+import { formatBRL, formatPct } from "@/lib/medical/pricing";
 import { SOURCE_LABEL } from "@/lib/medical/types";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
@@ -34,16 +32,16 @@ export const Route = createFileRoute("/dashboard")({
   },
   head: () => ({
     meta: [
-      { title: "Analytics — USE Medical" },
+      { title: "Dashboard — USE Medical" },
       { name: "description", content: "KPIs comerciais, SLA, performance por vendedor e cotações em risco em uma única tela." },
     ],
   }),
-  component: AnalyticsPage,
+  component: DashboardPage,
 });
 
 const PERIODS = [7, 30, 90] as const;
 
-function AnalyticsPage() {
+function DashboardPage() {
   const navigate = useNavigate({ from: "/dashboard" });
   const { period } = Route.useSearch();
   const safePeriod = (PERIODS as readonly number[]).includes(period) ? period : 30;
@@ -57,15 +55,6 @@ function AnalyticsPage() {
   const board = useMemo(() => leaderboard(scoped), [scoped]);
   const excs = useMemo(() => exceptions(quotes), [quotes]);
 
-  // IA Insight: melhor cotação para focar no período
-  const topScored = useMemo(() => scoreQuotes(scoped).slice(0, 1), [scoped]);
-  const insightMessage = useMemo(() => {
-    if (topScored.length === 0) return "Nenhuma cotação ativa no período analisado.";
-    const t = topScored[0];
-    const totals = quoteTotals(t.quote.items);
-    return `Melhor oportunidade: ${t.quote.customer_name} — ${formatBRL(totals.revenue)} · ${Math.round(t.winChance * 100)}% chance · lucro esperado ${formatBRL(t.expectedProfit)}`;
-  }, [topScored]);
-
   return (
     <div className="min-h-screen bg-background">
       <AppHeader onReset={resetDemo} />
@@ -74,7 +63,7 @@ function AnalyticsPage() {
         <TenantScopeBanner hint={`Últimos ${safePeriod} dias`} />
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-lg font-bold tracking-tight text-foreground">Analytics comercial</h1>
+            <h1 className="text-lg font-bold tracking-tight text-foreground">Dashboard comercial</h1>
             <p className="text-xs text-muted-foreground">
               Visão executiva de SLA, pipeline e performance nos últimos {safePeriod} dias.
             </p>
@@ -98,17 +87,6 @@ function AnalyticsPage() {
             ))}
           </div>
         </div>
-
-        {/* IA Insight — recomendação do período */}
-        <IaInsightBar
-          title="IA Comercial"
-          message={insightMessage}
-          actionLabel="Ver na Inbox"
-          onAction={() => {
-            if (topScored[0]) navigate({ to: "/inbox", search: { open: topScored[0].quote.id } });
-          }}
-          variant="info"
-        />
 
         <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-6">
           <KpiCard label="Cotações ativas" value={kpis.activeCount} icon={Activity} tone="primary" />

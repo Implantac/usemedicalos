@@ -1,11 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { AlertTriangle, DollarSign, ShieldCheck, Sparkles, TrendingUp, Users, Zap } from "lucide-react";
+import { AlertTriangle, DollarSign, ShieldCheck, TrendingUp, Users, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { AppHeader } from "@/components/medical/app-header";
-import { IaInsightBar } from "@/components/medical/ia-insight-bar";
 import { useQuotes } from "@/hooks/use-quotes";
 import { computeKpis, leaderboard } from "@/lib/medical/analytics";
 import { computeCommission } from "@/lib/medical/commission";
@@ -20,7 +19,7 @@ import type { Quote } from "@/lib/medical/types";
 export const Route = createFileRoute("/executivo")({
   head: () => ({
     meta: [
-      { title: "Executivo — USE Medical" },
+      { title: "Painel Executivo — USE Medical" },
       { name: "description", content: "Visão consolidada de receita em risco, comissão projetada e integridade operacional." },
     ],
   }),
@@ -31,7 +30,6 @@ const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", curren
 const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
 
 function ExecutivePanel() {
-  const navigate = useNavigate();
   const { quotes, resetDemo } = useQuotes();
   const { tenant } = useActiveTenant();
 
@@ -63,6 +61,7 @@ function ExecutivePanel() {
 
     const activities = loadActivities();
     const scoped = tenant ? activities.filter((a) => {
+      // activity storage não é escopada por tenant → derivar via quote id
       const q = quotes.find((x) => x.id === a.quote_id);
       return q?.tenant_id === tenant.id;
     }) : activities;
@@ -81,7 +80,7 @@ function ExecutivePanel() {
       <div className="mx-auto max-w-[1600px] space-y-5 px-3 py-5 sm:px-4">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-foreground">Executivo</h1>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Painel Executivo</h1>
             <p className="text-sm text-muted-foreground">
               {tenant ? `${tenant.name} · ${tenant.region ?? "—"}` : "Todos os tenants"} · Visão consolidada
             </p>
@@ -90,18 +89,6 @@ function ExecutivePanel() {
             Somente leitura · Gestor
           </Badge>
         </header>
-
-        {/* IA Insight — receita em risco */}
-        {data.revenueAtRisk > 0 && (
-          <IaInsightBar
-            title="IA Comercial"
-            message={`Receita em risco: ${brl(data.revenueAtRisk)} — ${data.atRiskCount} cotações com SLA estourado precisam de ação imediata`}
-            actionLabel="Ver na Inbox"
-            onAction={() => navigate({ to: "/inbox" })}
-            variant="danger"
-            icon={<AlertTriangle className="h-4 w-4" />}
-          />
-        )}
 
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <HeroCard
@@ -145,8 +132,15 @@ function ExecutivePanel() {
               {data.topClients.length === 0 && (
                 <p className="py-6 text-center text-xs text-muted-foreground">Sem cotações no escopo atual.</p>
               )}
-
+              {data.topClients.map((c) => {
+                const max = data.topClients[0]?.revenue || 1;
+                return (
+                  <div key={c.name} className="space-y-1">
+                    <div className="flex items-center justify-between gap-2 text-xs">
+                      <span className="truncate font-medium text-foreground">{c.name}</span>
+                      <span className="tabular-nums text-muted-foreground">
                         {c.count} cot. · <span className="font-semibold text-foreground">{brl(c.revenue)}</span>
+                      </span>
                     </div>
                     <Progress value={(c.revenue / max) * 100} className="h-1.5" />
                   </div>

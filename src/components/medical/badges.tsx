@@ -40,16 +40,8 @@ export function PriorityBadge({ priority }: { priority: Priority }) {
 }
 
 export function SourceTag({ source }: { source: SourceType }) {
-  const map: Record<SourceType, { bg: string; text: string; border: string }> = {
-    email: { bg: "bg-sky-500/10", text: "text-sky-600", border: "border-sky-500/25" },
-    whatsapp: { bg: "bg-emerald-500/10", text: "text-emerald-600", border: "border-emerald-500/25" },
-    portal: { bg: "bg-orange-500/10", text: "text-orange-600", border: "border-orange-500/25" },
-    telefone: { bg: "bg-violet-500/10", text: "text-violet-600", border: "border-violet-500/25" },
-    edi: { bg: "bg-slate-500/10", text: "text-slate-600", border: "border-slate-500/25" },
-  };
-  const style = map[source];
   return (
-    <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider", style.bg, style.text, style.border)}>
+    <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
       {SOURCE_LABEL[source]}
     </span>
   );

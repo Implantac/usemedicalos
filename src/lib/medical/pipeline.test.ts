@@ -15,7 +15,8 @@ describe("pipeline", () => {
 
   it("volta um passo, e perdido volta para aguardando", () => {
     expect(prevStatus("enviado")).toBe("em_negociacao");
-    expect(prevStatus("aguardando_precificacao")).toBeNull();
+    expect(prevStatus("aguardando_precificacao")).toBe("pending_review");
+    expect(prevStatus("pending_review")).toBeNull();
     expect(prevStatus("perdido")).toBe("aguardando_precificacao");
   });
 });

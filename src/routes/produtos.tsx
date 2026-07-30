@@ -1,9 +1,8 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { PermissionGate } from "@/components/medical/permission-gate";
 import { useMemo, useState } from "react";
-import { Search, TrendingUp, AlertTriangle } from "lucide-react";
+import { Search, TrendingUp } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
-import { IaInsightBar } from "@/components/medical/ia-insight-bar";
 import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { ProductList } from "@/components/medical/product-list";
 import { ProductHistoryDrawer } from "@/components/medical/product-history-drawer";
@@ -12,9 +11,7 @@ import { useQuotes } from "@/hooks/use-quotes";
 import { useProductOverrides } from "@/hooks/use-product-overrides";
 import { PRODUCTS } from "@/lib/medical/mock-data";
 import { enrichProductsWithMarket, computeMarketAverages } from "@/lib/medical/pricing-flywheel";
-import { formatPct } from "@/lib/medical/pricing";
 import { Toaster } from "@/components/ui/sonner";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/produtos")({
   head: () => ({
@@ -31,7 +28,6 @@ export const Route = createFileRoute("/produtos")({
 });
 
 function ProdutosPage() {
-  const navigate = useNavigate();
   const { quotes, resetDemo } = useQuotes();
   const { applyTo } = useProductOverrides();
   const [q, setQ] = useState("");
@@ -54,37 +50,12 @@ function ProdutosPage() {
 
   const selected = enriched.find((p) => p.id === selectedId) ?? null;
 
-  // IA Insight: produtos com margem abaixo do ideal
-  const lowMarginProducts = useMemo(() => {
-    return enriched.filter((p) => {
-      const margin = (p.last_suggested_price - p.cost_price) / p.last_suggested_price;
-      return margin < 0.12;
-    });
-  }, [enriched]);
-
   return (
     <div className="min-h-screen bg-background">
       <AppHeader onReset={resetDemo} />
 
       <main className="mx-auto max-w-[1600px] space-y-4 px-3 py-4 sm:px-4">
         <TenantScopeBanner hint="Catálogo compartilhado entre tenants" />
-
-        {/* IA Insight — alerta de margem */}
-        {lowMarginProducts.length > 0 && (
-          <IaInsightBar
-            title="IA Comercial"
-            message={`${lowMarginProducts.length} produto(s) com margem abaixo de 12% — revisão recomendada`}
-            subtitle="Margens apertadas comprometem a rentabilidade da operação"
-            actionLabel="Ver produtos"
-            onAction={() => {
-              const first = lowMarginProducts[0];
-              if (first) setSelectedId(first.id);
-            }}
-            variant="warning"
-            icon={<AlertTriangle className="h-4 w-4" />}
-          />
-        )}
-
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
             <h1 className="text-lg font-bold tracking-tight text-foreground">Catálogo de produtos</h1>
@@ -99,6 +70,7 @@ function ProdutosPage() {
               {flywheelStats.size} SKU{flywheelStats.size === 1 ? "" : "s"} com preço médio real
             </span>
           </div>
+        </div>
 
         <div className="relative max-w-md">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -118,3 +90,4 @@ function ProdutosPage() {
     </div>
   );
 }
+

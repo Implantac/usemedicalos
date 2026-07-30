@@ -39,36 +39,30 @@ import { ROLE_LABEL, type Permission } from "@/lib/medical/governance";
 
 type NavItem = { to: string; label: string; icon: typeof Inbox; perm?: Permission };
 
-// Menu reorganizado por JORNADA DO VENDEDOR, não por entidades de banco.
-// A jornada começa na Inbox e segue o fluxo natural do comercial.
-
-const RECEBER: NavItem[] = [
-  { to: "/inbox", label: "Inbox Universal", icon: Inbox, perm: "quotes.view" },
+const OPERACAO: NavItem[] = [
   { to: "/command", label: "Command Center", icon: Radar, perm: "quotes.view" },
+  { to: "/inbox", label: "Inbox Universal", icon: Inbox, perm: "quotes.view" },
   { to: "/orquestracao", label: "Orquestração", icon: GitFork, perm: "quotes.respond" },
+  { to: "/copiloto", label: "Copiloto IA", icon: Sparkles, perm: "quotes.respond" },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, perm: "quotes.view" },
+  { to: "/executivo", label: "Executivo", icon: Gauge, perm: "quotes.view" },
   { to: "/sla-watchdog", label: "SLA Watchdog", icon: Radio, perm: "quotes.view" },
 ];
 
-const RESPONDER: NavItem[] = [
-  { to: "/copiloto", label: "Resposta Assistida", icon: Sparkles, perm: "quotes.respond" },
-  { to: "/produtos", label: "Precificação IA", icon: Package, perm: "pricing.governance" },
-];
-
-const ANALISAR: NavItem[] = [
-  { to: "/dashboard", label: "Analytics", icon: LayoutDashboard, perm: "quotes.view" },
-  { to: "/executivo", label: "Executivo", icon: Gauge, perm: "quotes.view" },
+const CATALOGO: NavItem[] = [
+  { to: "/produtos", label: "Produtos", icon: Package, perm: "pricing.governance" },
   { to: "/inteligencia", label: "Inteligência", icon: LineChart, perm: "quotes.view" },
   { to: "/benchmarking", label: "Benchmarking", icon: BarChart3, perm: "quotes.view" },
 ];
 
-const INTEGRAR: NavItem[] = [
+const INTEGRACAO: NavItem[] = [
   { to: "/marketplace", label: "Marketplace", icon: Store, perm: "integrations.manage" },
   { to: "/integracoes", label: "Integrações", icon: Plug, perm: "integrations.manage" },
   { to: "/api-keys", label: "API Keys", icon: KeyRound, perm: "api_keys.manage" },
   { to: "/cloud-readiness", label: "Cloud", icon: Cloud, perm: "tenant.configure" },
 ];
 
-const GOVERNAR: NavItem[] = [
+const GOVERNANCA: NavItem[] = [
   { to: "/excecoes", label: "Exceções", icon: ShieldCheck, perm: "compliance.override" },
   { to: "/compliance", label: "Compliance", icon: ShieldCheck, perm: "compliance.override" },
   { to: "/governanca", label: "Governança", icon: Shield, perm: "governance.manage" },
@@ -139,11 +133,10 @@ export function AppSidebar() {
         </Link>
       </SidebarHeader>
       <SidebarContent>
-        <NavGroup label="📥 Receber" items={RECEBER} currentPath={currentPath} can={can} />
-        <NavGroup label="🤖 Responder" items={RESPONDER} currentPath={currentPath} can={can} />
-        <NavGroup label="📊 Analisar" items={ANALISAR} currentPath={currentPath} can={can} />
-        <NavGroup label="🔌 Integrar" items={INTEGRAR} currentPath={currentPath} can={can} />
-        <NavGroup label="⚙️ Governar" items={GOVERNAR} currentPath={currentPath} can={can} />
+        <NavGroup label="Operação" items={OPERACAO} currentPath={currentPath} can={can} />
+        <NavGroup label="Catálogo" items={CATALOGO} currentPath={currentPath} can={can} />
+        <NavGroup label="Integração" items={INTEGRACAO} currentPath={currentPath} can={can} />
+        <NavGroup label="Governança" items={GOVERNANCA} currentPath={currentPath} can={can} />
       </SidebarContent>
       <SidebarFooter>
         {!collapsed && (

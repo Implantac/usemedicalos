@@ -4,6 +4,7 @@ import { INITIAL_QUOTES, PRODUCTS, TENANTS } from "@/lib/medical/mock-data";
 import { buildAutoDraft } from "@/lib/medical/auto-draft";
 import { classify } from "@/lib/medical/classifier";
 import { appendActivity } from "@/lib/medical/activity";
+import { emitDomainEvent } from "@/lib/medical/domain-events";
 import { useActiveTenant } from "@/hooks/use-active-tenant";
 import { useTenantConfig } from "@/hooks/use-tenant-config";
 import { slaHoursForTenant } from "@/lib/medical/tenant-config";
@@ -104,7 +105,20 @@ export function useQuotes() {
   }, [guard]);
 
   const setStatus = useCallback(
-    (id: string, status: QuoteStatus) => updateQuote(id, { status }),
+    (id: string, status: QuoteStatus) => {
+      updateQuote(id, { status });
+      const type =
+        status === "ganho"
+          ? "quote.won"
+          : status === "perdido"
+          ? "quote.lost"
+          : status === "enviado"
+          ? "quote.sent"
+          : status === "em_negociacao"
+          ? "quote.priced"
+          : null;
+      if (type) emitDomainEvent(type, { quote_id: id, payload: { status } });
+    },
     [updateQuote],
   );
 
@@ -134,6 +148,7 @@ export function useQuotes() {
     };
     setAllQuotes((qs) => [q, ...qs]);
     appendActivity({ quote_id: q.id, type: "created", message: `Cotação criada para ${q.customer_name}` });
+    emitDomainEvent("quote.received", { quote_id: q.id, tenant_id: q.tenant_id, payload: { source: q.source_type } });
     return q;
   }, [tenant]);
 
