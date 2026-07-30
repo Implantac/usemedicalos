@@ -1,49 +1,37 @@
-﻿# Sprint 2 — Centro de Controle ✅ COMPLETO
+﻿# Plano de Implementação — USE Medical Motor Operacional
 
-## Objetivo
-Expandir Command Center com mapa de regiões e produtividade ao vivo, adicionar IA transversal nas telas.
+## Fase 1: Tela Operacional de Cotação (Core)
+- [ ] **1.1** Criar `src/routes/cotacao.$quoteId.tsx` — Rota dedicada para a tela operacional full-screen
+- [ ] **1.2** Criar `src/components/medical/quote-operational-workspace.tsx` — Componente principal da tela de cotação
+- [ ] **1.3** Criar `src/components/medical/quote-item-table.tsx` — Tabela de itens com classificação automática
+- [ ] **1.4** Criar `src/components/medical/product-history-panel.tsx` — Histórico do produto ao clicar
+- [ ] **1.5** Criar `src/components/medical/price-slider.tsx` — Slider de preço com impacto na margem
+- [ ] **1.6** Criar `src/components/medical/quote-summary-bar.tsx` — Barra de resumo (itens atendidos, valor, margem)
+- [ ] **1.7** Atualizar `src/routeTree.gen.ts` — Registrar nova rota
 
----
+## Fase 2: Classificação Inteligente de Itens
+- [ ] **2.1** Criar `src/lib/medical/product-matching.ts` — Motor de matching produto vs ERP
+- [ ] **2.2** Criar `src/lib/medical/item-classifier.ts` — Classificador: atende, parcial, sem estoque, não localizado
+- [ ] **2.3** Atualizar `src/lib/medical/mock-data.ts` — Adicionar dados mock de estoque, ERP, histórico
 
-## Tarefas
+## Fase 3: Motor de Precificação Configurável
+- [ ] **3.1** Criar `src/lib/medical/pricing-rules.ts` — Regras de precificação (margem min, alvo, desconto max)
+- [ ] **3.2** Atualizar `src/lib/medical/pricing-engine.ts` — Integrar regras configuráveis
+- [ ] **3.3** Criar `src/components/medical/pricing-config-panel.tsx` — Painel de configuração de preço
 
-### [x] 1. Criar componente IaInsightBar reutilizável
-- [x] Componente com 5 variantes visuais (brand, success, warning, info, danger)
-- [x] Props: message, subtitle, actionLabel, onAction, icon, title
-- [x] IaInsightInline para badges inline com sparkles
+## Fase 4: Envio e Acompanhamento
+- [ ] **4.1** Criar `src/lib/medical/response-builder.ts` — Montagem da proposta para envio
+- [ ] **4.2** Criar `src/components/medical/send-proposal-dialog.tsx` — Diálogo de confirmação de envio
+- [ ] **4.3** Criar `src/components/medical/order-status-tracker.tsx` — Acompanhamento pós-venda
 
-### [x] 2. Adicionar IA Insight no Command Center (/)
-- [x] Card  Foco em N cotações prioritárias hoje — lucro esperado de R$ X
-- [x] Link para Inbox
+## Fase 5: Resultado e Aprendizado
+- [ ] **5.1** Criar `src/components/medical/win-loss-reason.tsx` — Coleta de motivo de perda/ganho
+- [ ] **5.2** Atualizar `src/lib/medical/analytics.ts` — Alimentar aprendizado da IA
 
-### [x] 3. Adicionar IA Insight no Dashboard (/dashboard → Analytics)
-- [x] Card Win rate de X% — Y cotações em risco de SLA
-- [x] Link para Inbox
+## Fase 6: Modo Produção
+- [ ] **6.1** Criar `src/components/medical/production-mode.tsx` — Modo "Próxima" para linha de produção
+- [ ] **6.2** Criar `src/hooks/use-production-queue.ts` — Hook para fila de produção
 
-### [x] 4. Adicionar IA Insight no Produtos (/produtos)
-- [x] Card X produtos com margem abaixo de 12% — revisão necessária
-- [x] Link para catálogo filtrado
-
-### [x] 5. Adicionar IA Insight no Executivo (/executivo)
-- [x] Card Receita em risco: R$ X — Y cotações com SLA estourado
-- [x] Link para Inbox
-
-### [x] 6. Adicionar IA Insight na Inteligência (/inteligencia)
-- [x] Card Sua margem média está X% acima/abaixo da média regional
-- [x] Link para Analytics
-
-### [x] 7. Seção Produtividade do Time (Command Center)
-- [x] Grid de vendedores com cotações abertas e SLA estourado
-- [x] Link para perfil de cada vendedor
-
-### [x] 8. Mapa de Oportunidades por Região (Command Center)
-- [x] Grid de regiões com barra de revenue proporcional
-- [x] Count de cotações por região
-
----
-
-## Critérios de Sucesso
-- [x] IA presente em 5 telas (Command Center, Analytics, Produtos, Inteligência, Executivo)
-- [x] Command Center com visão de time e regiões
-- [x] Componente IaInsightBar reutilizável para futuras implementações
-- [x] Zero breaking changes — URLs preservadas, dados intactos
+## Fase 7: Automação
+- [ ] **7.1** Criar `src/lib/medical/auto-responder.ts` — Regras para resposta automática
+- [ ] **7.2** Criar `src/components/medical/auto-responder-config.tsx` — Configuração de automação
