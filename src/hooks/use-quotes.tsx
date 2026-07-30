@@ -148,6 +148,7 @@ export function useQuotes() {
     };
     setAllQuotes((qs) => [q, ...qs]);
     appendActivity({ quote_id: q.id, type: "created", message: `Cotação criada para ${q.customer_name}` });
+    emitDomainEvent("quote.received", { quote_id: q.id, tenant_id: q.tenant_id, payload: { source: q.source_type } });
     return q;
   }, [tenant]);
 
