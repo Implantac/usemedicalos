@@ -252,7 +252,10 @@ export function QuoteItemTable({
                 </div>
                 <div className="text-[10px] text-muted-foreground num">
                   SKU {item.sku} · {classification.matched?.product.unit ?? "un"}
+                </div>
               </div>
+
+
 
 
 
