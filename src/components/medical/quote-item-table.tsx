@@ -361,10 +361,11 @@ export function QuoteItemTable({
                 )}
                 {classification.classification === "not_found" && (
                   <span className="text-[10px] text-muted-foreground">Não localizado</span>
+                )}
               </div>
             </div>
-
           );
+
         })}
       </div>
 
