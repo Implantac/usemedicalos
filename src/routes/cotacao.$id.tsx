@@ -5,13 +5,17 @@ import { ArrowLeft, ArrowRight, Clock, Send, Sparkles } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { QuoteSummaryBar } from "@/components/medical/quote-summary-bar";
 import { QuoteItemTable } from "@/components/medical/quote-item-table";
+import { SendProposalDialog } from "@/components/medical/send-proposal-dialog";
+import { ApprovalRequestDialog } from "@/components/medical/approval-request-dialog";
+import { sendApprovalNotification } from "@/lib/medical/notification";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { useQuotes } from "@/hooks/use-quotes";
 import { useActiveTenant } from "@/hooks/use-active-tenant";
 import { useTenantConfig } from "@/hooks/use-tenant-config";
-import { classifyItem } from "@/lib/medical/product-matching";
+import { classifyItem, classifyQuoteItems } from "@/lib/medical/product-matching";
 import { itemMargin, formatBRL, formatPct } from "@/lib/medical/pricing";
+import { buildApprovalSummary, needsApproval } from "@/lib/medical/approval-flow";
 import { SOURCE_LABEL, STATUS_LABEL } from "@/lib/medical/types";
 import { nextOperationalQuote } from "@/lib/medical/operational-queue";
 
@@ -44,9 +48,17 @@ function OperationalQuotePage() {
   const { tenant } = useActiveTenant();
   const { config } = useTenantConfig(tenant?.id);
   const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [sendOpen, setSendOpen] = useState(false);
+  const [approvalOpen, setApprovalOpen] = useState(false);
+  const [pendingApprovalSummary, setPendingApprovalSummary] = useState<{ items: any[]; revenue: number; cost: number; margin: number } | null>(null);
 
   const quote = quotes.find((q) => q.id === id) ?? null;
   const next = useMemo(() => nextOperationalQuote(quotes, id), [quotes, id]);
+
+  const classification = useMemo(() => {
+    if (!quote) return null;
+    return classifyQuoteItems(quote.items);
+  }, [quote?.items]);
 
   const recommended = useMemo(() => {
     if (!quote) return new Set<number>();
@@ -59,6 +71,49 @@ function OperationalQuotePage() {
     });
     return set;
   }, [quote, config.min_margin]);
+
+  const handleSendConfirm = () => {
+    if (!quote || selected.size === 0) {
+      setSendOpen(false);
+      return false;
+    }
+    const summary = buildApprovalSummary(Array.from(selected).map((i) => quote.items[i]));
+    if (needsApproval(summary.margin, config.min_margin)) {
+      // open approval dialog instead of immediately changing status
+      setPendingApprovalSummary(summary);
+      setSendOpen(false);
+      setApprovalOpen(true);
+      return false;
+    }
+    setStatus(quote.id, "enviado");
+    toast.success(`Proposta enviada · ${quote.items.length} itens · ${formatBRL(summary.revenue)} · margem ${formatPct(summary.margin)}`);
+    setSelected(new Set());
+    setSendOpen(false);
+    return true;
+  };
+
+  const handleRequestApproval = async (reason: string) => {
+    if (!quote || !pendingApprovalSummary) return;
+    try {
+      await sendApprovalNotification(quote.id, pendingApprovalSummary.items.length, pendingApprovalSummary.revenue, reason);
+      setStatus(quote.id, "em_negociacao");
+      toast.success(`Solicitação de aprovação enviada · margem ${formatPct(pendingApprovalSummary.margin)}`);
+    } catch (err) {
+      toast.error("Falha ao enviar solicitação de aprovação.");
+    }
+    setSelected(new Set());
+    setPendingApprovalSummary(null);
+    setApprovalOpen(false);
+    setSendOpen(false);
+  };
+
+  const showSendDialog = () => {
+    if (selected.size === 0) {
+      toast.error("Selecione ao menos um item para enviar a proposta.");
+      return;
+    }
+    setSendOpen(true);
+  };
 
   if (!quote) {
     return (
@@ -80,24 +135,20 @@ function OperationalQuotePage() {
   const deadline = new Date(quote.sla_deadline);
   const minutesLeft = Math.round((deadline.getTime() - Date.now()) / 60000);
 
-  const handleSend = () => {
-    if (selected.size === 0) return;
-    const items = Array.from(selected).map((i) => quote.items[i]);
-    const revenue = items.reduce((s, it) => s + it.unit_price * it.quantity, 0);
-    const cost = items.reduce((s, it) => s + it.cost_price * it.quantity, 0);
-    const margin = revenue > 0 ? (revenue - cost) / revenue : 0;
-    if (margin < config.min_margin) {
-      toast.error(
-        `Margem ${formatPct(margin)} abaixo do piso ${formatPct(config.min_margin)} — precisa de aprovação do gerente.`,
-      );
-      return;
-    }
-    setStatus(quote.id, "enviado");
-    toast.success(
-      `Proposta enviada · ${items.length} itens · ${formatBRL(revenue)} · margem ${formatPct(margin)}`,
-    );
-    setSelected(new Set());
-  };
+  const quoteValue = quote.items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
+  const availableValue = classification?.classified.reduce((sum, item) => {
+    if (item.classification === "can_attend") return sum + item.item.unit_price * item.item.quantity;
+    if (item.classification === "partial") return sum + item.item.unit_price * item.attendQty;
+    return sum;
+  }, 0) ?? 0;
+  const attendableRate = quoteValue > 0 ? availableValue / quoteValue : 0;
+  const attendableTone = attendableRate >= 0.8 ? "bg-emerald-500" : attendableRate >= 0.5 ? "bg-amber-500" : "bg-rose-500";
+  const attendableStatus = attendableRate >= 0.8 ? "Excelente" : attendableRate >= 0.5 ? "Moderado" : "Alto risco";
+  const attendableAdvice = attendableRate >= 0.8
+    ? "Pode responder com confiança."
+    : attendableRate >= 0.5
+      ? "Revise itens parciais e confirme estoque."
+      : "Priorize compras ou renegociação antes de enviar.";
 
   const goNext = () => {
     if (!next) {
@@ -132,6 +183,45 @@ function OperationalQuotePage() {
             </div>
           </div>
 
+          <div className="rounded-3xl border border-border bg-card p-4 text-sm text-muted-foreground shadow-sm">
+            <div className="flex flex-wrap items-center gap-4">
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Resumo</div>
+                <div className="mt-1 text-base font-semibold text-foreground">{quote.items.length} itens solicitados</div>
+                <div className="mt-1 text-[11px] text-muted-foreground">
+                  Valor da cotação: <strong className="text-foreground">{formatBRL(quoteValue)}</strong>
+                </div>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                <SummaryPill label="Podemos atender" value={classification?.summary.canAttend ?? 0} tone="success" />
+                <SummaryPill label="Atender parcialmente" value={classification?.summary.partial ?? 0} tone="warning" />
+                <SummaryPill label="Sem estoque" value={classification?.summary.noStock ?? 0} tone="danger" />
+                <SummaryPill label="Não localizado" value={classification?.summary.notFound ?? 0} tone="muted" />
+              </div>
+              <div className="mt-3 w-full">
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                  <span>Atendível</span>
+                  <span className="font-semibold text-foreground">{formatPct(attendableRate)}</span>
+                </div>
+                <div className="mt-1 h-2.5 overflow-hidden rounded-full bg-slate-200">
+                  <div className={`h-full rounded-full ${attendableTone}`} style={{ width: `${Math.round(attendableRate * 100)}%` }} />
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-semibold">
+                  <span className={
+                    attendableRate >= 0.8
+                      ? "rounded-full bg-emerald-50 px-2 py-1 text-emerald-700"
+                      : attendableRate >= 0.5
+                        ? "rounded-full bg-amber-50 px-2 py-1 text-amber-700"
+                        : "rounded-full bg-rose-50 px-2 py-1 text-rose-700"
+                  }>
+                    {attendableStatus}
+                  </span>
+                  <span className="text-muted-foreground">{attendableAdvice}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="flex items-center gap-2">
             <span
               className={
@@ -151,13 +241,34 @@ function OperationalQuotePage() {
 
         <QuoteSummaryBar
           items={quote.items}
+          summary={classification?.summary ?? { total: 0, canAttend: 0, partial: 0, noStock: 0, notFound: 0 }}
           selectedItems={selected}
           customerName={quote.customer_name}
           sourceLabel={SOURCE_LABEL[quote.source_type]}
           minMargin={config.min_margin}
-          onSendProposal={handleSend}
+          onSendProposal={showSendDialog}
           onSelectAll={() => setSelected(new Set(quote.items.map((_, i) => i)))}
           onSelectRecommended={() => setSelected(new Set(recommended))}
+        />
+        <SendProposalDialog
+          open={sendOpen}
+          onOpenChange={setSendOpen}
+          quote={quote}
+          selectedIndices={selected}
+          minMargin={config.min_margin}
+          onConfirm={handleSendConfirm}
+        />
+
+        <ApprovalRequestDialog
+          open={approvalOpen}
+          onOpenChange={(open) => {
+            if (!open) setPendingApprovalSummary(null);
+            setApprovalOpen(open);
+          }}
+          quoteId={quote.id}
+          itemsCount={pendingApprovalSummary?.items.length ?? 0}
+          totalValue={pendingApprovalSummary?.revenue ?? 0}
+          onRequestApproval={handleRequestApproval}
         />
 
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-[11px] text-muted-foreground">
@@ -201,7 +312,7 @@ function OperationalQuotePage() {
             size="sm"
             className="h-9 gap-1.5 text-xs"
             disabled={selected.size === 0}
-            onClick={handleSend}
+            onClick={showSendDialog}
           >
             <Send className="h-3.5 w-3.5" /> Enviar proposta ({selected.size})
           </Button>
@@ -212,3 +323,28 @@ function OperationalQuotePage() {
     </div>
   );
 }
+
+function SummaryPill({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "success" | "warning" | "danger" | "muted";
+}) {
+  const toneClasses = {
+    success: "bg-emerald-50 text-emerald-700 border-emerald-100",
+    warning: "bg-amber-50 text-amber-700 border-amber-100",
+    danger: "bg-rose-50 text-rose-700 border-rose-100",
+    muted: "bg-slate-50 text-slate-700 border-slate-100",
+  } as const;
+
+  return (
+    <div className={`rounded-2xl border px-3 py-2 text-center text-[11px] font-semibold ${toneClasses[tone]}`}>
+      <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/80">{label}</div>
+      <div className="mt-1 text-base text-foreground">{value}</div>
+    </div>
+  );
+}
+

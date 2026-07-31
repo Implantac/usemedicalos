@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { QuoteItem } from "@/lib/medical/types";
-import { classifyItem, type ItemClassification } from "@/lib/medical/product-matching";
+import { classifyItem, type ItemClassification, type MatchedProduct } from "@/lib/medical/product-matching";
 import { buildProductHistory, type ProductHistory } from "@/lib/medical/product-history";
 import type { Quote } from "@/lib/medical/types";
 import { itemMargin, itemTotal, formatBRL, formatPct } from "@/lib/medical/pricing";
@@ -43,6 +43,14 @@ interface Props {
 
 type SortField = "classification" | "name" | "qty" | "stock" | "margin" | "price";
 type SortDir = "asc" | "desc";
+
+const MATCH_METHOD_LABEL: Record<MatchedProduct["matchMethod"], string> = {
+  ean: "EAN / GTIN",
+  sku: "SKU",
+  manufacturer_ref: "Ref. Fabricante",
+  fuzzy_name: "Descrição",
+  not_found: "Não localizado",
+};
 
 const CLASSIFICATION_ORDER: Record<string, number> = {
   can_attend: 0,
@@ -71,6 +79,7 @@ export function QuoteItemTable({
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [historySku, setHistorySku] = useState<string | null>(null);
   const [historyProductName, setHistoryProductName] = useState("");
+  const [historyMatch, setHistoryMatch] = useState<MatchedProduct | null>(null);
 
   const classified = useMemo(
     () => items.map((it) => classifyItem(it)),
@@ -131,9 +140,10 @@ export function QuoteItemTable({
     </button>
   );
 
-  const handleOpenHistory = (sku: string, name: string) => {
+  const handleOpenHistory = (sku: string, name: string, matched: MatchedProduct | null) => {
     setHistorySku(sku);
     setHistoryProductName(name);
+    setHistoryMatch(matched);
   };
 
   const summary = useMemo(() => {
@@ -203,12 +213,41 @@ export function QuoteItemTable({
           const marginOk = margin >= minMargin;
           const isSelected = selectedItems.has(index);
           const total = itemTotal(item);
+          const lastPriceDelta = classification.lastSalePrice
+            ? (item.unit_price - classification.lastSalePrice) / classification.lastSalePrice
+            : 0;
+          const suggestedDelta = classification.suggestedPrice
+            ? (item.unit_price - classification.suggestedPrice) / classification.suggestedPrice
+            : 0;
+          const priceStatus = classification.classification === "not_found"
+            ? "Não localizado"
+            : classification.classification === "no_stock"
+              ? "Sem estoque"
+              : classification.classification === "partial"
+                ? `Parcial ${classification.attendQty}/${item.quantity}`
+                : !marginOk
+                  ? "Margem abaixo"
+                  : classification.lastSalePrice && Math.abs(lastPriceDelta) >= 0.12
+                    ? lastPriceDelta > 0
+                      ? `+${formatPct(lastPriceDelta)} vs última venda`
+                      : `${formatPct(lastPriceDelta)} vs última venda`
+                    : classification.suggestedPrice && Math.abs(suggestedDelta) >= 0.12
+                      ? suggestedDelta > 0
+                        ? `+${formatPct(suggestedDelta)} vs sugestão`
+                        : `${formatPct(suggestedDelta)} vs sugestão`
+                      : "Preço alinhado";
+          const priceStatusTone = !marginOk
+            ? "text-danger"
+            : priceStatus.includes("+"
+              )
+              ? "text-warning-foreground"
+              : "text-success";
 
           return (
             <div
               key={index}
               className={cn(
-                "grid gap-2 rounded-lg border p-3 transition-all lg:grid-cols-[32px_32px_1fr_80px_80px_100px_100px_100px_100px_100px]",
+                "group grid gap-2 rounded-lg border p-3 transition-all lg:grid-cols-[32px_32px_1fr_80px_80px_100px_100px_100px_100px_100px]",
                 isSelected
                   ? "border-primary/40 bg-primary/5 shadow-sm"
                   : "border-border bg-card hover:border-primary/30 hover:bg-accent/30",
@@ -244,7 +283,7 @@ export function QuoteItemTable({
                   </span>
                   <button
                     type="button"
-                    onClick={() => handleOpenHistory(item.sku, item.name)}
+                    onClick={() => handleOpenHistory(item.sku, item.name, classification.matched)}
                     className="shrink-0 rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:text-primary group-hover:opacity-100"
                     title="Ver histórico do produto"
                   >
@@ -253,6 +292,14 @@ export function QuoteItemTable({
                 </div>
                 <div className="text-[10px] text-muted-foreground num">
                   SKU {item.sku} · {classification.matched?.product.unit ?? "un"}
+                </div>
+                <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
+                  <span>{MATCH_METHOD_LABEL[classification.matched?.matchMethod ?? "not_found"]}</span>
+                  <span className="capitalize">{classification.matched?.confidence ?? "low"}</span>
+                  <span>{classification.matched?.erpConfirmed ? "ERP confirmado" : "ERP pendente"}</span>
+                </div>
+                <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-border/80 bg-muted/20 px-2 py-1 text-[10px] font-semibold text-muted-foreground">
+                  <span className={priceStatusTone}>{priceStatus}</span>
                 </div>
               </div>
 
@@ -378,6 +425,8 @@ export function QuoteItemTable({
         <ProductHistoryPanel
           sku={historySku}
           productName={historyProductName}
+          currentPrice={items.find((it) => it.sku === historySku)?.unit_price ?? 0}
+          matched={historyMatch}
           allQuotes={allQuotes}
           onClose={() => setHistorySku(null)}
         />
@@ -385,3 +434,4 @@ export function QuoteItemTable({
     </div>
   );
 }
+

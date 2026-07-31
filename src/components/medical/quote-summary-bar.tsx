@@ -20,8 +20,17 @@ import { cn } from "@/lib/utils";
 import type { QuoteItem } from "@/lib/medical/types";
 import { itemMargin, itemTotal, formatBRL, formatPct } from "@/lib/medical/pricing";
 
+interface SummaryCounts {
+  total: number;
+  canAttend: number;
+  partial: number;
+  noStock: number;
+  notFound: number;
+}
+
 interface Props {
   items: QuoteItem[];
+  summary: SummaryCounts;
   selectedItems: Set<number>;
   customerName: string;
   sourceLabel: string;
@@ -33,6 +42,7 @@ interface Props {
 
 export function QuoteSummaryBar({
   items,
+  summary,
   selectedItems,
   customerName,
   sourceLabel,
@@ -57,7 +67,7 @@ export function QuoteSummaryBar({
   const marginOk = totals.margin >= minMargin;
 
   return (
-    <div className="rounded-lg border bg-gradient-to-r from-primary/5 via-card to-card p-3 card-shadow">
+    <div className="rounded-lg border bg-linear-to-r from-primary/5 via-card to-card p-3 card-shadow">
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Left: customer info */}
         <div className="min-w-0">
@@ -67,7 +77,13 @@ export function QuoteSummaryBar({
               {sourceLabel}
             </span>
           </div>
-          <p className="text-[10px] text-muted-foreground">
+          <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
+          <span>{summary.canAttend} atender</span>
+          <span>{summary.partial} parcial</span>
+          <span>{summary.noStock} sem estoque</span>
+          <span>{summary.notFound} não localizado</span>
+        </div>
+        <p className="text-[10px] text-muted-foreground">
             {totalItems} itens · {selectedItems.size} selecionados
           </p>
         </div>

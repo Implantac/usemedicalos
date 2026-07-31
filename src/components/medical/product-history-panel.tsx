@@ -19,23 +19,37 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Quote } from "@/lib/medical/types";
+import type { MatchedProduct } from "@/lib/medical/product-matching";
 import { formatBRL, formatPct } from "@/lib/medical/pricing";
 import { buildProductHistory } from "@/lib/medical/product-history";
+
+const MATCH_METHOD_LABEL: Record<MatchedProduct["matchMethod"], string> = {
+  ean: "EAN / GTIN",
+  sku: "SKU",
+  manufacturer_ref: "Ref. Fabricante",
+  fuzzy_name: "Descrição",
+  not_found: "Não localizado",
+};
 
 interface Props {
   sku: string;
   productName: string;
+  currentPrice: number;
+  matched: MatchedProduct | null;
   allQuotes: Quote[];
   onClose: () => void;
 }
 
-export function ProductHistoryPanel({ sku, productName, allQuotes, onClose }: Props) {
+export function ProductHistoryPanel({ sku, productName, currentPrice, matched, allQuotes, onClose }: Props) {
   const history = useMemo(
     () => buildProductHistory(sku, productName, allQuotes),
     [sku, productName, allQuotes],
   );
 
   const { intelligence, lastSale, recentSales, quoteHistory } = history;
+  const priceDelta = intelligence.recommendationPrice > 0
+    ? (currentPrice - intelligence.recommendationPrice) / intelligence.recommendationPrice
+    : 0;
 
   return (
     <div className="rounded-lg border bg-card shadow-lg animate-fade-in-up">
@@ -53,6 +67,40 @@ export function ProductHistoryPanel({ sku, productName, allQuotes, onClose }: Pr
         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
           <X className="h-4 w-4" />
         </Button>
+      </div>
+
+      <div className="border-b px-3 py-3">
+        <div className="flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-primary/20 bg-primary/5 px-2 py-1 text-primary">
+              Método: {matched ? MATCH_METHOD_LABEL[matched.matchMethod] : "Não localizado"}
+            </span>
+            <span className="rounded-full border border-emerald-100 bg-emerald-50 px-2 py-1 text-emerald-700">
+              Confiança: {matched?.confidence ?? "low"}
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={cn(
+              "rounded-full px-2 py-1 text-[11px] font-semibold",
+              matched?.erpConfirmed ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-amber-50 text-amber-700 border border-amber-100",
+            )}>
+              {matched?.erpConfirmed ? "ERP confirmado" : "ERP pendente"}
+            </span>
+            {matched && matched.matchMethod !== "not_found" && (
+              <>
+                <span className="rounded-full border border-muted-foreground/20 bg-muted/10 px-2 py-1 text-muted-foreground">
+                  Produto ERP: {matched.product.name}
+                </span>
+                <span className="rounded-full border border-muted-foreground/20 bg-muted/10 px-2 py-1 text-muted-foreground">
+                  ERP SKU: {matched.product.sku}
+                </span>
+                <span className="rounded-full border border-muted-foreground/20 bg-muted/10 px-2 py-1 text-muted-foreground">
+                  ERP ID: {matched.product.id}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-4 p-3 sm:grid-cols-2">
@@ -229,3 +277,4 @@ function IntelCard({
     </div>
   );
 }
+
