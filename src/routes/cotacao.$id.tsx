@@ -63,7 +63,7 @@ function OperationalQuotePage() {
   if (!quote) {
     return (
       <div className="min-h-screen bg-background">
-        <AppHeader />
+        <AppHeader onReset={() => {}} />
         <main className="mx-auto max-w-2xl px-4 py-16 text-center">
           <h1 className="text-lg font-bold text-foreground">Cotação não encontrada</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -110,7 +110,7 @@ function OperationalQuotePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader />
+      <AppHeader onReset={() => {}} />
 
       <main className="mx-auto max-w-[1600px] space-y-3 px-3 py-4 sm:px-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
