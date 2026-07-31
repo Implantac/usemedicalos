@@ -136,9 +136,11 @@ function OperationalQuotePage() {
   const minutesLeft = Math.round((deadline.getTime() - Date.now()) / 60000);
 
   const quoteValue = quote.items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
-  const availableValue = classification?.classified.reduce((sum, item) => {
-    if (item.classification === "can_attend") return sum + item.item.unit_price * item.item.quantity;
-    if (item.classification === "partial") return sum + item.item.unit_price * item.attendQty;
+  const availableValue = classification?.classified.reduce((sum, cls, idx) => {
+    const item = quote.items[idx];
+    if (!item) return sum;
+    if (cls.classification === "can_attend") return sum + item.unit_price * item.quantity;
+    if (cls.classification === "partial") return sum + item.unit_price * cls.attendQty;
     return sum;
   }, 0) ?? 0;
   const attendableRate = quoteValue > 0 ? availableValue / quoteValue : 0;
