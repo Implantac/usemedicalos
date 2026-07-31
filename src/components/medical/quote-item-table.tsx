@@ -191,9 +191,11 @@ export function QuoteItemTable({
         <div className="text-center text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           Ação
         </div>
+      </div>
 
       {/* Items */}
       <div className="space-y-1">
+
         {sorted.map(({ item, classification, index }) => {
           const cls = CLASSIFICATION_LABEL[classification.classification];
           const Icon = cls.icon;
@@ -229,9 +231,10 @@ export function QuoteItemTable({
               </div>
 
               {/* Classification icon */}
-              <div className="flex items-center">
-                <Icon className={cn("h-4 w-4", cls.tone)} title={cls.label} />
+              <div className="flex items-center" title={cls.label}>
+                <Icon className={cn("h-4 w-4", cls.tone)} />
               </div>
+
 
               {/* Product info */}
               <div className="min-w-0">
@@ -251,6 +254,11 @@ export function QuoteItemTable({
                 <div className="text-[10px] text-muted-foreground num">
                   SKU {item.sku} · {classification.matched?.product.unit ?? "un"}
                 </div>
+              </div>
+
+
+
+
 
               {/* Requested qty */}
               <div className="flex items-center justify-end">
@@ -359,7 +367,9 @@ export function QuoteItemTable({
                   <span className="text-[10px] text-muted-foreground">Não localizado</span>
                 )}
               </div>
+            </div>
           );
+
         })}
       </div>
 
