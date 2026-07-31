@@ -5,6 +5,7 @@ import {
   FileSearch,
   Gauge,
   GitFork,
+  ClipboardList,
   Inbox,
   KeyRound,
   LayoutDashboard,
@@ -42,6 +43,7 @@ type NavItem = { to: string; label: string; icon: typeof Inbox; perm?: Permissio
 const OPERACAO: NavItem[] = [
   { to: "/", label: "Command Center", icon: Radar, perm: "quotes.view" },
   { to: "/inbox", label: "Inbox Universal", icon: Inbox, perm: "quotes.view" },
+  { to: "/cotacao", label: "Cotação Operacional", icon: ClipboardList, perm: "quotes.respond" },
   { to: "/orquestracao", label: "Orquestração", icon: GitFork, perm: "quotes.respond" },
   { to: "/copiloto", label: "Copiloto IA", icon: Sparkles, perm: "quotes.respond" },
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, perm: "quotes.view" },
