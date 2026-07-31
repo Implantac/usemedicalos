@@ -191,9 +191,11 @@ export function QuoteItemTable({
         <div className="text-center text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           Ação
         </div>
+      </div>
 
       {/* Items */}
       <div className="space-y-1">
+
         {sorted.map(({ item, classification, index }) => {
           const cls = CLASSIFICATION_LABEL[classification.classification];
           const Icon = cls.icon;
