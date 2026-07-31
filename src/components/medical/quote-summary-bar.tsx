@@ -137,6 +137,30 @@ export function QuoteSummaryBar({
             Enviar proposta
           </Button>
         </div>
+      </div>
     </div>
   );
 }
+
+function Metric({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: typeof DollarSign;
+  label: string;
+  value: string;
+  tone: string;
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+      <div>
+        <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{label}</div>
+        <div className={cn("num text-sm font-bold", tone)}>{value}</div>
+      </div>
+    </div>
+  );
+}
+
