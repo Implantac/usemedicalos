@@ -1,7 +1,29 @@
 import jsPDF from "jspdf";
-import type { Quote } from "./types";
+import type { Quote, QuoteItem } from "./types";
 import { formatBRL, formatPct, itemMargin, itemTotal, quoteTotals } from "./pricing";
 import { STATUS_LABEL, PRIORITY_LABEL, SOURCE_LABEL } from "./types";
+
+export function groupQuoteItemsByErpProduct(
+  items: Array<QuoteItem & { matched?: { product?: { id?: string; name?: string }; erpConfirmed?: boolean } }>,
+) {
+  const groups: Record<string, { label: string; count: number; total: number }> = {};
+  const useErpGrouping = items.some((it) => it.matched?.product?.id && it.matched?.erpConfirmed === true);
+
+  for (const it of items) {
+    const key = useErpGrouping && it.matched?.product?.id ? `erp:${it.matched.product.id}` : "no_erp";
+    const label = useErpGrouping && it.matched?.product?.id
+      ? it.matched?.product?.name || it.matched?.product?.id || "ERP"
+      : "Sem classificação";
+
+    if (!groups[key]) {
+      groups[key] = { label, count: 0, total: 0 };
+    }
+    groups[key].count += 1;
+    groups[key].total += itemTotal(it);
+  }
+
+  return Object.values(groups).sort((a, b) => b.total - a.total);
+}
 
 // Gera uma proposta em PDF (client-side, sem dependência de servidor).
 export function generateProposalPdf(quote: Quote): void {
@@ -45,6 +67,26 @@ export function generateProposalPdf(quote: Quote): void {
     pageW / 2,
     y,
   );
+
+  // Resumo por grupo (ERP ou fallback de classificação)
+  const groups = groupQuoteItemsByErpProduct(quote.items as any);
+  if (groups.length > 1 || (groups.length === 1 && groups[0].label !== "Sem classificação")) {
+    y += 16;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text("Resumo por grupo", marginX, y);
+    y += 16;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    for (const group of groups) {
+      if (y > 760) {
+        doc.addPage();
+        y = 60;
+      }
+      doc.text(`${group.label}: ${group.count} itens · ${formatBRL(group.total)}`, marginX, y);
+      y += 14;
+    }
+  }
 
   // Tabela de itens
   y += 26;

@@ -30,7 +30,9 @@ import { Route as BenchmarkingRouteImport } from './routes/benchmarking'
 import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as ApiKeysRouteImport } from './routes/api-keys'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CotacaoIndexRouteImport } from './routes/cotacao.index'
 import { Route as VendedorOwnerIdRouteImport } from './routes/vendedor.$ownerId'
+import { Route as CotacaoIdRouteImport } from './routes/cotacao.$id'
 import { Route as ApiV1IngestRouteImport } from './routes/api/v1/ingest'
 import { Route as ApiPublicUseSistemasRouteImport } from './routes/api/public/use-sistemas'
 import { Route as ApiPublicCatalogRouteImport } from './routes/api/public/catalog'
@@ -141,9 +143,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CotacaoIndexRoute = CotacaoIndexRouteImport.update({
+  id: '/cotacao/',
+  path: '/cotacao/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VendedorOwnerIdRoute = VendedorOwnerIdRouteImport.update({
   id: '/vendedor/$ownerId',
   path: '/vendedor/$ownerId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CotacaoIdRoute = CotacaoIdRouteImport.update({
+  id: '/cotacao/$id',
+  path: '/cotacao/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1IngestRoute = ApiV1IngestRouteImport.update({
@@ -189,7 +201,9 @@ export interface FileRoutesByFullPath {
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sla-watchdog': typeof SlaWatchdogRoute
+  '/cotacao/$id': typeof CotacaoIdRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
+  '/cotacao/': typeof CotacaoIndexRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
   '/api/v1/ingest': typeof ApiV1IngestRoute
@@ -217,7 +231,9 @@ export interface FileRoutesByTo {
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sla-watchdog': typeof SlaWatchdogRoute
+  '/cotacao/$id': typeof CotacaoIdRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
+  '/cotacao': typeof CotacaoIndexRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
   '/api/v1/ingest': typeof ApiV1IngestRoute
@@ -246,7 +262,9 @@ export interface FileRoutesById {
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sla-watchdog': typeof SlaWatchdogRoute
+  '/cotacao/$id': typeof CotacaoIdRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
+  '/cotacao/': typeof CotacaoIndexRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
   '/api/v1/ingest': typeof ApiV1IngestRoute
@@ -276,7 +294,9 @@ export interface FileRouteTypes {
     | '/quarentena'
     | '/sitemap.xml'
     | '/sla-watchdog'
+    | '/cotacao/$id'
     | '/vendedor/$ownerId'
+    | '/cotacao/'
     | '/api/public/catalog'
     | '/api/public/use-sistemas'
     | '/api/v1/ingest'
@@ -304,7 +324,9 @@ export interface FileRouteTypes {
     | '/quarentena'
     | '/sitemap.xml'
     | '/sla-watchdog'
+    | '/cotacao/$id'
     | '/vendedor/$ownerId'
+    | '/cotacao'
     | '/api/public/catalog'
     | '/api/public/use-sistemas'
     | '/api/v1/ingest'
@@ -332,7 +354,9 @@ export interface FileRouteTypes {
     | '/quarentena'
     | '/sitemap.xml'
     | '/sla-watchdog'
+    | '/cotacao/$id'
     | '/vendedor/$ownerId'
+    | '/cotacao/'
     | '/api/public/catalog'
     | '/api/public/use-sistemas'
     | '/api/v1/ingest'
@@ -361,7 +385,9 @@ export interface RootRouteChildren {
   QuarentenaRoute: typeof QuarentenaRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SlaWatchdogRoute: typeof SlaWatchdogRoute
+  CotacaoIdRoute: typeof CotacaoIdRoute
   VendedorOwnerIdRoute: typeof VendedorOwnerIdRoute
+  CotacaoIndexRoute: typeof CotacaoIndexRoute
   ApiPublicCatalogRoute: typeof ApiPublicCatalogRoute
   ApiPublicUseSistemasRoute: typeof ApiPublicUseSistemasRoute
   ApiV1IngestRoute: typeof ApiV1IngestRoute
@@ -517,11 +543,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cotacao/': {
+      id: '/cotacao/'
+      path: '/cotacao'
+      fullPath: '/cotacao/'
+      preLoaderRoute: typeof CotacaoIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vendedor/$ownerId': {
       id: '/vendedor/$ownerId'
       path: '/vendedor/$ownerId'
       fullPath: '/vendedor/$ownerId'
       preLoaderRoute: typeof VendedorOwnerIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cotacao/$id': {
+      id: '/cotacao/$id'
+      path: '/cotacao/$id'
+      fullPath: '/cotacao/$id'
+      preLoaderRoute: typeof CotacaoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/ingest': {
@@ -577,7 +617,9 @@ const rootRouteChildren: RootRouteChildren = {
   QuarentenaRoute: QuarentenaRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SlaWatchdogRoute: SlaWatchdogRoute,
+  CotacaoIdRoute: CotacaoIdRoute,
   VendedorOwnerIdRoute: VendedorOwnerIdRoute,
+  CotacaoIndexRoute: CotacaoIndexRoute,
   ApiPublicCatalogRoute: ApiPublicCatalogRoute,
   ApiPublicUseSistemasRoute: ApiPublicUseSistemasRoute,
   ApiV1IngestRoute: ApiV1IngestRoute,

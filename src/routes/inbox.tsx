@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Zap } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { QuoteInbox } from "@/components/medical/quote-inbox";
@@ -41,6 +41,11 @@ function InboxPage() {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader onReset={() => { setSelectedId(null); resetDemo(); }}>
+        <Button asChild size="sm" variant="ghost" className="h-8 gap-1.5 text-primary-foreground hover:bg-primary-foreground/10">
+          <Link to="/cotacao">
+            <Zap className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Modo produção</span>
+          </Link>
+        </Button>
         <Button
           size="sm"
           onClick={() => setNewOpen(true)}

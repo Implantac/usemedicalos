@@ -20,8 +20,17 @@ import { cn } from "@/lib/utils";
 import type { QuoteItem } from "@/lib/medical/types";
 import { itemMargin, itemTotal, formatBRL, formatPct } from "@/lib/medical/pricing";
 
+interface SummaryCounts {
+  total: number;
+  canAttend: number;
+  partial: number;
+  noStock: number;
+  notFound: number;
+}
+
 interface Props {
   items: QuoteItem[];
+  summary: SummaryCounts;
   selectedItems: Set<number>;
   customerName: string;
   sourceLabel: string;
@@ -33,6 +42,7 @@ interface Props {
 
 export function QuoteSummaryBar({
   items,
+  summary,
   selectedItems,
   customerName,
   sourceLabel,
@@ -57,7 +67,7 @@ export function QuoteSummaryBar({
   const marginOk = totals.margin >= minMargin;
 
   return (
-    <div className="rounded-lg border bg-gradient-to-r from-primary/5 via-card to-card p-3 card-shadow">
+    <div className="rounded-lg border bg-linear-to-r from-primary/5 via-card to-card p-3 card-shadow">
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Left: customer info */}
         <div className="min-w-0">
@@ -67,7 +77,13 @@ export function QuoteSummaryBar({
               {sourceLabel}
             </span>
           </div>
-          <p className="text-[10px] text-muted-foreground">
+          <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
+          <span>{summary.canAttend} atender</span>
+          <span>{summary.partial} parcial</span>
+          <span>{summary.noStock} sem estoque</span>
+          <span>{summary.notFound} não localizado</span>
+        </div>
+        <p className="text-[10px] text-muted-foreground">
             {totalItems} itens · {selectedItems.size} selecionados
           </p>
         </div>
@@ -76,56 +92,30 @@ export function QuoteSummaryBar({
         <div className="flex flex-wrap items-center gap-4">
           {selectedItems.size > 0 ? (
             <>
-              <div className="flex items-center gap-1.5">
-                <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
-                <div>
-                  <div className="text-[9px] uppercase tracking-wider text-muted-foreground">
-                    Valor
-                  </div>
-                  <div className="num text-sm font-bold text-foreground">
-                    {formatBRL(totals.revenue)}
-                  </div>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Target className="h-3.5 w-3.5 text-muted-foreground" />
-                <div>
-                  <div className="text-[9px] uppercase tracking-wider text-muted-foreground">
-                    Custo
-                  </div>
-                  <div className="num text-sm font-medium text-muted-foreground">
-                    {formatBRL(totals.cost)}
-                  </div>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Percent className="h-3.5 w-3.5 text-muted-foreground" />
-                <div>
-                  <div className="text-[9px] uppercase tracking-wider text-muted-foreground">
-                    Margem
-                  </div>
-                  <div
-                    className={cn(
-                      "num text-sm font-bold",
-                      marginOk ? "text-success" : "text-danger",
-                    )}
-                  >
-                    {formatPct(totals.margin)}
-                  </div>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
-                <div>
-                  <div className="text-[9px] uppercase tracking-wider text-muted-foreground">
-                    Lucro
-                  </div>
-                  <div
-                    className={cn(
-                      "num text-sm font-bold",
-                      totals.revenue - totals.cost > 0 ? "text-success" : "text-danger",
-                    )}
-                  >
-                    {formatBRL(totals.revenue - totals.cost)}
-                  </div>
-              </div>
+              <Metric
+                icon={DollarSign}
+                label="Valor"
+                value={formatBRL(totals.revenue)}
+                tone="text-foreground"
+              />
+              <Metric
+                icon={Target}
+                label="Custo"
+                value={formatBRL(totals.cost)}
+                tone="text-muted-foreground"
+              />
+              <Metric
+                icon={Percent}
+                label="Margem"
+                value={formatPct(totals.margin)}
+                tone={marginOk ? "text-success" : "text-danger"}
+              />
+              <Metric
+                icon={TrendingUp}
+                label="Lucro"
+                value={formatBRL(totals.revenue - totals.cost)}
+                tone={totals.revenue - totals.cost > 0 ? "text-success" : "text-danger"}
+              />
             </>
           ) : (
             <span className="text-xs text-muted-foreground">
@@ -133,6 +123,7 @@ export function QuoteSummaryBar({
             </span>
           )}
         </div>
+
 
         {/* Right: actions */}
         <div className="flex items-center gap-2">
@@ -162,6 +153,30 @@ export function QuoteSummaryBar({
             Enviar proposta
           </Button>
         </div>
+      </div>
     </div>
   );
 }
+
+function Metric({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: typeof DollarSign;
+  label: string;
+  value: string;
+  tone: string;
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+      <div>
+        <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{label}</div>
+        <div className={cn("num text-sm font-bold", tone)}>{value}</div>
+      </div>
+    </div>
+  );
+}
+
