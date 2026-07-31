@@ -231,9 +231,10 @@ export function QuoteItemTable({
               </div>
 
               {/* Classification icon */}
-              <div className="flex items-center">
-                <Icon className={cn("h-4 w-4", cls.tone)} title={cls.label} />
+              <div className="flex items-center" title={cls.label}>
+                <Icon className={cn("h-4 w-4", cls.tone)} />
               </div>
+
 
               {/* Product info */}
               <div className="min-w-0">
