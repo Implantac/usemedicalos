@@ -1,240 +1,120 @@
 /**
- * Product History Panel — USE Medical
+ * Price Slider — USE Medical
  *
- * Painel de histórico completo de um produto.
- * Exibido como overlay/drawer ao clicar em um item.
+ * O preço não é uma caixa simples: ao editar, o vendedor vê o impacto
+ * em margem e na chance estimada de vitória, além de cenários alternativos.
  */
 
-import { useMemo } from "react";
-import {
-  BarChart3,
-  Clock,
-  DollarSign,
-  Package,
-  Percent,
-  Target,
-  TrendingUp,
-  X,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useMemo, useState } from "react";
+import { Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { Quote } from "@/lib/medical/types";
 import { formatBRL, formatPct } from "@/lib/medical/pricing";
-import { buildProductHistory } from "@/lib/medical/product-history";
 
 interface Props {
-  sku: string;
-  productName: string;
-  allQuotes: Quote[];
-  onClose: () => void;
+  value: number;
+  costPrice: number;
+  minMargin: number;
+  suggestedPrice: number;
+  onChange: (v: number) => void;
 }
 
-export function ProductHistoryPanel({ sku, productName, allQuotes, onClose }: Props) {
-  const history = useMemo(
-    () => buildProductHistory(sku, productName, allQuotes),
-    [sku, productName, allQuotes],
-  );
+function marginOf(price: number, cost: number): number {
+  if (price <= 0) return 0;
+  return (price - cost) / price;
+}
 
-  const { intelligence, lastSale, recentSales, quoteHistory } = history;
+/** Heurística determinística: quanto mais acima da sugestão, menor a chance. */
+export function winChance(price: number, suggested: number): number {
+  if (suggested <= 0 || price <= 0) return 0.5;
+  const delta = price / suggested - 1;
+  return Math.max(0.05, Math.min(0.97, 0.84 - delta * 3));
+}
+
+export function PriceSlider({ value, costPrice, minMargin, suggestedPrice, onChange }: Props) {
+  const [open, setOpen] = useState(false);
+
+  const scenarios = useMemo(() => {
+    const base = suggestedPrice > 0 ? suggestedPrice : value || costPrice * 1.3;
+    return [
+      { label: "Agressivo", price: Math.round(base * 0.97 * 100) / 100 },
+      { label: "Sugerido IA", price: Math.round(base * 100) / 100 },
+      { label: "Margem alta", price: Math.round(base * 1.04 * 100) / 100 },
+    ];
+  }, [suggestedPrice, value, costPrice]);
+
+  const margin = marginOf(value, costPrice);
+  const marginOk = margin >= minMargin;
 
   return (
-    <div className="rounded-lg border bg-card shadow-lg animate-fade-in-up">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b p-3">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
-            <Package className="h-4 w-4 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-foreground">{productName}</h3>
-            <p className="text-[10px] text-muted-foreground num">SKU {sku}</p>
-          </div>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
+    <div className="relative w-full">
+      <Input
+        type="number"
+        step="0.01"
+        min={0}
+        value={value}
+        onFocus={() => setOpen(true)}
+        onBlur={() => window.setTimeout(() => setOpen(false), 150)}
+        onChange={(e) => onChange(Number(e.target.value) || 0)}
+        className={cn(
+          "h-8 w-full text-right num text-sm",
+          marginOk ? "border-border" : "border-danger/50 text-danger",
+        )}
+      />
 
-      <div className="grid gap-4 p-3 sm:grid-cols-2">
-        {/* Last sale */}
-        <div className="rounded-md border bg-muted/30 p-2.5">
-          <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            <Clock className="h-3 w-3" /> Última venda
-          </div>
-          {lastSale ? (
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Preço</span>
-                <span className="num font-semibold text-foreground">
-                  {formatBRL(lastSale.price)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Quantidade</span>
-                <span className="num font-semibold text-foreground">{lastSale.quantity}</span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Cliente</span>
-                <span className="truncate font-medium text-foreground">
-                  {lastSale.customerName}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Data</span>
-                <span className="num font-medium text-foreground">
-                  {new Date(lastSale.date).toLocaleDateString("pt-BR")}
-                </span>
-              </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">Nenhuma venda registrada.</p>
-          )}
-        </div>
-
-        {/* Quote history */}
-        <div className="rounded-md border bg-muted/30 p-2.5">
-          <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            <BarChart3 className="h-3 w-3" /> Histórico de cotações
+      {open && (
+        <div className="absolute right-0 top-9 z-30 w-56 rounded-lg border bg-popover p-2 shadow-lg">
+          <div className="mb-1.5 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary">
+            <Sparkles className="h-3 w-3" /> Cenários de preço
           </div>
           <div className="space-y-1">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Recebidas</span>
-              <span className="num font-semibold text-foreground">{quoteHistory.received}</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Respondidas</span>
-              <span className="num font-semibold text-foreground">{quoteHistory.responded}</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Ganhas</span>
-              <span className="num font-semibold text-success">{quoteHistory.won}</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Perdidas</span>
-              <span className="num font-semibold text-danger">{quoteHistory.lost}</span>
-            </div>
+            {scenarios.map((s) => {
+              const m = marginOf(s.price, costPrice);
+              const chance = winChance(s.price, suggestedPrice || s.price);
+              const active = Math.abs(s.price - value) < 0.005;
+              return (
+                <button
+                  key={s.label}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => onChange(s.price)}
+                  className={cn(
+                    "flex w-full items-center justify-between rounded-md border px-2 py-1.5 text-left transition-colors",
+                    active
+                      ? "border-primary/50 bg-primary/5"
+                      : "border-border hover:bg-accent/50",
+                  )}
+                >
+                  <div>
+                    <div className="num text-xs font-bold text-foreground">
+                      {formatBRL(s.price)}
+                    </div>
+                    <div className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                      {s.label}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div
+                      className={cn(
+                        "num text-[11px] font-semibold",
+                        m >= minMargin ? "text-success" : "text-danger",
+                      )}
+                    >
+                      {formatPct(m)}
+                    </div>
+                    <div className="num text-[9px] text-muted-foreground">
+                      {Math.round(chance * 100)}% chance
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-1.5 text-[9px] text-muted-foreground">
+            Custo {formatBRL(costPrice)} · margem mínima {formatPct(minMargin)}
+          </p>
         </div>
-
-        {/* Intelligence */}
-        <div className="rounded-md border bg-gradient-to-br from-primary/5 to-card p-2.5 sm:col-span-2">
-          <div className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-primary">
-            <TrendingUp className="h-3 w-3" /> Inteligência de Produto
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            <IntelCard
-              icon={TrendingUp}
-              label="Tendência de preço"
-              value={
-                intelligence.priceTrend > 0
-                  ? `Subiu ${formatPct(Math.abs(intelligence.priceTrend))}`
-                  : intelligence.priceTrend < 0
-                    ? `Caiu ${formatPct(Math.abs(intelligence.priceTrend))}`
-                    : "Estável"
-              }
-              tone={
-                intelligence.priceTrend > 0
-                  ? "text-success"
-                  : intelligence.priceTrend < 0
-                    ? "text-danger"
-                    : "text-muted-foreground"
-              }
-            />
-            <IntelCard
-              icon={Target}
-              label="Taxa de vitória"
-              value={formatPct(intelligence.winRate)}
-              tone={intelligence.winRate >= 0.5 ? "text-success" : "text-warning-foreground"}
-            />
-            <IntelCard
-              icon={Percent}
-              label="Margem média"
-              value={formatPct(intelligence.avgMargin)}
-              tone={intelligence.avgMargin >= 0.15 ? "text-success" : "text-warning-foreground"}
-            />
-            <IntelCard
-              icon={DollarSign}
-              label="Melhor preço"
-              value={formatBRL(intelligence.bestWonPrice)}
-              tone="text-primary"
-            />
-          </div>
-
-        {/* Recent sales table */}
-        {recentSales.length > 0 && (
-          <div className="sm:col-span-2">
-            <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              <Clock className="h-3 w-3" /> Últimas vendas
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b text-muted-foreground">
-                    <th className="pb-1 pr-2 text-left font-medium">Data</th>
-                    <th className="pb-1 pr-2 text-right font-medium">Preço</th>
-                    <th className="pb-1 pr-2 text-right font-medium">Qtd</th>
-                    <th className="pb-1 text-right font-medium">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentSales.map((sale, i) => (
-                    <tr key={i} className="border-b border-border/50">
-                      <td className="py-1 pr-2 text-muted-foreground">
-                        {new Date(sale.date).toLocaleDateString("pt-BR")}
-                      </td>
-                      <td className="py-1 pr-2 text-right num font-medium text-foreground">
-                        {formatBRL(sale.price)}
-                      </td>
-                      <td className="py-1 pr-2 text-right num text-muted-foreground">
-                        {sale.quantity}
-                      </td>
-                      <td className="py-1 text-right num text-foreground">
-                        {formatBRL(sale.price * sale.quantity)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-        )}
-
-        {/* Recommendation */}
-        <div className="sm:col-span-2">
-          <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
-            <div className="flex items-start gap-2">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                <TrendingUp className="h-4 w-4 text-primary" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-bold text-primary">
-                  Recomendação: {formatBRL(intelligence.recommendationPrice)}
-                </div>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">
-                  Probabilidade estimada de vitória:{' '}
-                  <span className="font-semibold text-foreground">
-                    {Math.round(intelligence.estimatedWinProbability * 100)}%
-                  </span>
-                </p>
-              </div>
-          </div>
-      </div>
-  );
-}
-
-function IntelCard({
-  icon: Icon,
-  label,
-  value,
-  tone,
-}: {
-  icon: typeof TrendingUp;
-  label: string;
-  value: string;
-  tone: string;
-}) {
-  return (
-    <div className="rounded-md border bg-card p-2">
-      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-        <Icon className="h-3 w-3" />
-        <span className="font-medium">{label}</span>
-      </div>
-      <div className={cn("mt-0.5 num text-sm font-bold", tone)}>{value}</div>
+      )}
+    </div>
   );
 }
