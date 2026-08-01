@@ -1,6 +1,6 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { Activity, ArrowRight, Clock, Sparkles } from "lucide-react";
+import { Activity, Clock, Sparkles } from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { Button } from "@/components/ui/button";
 import { useQuotes } from "@/hooks/use-quotes";
@@ -43,8 +43,8 @@ function priorityTone(priority: string) {
   return priority === "urgente"
     ? "bg-danger/10 text-danger"
     : priority === "alta"
-    ? "bg-warning/10 text-warning-foreground"
-    : "bg-muted/10 text-muted-foreground";
+      ? "bg-warning/10 text-warning-foreground"
+      : "bg-muted/10 text-muted-foreground";
 }
 
 function OperationalQueuePage() {
@@ -90,21 +90,32 @@ function OperationalQueuePage() {
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground">
                 <Sparkles className="h-4 w-4 text-primary" /> CENTRAL DE COTAÇÕES
               </div>
-              <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground">Sua fila operacional de vendas</h1>
+              <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
+                Sua fila operacional de vendas
+              </h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Eu recebi {totals.items} itens em {totals.quotes} cotações. Quero descobrir rapidamente o que consigo vender, quanto devo cobrar, responder e acompanhar o resultado sem sair da USE Medical.
+                Eu recebi {totals.items} itens em {totals.quotes} cotações. Quero descobrir
+                rapidamente o que consigo vender, quanto devo cobrar, responder e acompanhar o
+                resultado sem sair da USE Medical.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant="outline" className="h-10" onClick={() => navigate({ to: "/inbox" })}>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-10"
+                onClick={() => navigate({ to: "/inbox" })}
+              >
                 Ir para Inbox
               </Button>
               <Button
                 size="sm"
                 className="h-10"
                 disabled={queue.length === 0}
-                onClick={() => queue.length && navigate({ to: "/cotacao/$id", params: { id: queue[0].id } })}
+                onClick={() =>
+                  queue.length && navigate({ to: "/cotacao/$id", params: { id: queue[0].id } })
+                }
               >
                 Abrir próxima
               </Button>
@@ -125,7 +136,9 @@ function OperationalQueuePage() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-base font-bold text-foreground">Fila inteligente</h2>
-                  <p className="text-sm text-muted-foreground">Ordenada por urgência de SLA e valor potencial.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Ordenada por urgência de SLA e valor potencial.
+                  </p>
                 </div>
                 <div className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
                   {queue.length} cotações
@@ -169,11 +182,19 @@ function OperationalQueuePage() {
                         </td>
                         <td className="min-w-45 px-4 py-4">
                           <div className="font-semibold text-foreground">{quote.customer_name}</div>
-                          <div className="text-[11px] text-muted-foreground">{quote.customer_segment}</div>
+                          <div className="text-[11px] text-muted-foreground">
+                            {quote.customer_segment}
+                          </div>
                         </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-right font-semibold text-foreground">{quote.items.length}</td>
-                        <td className="whitespace-nowrap px-4 py-4 text-right text-muted-foreground">{formatTimeRemaining(quote.sla_deadline)}</td>
-                        <td className="whitespace-nowrap px-4 py-4 text-right font-semibold text-foreground">{formatBRL(totals.revenue)}</td>
+                        <td className="whitespace-nowrap px-4 py-4 text-right font-semibold text-foreground">
+                          {quote.items.length}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-4 text-right text-muted-foreground">
+                          {formatTimeRemaining(quote.sla_deadline)}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-4 text-right font-semibold text-foreground">
+                          {formatBRL(totals.revenue)}
+                        </td>
                         <td className="px-4 py-4">
                           <div className="rounded-full bg-muted px-2 py-1 text-[11px] font-semibold text-foreground">
                             {STATUS_LABEL[quote.status]}
@@ -187,7 +208,9 @@ function OperationalQueuePage() {
                             size="sm"
                             variant="outline"
                             className="h-8 px-3 text-[11px]"
-                            onClick={() => navigate({ to: "/cotacao/$id", params: { id: quote.id } })}
+                            onClick={() =>
+                              navigate({ to: "/cotacao/$id", params: { id: quote.id } })
+                            }
                           >
                             Abrir
                           </Button>
@@ -227,7 +250,9 @@ function OperationalQueuePage() {
                 <Activity className="h-4 w-4" /> Operação
               </div>
               <div className="mt-3 text-sm leading-6 text-muted-foreground">
-                Priorize responder cotações com SLA mais curto e maior potencial. Ao abrir uma cotação, selecione os itens que consegue atender, ajuste preços e envie a proposta diretamente.
+                Priorize responder cotações com SLA mais curto e maior potencial. Ao abrir uma
+                cotação, selecione os itens que consegue atender, ajuste preços e envie a proposta
+                diretamente.
               </div>
             </section>
           </aside>
@@ -245,4 +270,3 @@ function Stat({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-

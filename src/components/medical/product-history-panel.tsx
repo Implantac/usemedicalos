@@ -40,16 +40,23 @@ interface Props {
   onClose: () => void;
 }
 
-export function ProductHistoryPanel({ sku, productName, currentPrice, matched, allQuotes, onClose }: Props) {
+export function ProductHistoryPanel({
+  sku,
+  productName,
+  currentPrice,
+  matched,
+  allQuotes,
+  onClose,
+}: Props) {
   const history = useMemo(
     () => buildProductHistory(sku, productName, allQuotes),
     [sku, productName, allQuotes],
   );
 
   const { intelligence, lastSale, recentSales, quoteHistory } = history;
-  const priceDelta = intelligence.recommendationPrice > 0
-    ? (currentPrice - intelligence.recommendationPrice) / intelligence.recommendationPrice
-    : 0;
+
+  const recommendationPrice =
+    intelligence.recommendationPrice > 0 ? intelligence.recommendationPrice : currentPrice;
 
   return (
     <div className="rounded-lg border bg-card shadow-lg animate-fade-in-up">
@@ -80,10 +87,14 @@ export function ProductHistoryPanel({ sku, productName, currentPrice, matched, a
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className={cn(
-              "rounded-full px-2 py-1 text-[11px] font-semibold",
-              matched?.erpConfirmed ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-amber-50 text-amber-700 border border-amber-100",
-            )}>
+            <span
+              className={cn(
+                "rounded-full px-2 py-1 text-[11px] font-semibold",
+                matched?.erpConfirmed
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                  : "bg-amber-50 text-amber-700 border border-amber-100",
+              )}
+            >
               {matched?.erpConfirmed ? "ERP confirmado" : "ERP pendente"}
             </span>
             {matched && matched.matchMethod !== "not_found" && (
@@ -114,10 +125,7 @@ export function ProductHistoryPanel({ sku, productName, currentPrice, matched, a
               <Row label="Preço" value={formatBRL(lastSale.price)} />
               <Row label="Quantidade" value={String(lastSale.quantity)} />
               <Row label="Cliente" value={lastSale.customerName} />
-              <Row
-                label="Data"
-                value={new Date(lastSale.date).toLocaleDateString("pt-BR")}
-              />
+              <Row label="Data" value={new Date(lastSale.date).toLocaleDateString("pt-BR")} />
             </div>
           ) : (
             <p className="text-xs text-muted-foreground">Nenhuma venda registrada.</p>
@@ -230,7 +238,7 @@ export function ProductHistoryPanel({ sku, productName, currentPrice, matched, a
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-bold text-primary">
-                  Recomendação: {formatBRL(intelligence.recommendationPrice)}
+                  Recomendação: {formatBRL(recommendationPrice)}
                 </div>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">
                   Probabilidade estimada de vitória:{" "}
@@ -277,4 +285,3 @@ function IntelCard({
     </div>
   );
 }
-

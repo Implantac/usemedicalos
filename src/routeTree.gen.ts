@@ -9,128 +9,38 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SlaWatchdogRouteImport } from './routes/sla-watchdog'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as QuarentenaRouteImport } from './routes/quarentena'
-import { Route as ProdutosRouteImport } from './routes/produtos'
-import { Route as OrquestracaoRouteImport } from './routes/orquestracao'
-import { Route as MarketplaceRouteImport } from './routes/marketplace'
-import { Route as InteligenciaRouteImport } from './routes/inteligencia'
-import { Route as IntegracoesRouteImport } from './routes/integracoes'
-import { Route as InboxRouteImport } from './routes/inbox'
-import { Route as GovernancaRouteImport } from './routes/governanca'
-import { Route as ExecutivoRouteImport } from './routes/executivo'
-import { Route as ExcecoesRouteImport } from './routes/excecoes'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as CopilotoRouteImport } from './routes/copiloto'
-import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
-import { Route as ComplianceRouteImport } from './routes/compliance'
-import { Route as CloudReadinessRouteImport } from './routes/cloud-readiness'
-import { Route as BenchmarkingRouteImport } from './routes/benchmarking'
-import { Route as AuditoriaRouteImport } from './routes/auditoria'
-import { Route as ApiKeysRouteImport } from './routes/api-keys'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiKeysRouteImport } from './routes/api-keys'
+import { Route as AuditoriaRouteImport } from './routes/auditoria'
+import { Route as BenchmarkingRouteImport } from './routes/benchmarking'
+import { Route as CloudReadinessRouteImport } from './routes/cloud-readiness'
+import { Route as ComplianceRouteImport } from './routes/compliance'
+import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
+import { Route as CopilotoRouteImport } from './routes/copiloto'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ExcecoesRouteImport } from './routes/excecoes'
+import { Route as ExecutivoRouteImport } from './routes/executivo'
+import { Route as GovernancaRouteImport } from './routes/governanca'
+import { Route as InboxRouteImport } from './routes/inbox'
+import { Route as IntegracoesRouteImport } from './routes/integracoes'
+import { Route as InteligenciaRouteImport } from './routes/inteligencia'
+import { Route as MarketplaceRouteImport } from './routes/marketplace'
+import { Route as OrquestracaoRouteImport } from './routes/orquestracao'
+import { Route as ProdutosRouteImport } from './routes/produtos'
+import { Route as QuarentenaRouteImport } from './routes/quarentena'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SlaWatchdogRouteImport } from './routes/sla-watchdog'
 import { Route as CotacaoIndexRouteImport } from './routes/cotacao.index'
-import { Route as VendedorOwnerIdRouteImport } from './routes/vendedor.$ownerId'
 import { Route as CotacaoIdRouteImport } from './routes/cotacao.$id'
-import { Route as ApiV1IngestRouteImport } from './routes/api/v1/ingest'
-import { Route as ApiPublicUseSistemasRouteImport } from './routes/api/public/use-sistemas'
+import { Route as VendedorOwnerIdRouteImport } from './routes/vendedor.$ownerId'
 import { Route as ApiPublicCatalogRouteImport } from './routes/api/public/catalog'
+import { Route as ApiPublicUseSistemasRouteImport } from './routes/api/public/use-sistemas'
+import { Route as ApiV1IngestRouteImport } from './routes/api/v1/ingest'
 import { Route as ApiPublicErpIngestRouteImport } from './routes/api/public/erp.ingest'
 
-const SlaWatchdogRoute = SlaWatchdogRouteImport.update({
-  id: '/sla-watchdog',
-  path: '/sla-watchdog',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const QuarentenaRoute = QuarentenaRouteImport.update({
-  id: '/quarentena',
-  path: '/quarentena',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProdutosRoute = ProdutosRouteImport.update({
-  id: '/produtos',
-  path: '/produtos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrquestracaoRoute = OrquestracaoRouteImport.update({
-  id: '/orquestracao',
-  path: '/orquestracao',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MarketplaceRoute = MarketplaceRouteImport.update({
-  id: '/marketplace',
-  path: '/marketplace',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InteligenciaRoute = InteligenciaRouteImport.update({
-  id: '/inteligencia',
-  path: '/inteligencia',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IntegracoesRoute = IntegracoesRouteImport.update({
-  id: '/integracoes',
-  path: '/integracoes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InboxRoute = InboxRouteImport.update({
-  id: '/inbox',
-  path: '/inbox',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GovernancaRoute = GovernancaRouteImport.update({
-  id: '/governanca',
-  path: '/governanca',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ExecutivoRoute = ExecutivoRouteImport.update({
-  id: '/executivo',
-  path: '/executivo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ExcecoesRoute = ExcecoesRouteImport.update({
-  id: '/excecoes',
-  path: '/excecoes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CopilotoRoute = CopilotoRouteImport.update({
-  id: '/copiloto',
-  path: '/copiloto',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
-  id: '/configuracoes',
-  path: '/configuracoes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ComplianceRoute = ComplianceRouteImport.update({
-  id: '/compliance',
-  path: '/compliance',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CloudReadinessRoute = CloudReadinessRouteImport.update({
-  id: '/cloud-readiness',
-  path: '/cloud-readiness',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BenchmarkingRoute = BenchmarkingRouteImport.update({
-  id: '/benchmarking',
-  path: '/benchmarking',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuditoriaRoute = AuditoriaRouteImport.update({
-  id: '/auditoria',
-  path: '/auditoria',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiKeysRoute = ApiKeysRouteImport.update({
@@ -138,9 +48,99 @@ const ApiKeysRoute = ApiKeysRouteImport.update({
   path: '/api-keys',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuditoriaRoute = AuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BenchmarkingRoute = BenchmarkingRouteImport.update({
+  id: '/benchmarking',
+  path: '/benchmarking',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CloudReadinessRoute = CloudReadinessRouteImport.update({
+  id: '/cloud-readiness',
+  path: '/cloud-readiness',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComplianceRoute = ComplianceRouteImport.update({
+  id: '/compliance',
+  path: '/compliance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CopilotoRoute = CopilotoRouteImport.update({
+  id: '/copiloto',
+  path: '/copiloto',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExcecoesRoute = ExcecoesRouteImport.update({
+  id: '/excecoes',
+  path: '/excecoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExecutivoRoute = ExecutivoRouteImport.update({
+  id: '/executivo',
+  path: '/executivo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GovernancaRoute = GovernancaRouteImport.update({
+  id: '/governanca',
+  path: '/governanca',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InboxRoute = InboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntegracoesRoute = IntegracoesRouteImport.update({
+  id: '/integracoes',
+  path: '/integracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InteligenciaRoute = InteligenciaRouteImport.update({
+  id: '/inteligencia',
+  path: '/inteligencia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketplaceRoute = MarketplaceRouteImport.update({
+  id: '/marketplace',
+  path: '/marketplace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrquestracaoRoute = OrquestracaoRouteImport.update({
+  id: '/orquestracao',
+  path: '/orquestracao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProdutosRoute = ProdutosRouteImport.update({
+  id: '/produtos',
+  path: '/produtos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuarentenaRoute = QuarentenaRouteImport.update({
+  id: '/quarentena',
+  path: '/quarentena',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SlaWatchdogRoute = SlaWatchdogRouteImport.update({
+  id: '/sla-watchdog',
+  path: '/sla-watchdog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CotacaoIndexRoute = CotacaoIndexRouteImport.update({
@@ -148,19 +148,19 @@ const CotacaoIndexRoute = CotacaoIndexRouteImport.update({
   path: '/cotacao/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VendedorOwnerIdRoute = VendedorOwnerIdRouteImport.update({
-  id: '/vendedor/$ownerId',
-  path: '/vendedor/$ownerId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CotacaoIdRoute = CotacaoIdRouteImport.update({
   id: '/cotacao/$id',
   path: '/cotacao/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiV1IngestRoute = ApiV1IngestRouteImport.update({
-  id: '/api/v1/ingest',
-  path: '/api/v1/ingest',
+const VendedorOwnerIdRoute = VendedorOwnerIdRouteImport.update({
+  id: '/vendedor/$ownerId',
+  path: '/vendedor/$ownerId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicCatalogRoute = ApiPublicCatalogRouteImport.update({
+  id: '/api/public/catalog',
+  path: '/api/public/catalog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicUseSistemasRoute = ApiPublicUseSistemasRouteImport.update({
@@ -168,9 +168,9 @@ const ApiPublicUseSistemasRoute = ApiPublicUseSistemasRouteImport.update({
   path: '/api/public/use-sistemas',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicCatalogRoute = ApiPublicCatalogRouteImport.update({
-  id: '/api/public/catalog',
-  path: '/api/public/catalog',
+const ApiV1IngestRoute = ApiV1IngestRouteImport.update({
+  id: '/api/v1/ingest',
+  path: '/api/v1/ingest',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicErpIngestRoute = ApiPublicErpIngestRouteImport.update({
@@ -396,137 +396,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sla-watchdog': {
-      id: '/sla-watchdog'
-      path: '/sla-watchdog'
-      fullPath: '/sla-watchdog'
-      preLoaderRoute: typeof SlaWatchdogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/quarentena': {
-      id: '/quarentena'
-      path: '/quarentena'
-      fullPath: '/quarentena'
-      preLoaderRoute: typeof QuarentenaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/produtos': {
-      id: '/produtos'
-      path: '/produtos'
-      fullPath: '/produtos'
-      preLoaderRoute: typeof ProdutosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/orquestracao': {
-      id: '/orquestracao'
-      path: '/orquestracao'
-      fullPath: '/orquestracao'
-      preLoaderRoute: typeof OrquestracaoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/marketplace': {
-      id: '/marketplace'
-      path: '/marketplace'
-      fullPath: '/marketplace'
-      preLoaderRoute: typeof MarketplaceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/inteligencia': {
-      id: '/inteligencia'
-      path: '/inteligencia'
-      fullPath: '/inteligencia'
-      preLoaderRoute: typeof InteligenciaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/integracoes': {
-      id: '/integracoes'
-      path: '/integracoes'
-      fullPath: '/integracoes'
-      preLoaderRoute: typeof IntegracoesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/inbox': {
-      id: '/inbox'
-      path: '/inbox'
-      fullPath: '/inbox'
-      preLoaderRoute: typeof InboxRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/governanca': {
-      id: '/governanca'
-      path: '/governanca'
-      fullPath: '/governanca'
-      preLoaderRoute: typeof GovernancaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/executivo': {
-      id: '/executivo'
-      path: '/executivo'
-      fullPath: '/executivo'
-      preLoaderRoute: typeof ExecutivoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/excecoes': {
-      id: '/excecoes'
-      path: '/excecoes'
-      fullPath: '/excecoes'
-      preLoaderRoute: typeof ExcecoesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/copiloto': {
-      id: '/copiloto'
-      path: '/copiloto'
-      fullPath: '/copiloto'
-      preLoaderRoute: typeof CopilotoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/configuracoes': {
-      id: '/configuracoes'
-      path: '/configuracoes'
-      fullPath: '/configuracoes'
-      preLoaderRoute: typeof ConfiguracoesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/compliance': {
-      id: '/compliance'
-      path: '/compliance'
-      fullPath: '/compliance'
-      preLoaderRoute: typeof ComplianceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/cloud-readiness': {
-      id: '/cloud-readiness'
-      path: '/cloud-readiness'
-      fullPath: '/cloud-readiness'
-      preLoaderRoute: typeof CloudReadinessRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/benchmarking': {
-      id: '/benchmarking'
-      path: '/benchmarking'
-      fullPath: '/benchmarking'
-      preLoaderRoute: typeof BenchmarkingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auditoria': {
-      id: '/auditoria'
-      path: '/auditoria'
-      fullPath: '/auditoria'
-      preLoaderRoute: typeof AuditoriaRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api-keys': {
@@ -536,11 +410,137 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiKeysRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auditoria': {
+      id: '/auditoria'
+      path: '/auditoria'
+      fullPath: '/auditoria'
+      preLoaderRoute: typeof AuditoriaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/benchmarking': {
+      id: '/benchmarking'
+      path: '/benchmarking'
+      fullPath: '/benchmarking'
+      preLoaderRoute: typeof BenchmarkingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cloud-readiness': {
+      id: '/cloud-readiness'
+      path: '/cloud-readiness'
+      fullPath: '/cloud-readiness'
+      preLoaderRoute: typeof CloudReadinessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compliance': {
+      id: '/compliance'
+      path: '/compliance'
+      fullPath: '/compliance'
+      preLoaderRoute: typeof ComplianceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/configuracoes': {
+      id: '/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof ConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/copiloto': {
+      id: '/copiloto'
+      path: '/copiloto'
+      fullPath: '/copiloto'
+      preLoaderRoute: typeof CopilotoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/excecoes': {
+      id: '/excecoes'
+      path: '/excecoes'
+      fullPath: '/excecoes'
+      preLoaderRoute: typeof ExcecoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/executivo': {
+      id: '/executivo'
+      path: '/executivo'
+      fullPath: '/executivo'
+      preLoaderRoute: typeof ExecutivoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/governanca': {
+      id: '/governanca'
+      path: '/governanca'
+      fullPath: '/governanca'
+      preLoaderRoute: typeof GovernancaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inbox': {
+      id: '/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof InboxRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/integracoes': {
+      id: '/integracoes'
+      path: '/integracoes'
+      fullPath: '/integracoes'
+      preLoaderRoute: typeof IntegracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inteligencia': {
+      id: '/inteligencia'
+      path: '/inteligencia'
+      fullPath: '/inteligencia'
+      preLoaderRoute: typeof InteligenciaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketplace': {
+      id: '/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof MarketplaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orquestracao': {
+      id: '/orquestracao'
+      path: '/orquestracao'
+      fullPath: '/orquestracao'
+      preLoaderRoute: typeof OrquestracaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/produtos': {
+      id: '/produtos'
+      path: '/produtos'
+      fullPath: '/produtos'
+      preLoaderRoute: typeof ProdutosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quarentena': {
+      id: '/quarentena'
+      path: '/quarentena'
+      fullPath: '/quarentena'
+      preLoaderRoute: typeof QuarentenaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sla-watchdog': {
+      id: '/sla-watchdog'
+      path: '/sla-watchdog'
+      fullPath: '/sla-watchdog'
+      preLoaderRoute: typeof SlaWatchdogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cotacao/': {
@@ -550,13 +550,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CotacaoIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/vendedor/$ownerId': {
-      id: '/vendedor/$ownerId'
-      path: '/vendedor/$ownerId'
-      fullPath: '/vendedor/$ownerId'
-      preLoaderRoute: typeof VendedorOwnerIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/cotacao/$id': {
       id: '/cotacao/$id'
       path: '/cotacao/$id'
@@ -564,11 +557,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CotacaoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/v1/ingest': {
-      id: '/api/v1/ingest'
-      path: '/api/v1/ingest'
-      fullPath: '/api/v1/ingest'
-      preLoaderRoute: typeof ApiV1IngestRouteImport
+    '/vendedor/$ownerId': {
+      id: '/vendedor/$ownerId'
+      path: '/vendedor/$ownerId'
+      fullPath: '/vendedor/$ownerId'
+      preLoaderRoute: typeof VendedorOwnerIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/catalog': {
+      id: '/api/public/catalog'
+      path: '/api/public/catalog'
+      fullPath: '/api/public/catalog'
+      preLoaderRoute: typeof ApiPublicCatalogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/use-sistemas': {
@@ -578,11 +578,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicUseSistemasRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/catalog': {
-      id: '/api/public/catalog'
-      path: '/api/public/catalog'
-      fullPath: '/api/public/catalog'
-      preLoaderRoute: typeof ApiPublicCatalogRouteImport
+    '/api/v1/ingest': {
+      id: '/api/v1/ingest'
+      path: '/api/v1/ingest'
+      fullPath: '/api/v1/ingest'
+      preLoaderRoute: typeof ApiV1IngestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/erp/ingest': {
@@ -628,3 +628,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

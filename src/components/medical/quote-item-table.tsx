@@ -7,25 +7,12 @@
  */
 
 import { useMemo, useState } from "react";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  ChevronRight,
-  Circle,
-  History,
-  MinusCircle,
-  Package,
-  PackageOpen,
-  Sparkles,
-  TrendingUp,
-  XCircle,
-} from "lucide-react";
+import { CheckCircle2, History, MinusCircle, PackageOpen, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { QuoteItem } from "@/lib/medical/types";
-import { classifyItem, type ItemClassification, type MatchedProduct } from "@/lib/medical/product-matching";
-import { buildProductHistory, type ProductHistory } from "@/lib/medical/product-history";
+import { classifyItem, type MatchedProduct } from "@/lib/medical/product-matching";
 import type { Quote } from "@/lib/medical/types";
 import { itemMargin, itemTotal, formatBRL, formatPct } from "@/lib/medical/pricing";
 import { ProductHistoryPanel } from "./product-history-panel";
@@ -59,7 +46,10 @@ const CLASSIFICATION_ORDER: Record<string, number> = {
   not_found: 3,
 };
 
-const CLASSIFICATION_LABEL: Record<string, { label: string; icon: typeof CheckCircle2; tone: string }> = {
+const CLASSIFICATION_LABEL: Record<
+  string,
+  { label: string; icon: typeof CheckCircle2; tone: string }
+> = {
   can_attend: { label: "Atender", icon: CheckCircle2, tone: "text-success" },
   partial: { label: "Parcial", icon: PackageOpen, tone: "text-warning-foreground" },
   no_stock: { label: "Sem estoque", icon: XCircle, tone: "text-danger" },
@@ -81,19 +71,21 @@ export function QuoteItemTable({
   const [historyProductName, setHistoryProductName] = useState("");
   const [historyMatch, setHistoryMatch] = useState<MatchedProduct | null>(null);
 
-  const classified = useMemo(
-    () => items.map((it) => classifyItem(it)),
-    [items],
-  );
+  const classified = useMemo(() => items.map((it) => classifyItem(it)), [items]);
 
   const sorted = useMemo(() => {
-    const list = items.map((it, idx) => ({ item: it, classification: classified[idx], index: idx }));
+    const list = items.map((it, idx) => ({
+      item: it,
+      classification: classified[idx],
+      index: idx,
+    }));
     return list.sort((a, b) => {
       let cmp = 0;
       switch (sortField) {
         case "classification":
-          cmp = (CLASSIFICATION_ORDER[a.classification.classification] ?? 99) -
-                (CLASSIFICATION_ORDER[b.classification.classification] ?? 99);
+          cmp =
+            (CLASSIFICATION_ORDER[a.classification.classification] ?? 99) -
+            (CLASSIFICATION_ORDER[b.classification.classification] ?? 99);
           break;
         case "name":
           cmp = a.item.name.localeCompare(b.item.name);
@@ -124,7 +116,15 @@ export function QuoteItemTable({
     }
   };
 
-  const SortHeader = ({ field, label, className }: { field: SortField; label: string; className?: string }) => (
+  const SortHeader = ({
+    field,
+    label,
+    className,
+  }: {
+    field: SortField;
+    label: string;
+    className?: string;
+  }) => (
     <button
       type="button"
       onClick={() => toggleSort(field)}
@@ -134,9 +134,7 @@ export function QuoteItemTable({
       )}
     >
       {label}
-      {sortField === field && (
-        <span className="text-[9px]">{sortDir === "asc" ? "▲" : "▼"}</span>
-      )}
+      {sortField === field && <span className="text-[9px]">{sortDir === "asc" ? "▲" : "▼"}</span>}
     </button>
   );
 
@@ -153,9 +151,10 @@ export function QuoteItemTable({
     const noStock = classified.filter((c) => c.classification === "no_stock").length;
     const notFound = classified.filter((c) => c.classification === "not_found").length;
     const selectedCount = selectedItems.size;
-    const selectedRevenue = selectedItems.size > 0
-      ? Array.from(selectedItems).reduce((s, idx) => s + itemTotal(items[idx]), 0)
-      : 0;
+    const selectedRevenue =
+      selectedItems.size > 0
+        ? Array.from(selectedItems).reduce((s, idx) => s + itemTotal(items[idx]), 0)
+        : 0;
     return { total, canAttend, partial, noStock, notFound, selectedCount, selectedRevenue };
   }, [items, classified, selectedItems]);
 
@@ -205,7 +204,6 @@ export function QuoteItemTable({
 
       {/* Items */}
       <div className="space-y-1">
-
         {sorted.map(({ item, classification, index }) => {
           const cls = CLASSIFICATION_LABEL[classification.classification];
           const Icon = cls.icon;
@@ -219,27 +217,27 @@ export function QuoteItemTable({
           const suggestedDelta = classification.suggestedPrice
             ? (item.unit_price - classification.suggestedPrice) / classification.suggestedPrice
             : 0;
-          const priceStatus = classification.classification === "not_found"
-            ? "Não localizado"
-            : classification.classification === "no_stock"
-              ? "Sem estoque"
-              : classification.classification === "partial"
-                ? `Parcial ${classification.attendQty}/${item.quantity}`
-                : !marginOk
-                  ? "Margem abaixo"
-                  : classification.lastSalePrice && Math.abs(lastPriceDelta) >= 0.12
-                    ? lastPriceDelta > 0
-                      ? `+${formatPct(lastPriceDelta)} vs última venda`
-                      : `${formatPct(lastPriceDelta)} vs última venda`
-                    : classification.suggestedPrice && Math.abs(suggestedDelta) >= 0.12
-                      ? suggestedDelta > 0
-                        ? `+${formatPct(suggestedDelta)} vs sugestão`
-                        : `${formatPct(suggestedDelta)} vs sugestão`
-                      : "Preço alinhado";
+          const priceStatus =
+            classification.classification === "not_found"
+              ? "Não localizado"
+              : classification.classification === "no_stock"
+                ? "Sem estoque"
+                : classification.classification === "partial"
+                  ? `Parcial ${classification.attendQty}/${item.quantity}`
+                  : !marginOk
+                    ? "Margem abaixo"
+                    : classification.lastSalePrice && Math.abs(lastPriceDelta) >= 0.12
+                      ? lastPriceDelta > 0
+                        ? `+${formatPct(lastPriceDelta)} vs última venda`
+                        : `${formatPct(lastPriceDelta)} vs última venda`
+                      : classification.suggestedPrice && Math.abs(suggestedDelta) >= 0.12
+                        ? suggestedDelta > 0
+                          ? `+${formatPct(suggestedDelta)} vs sugestão`
+                          : `${formatPct(suggestedDelta)} vs sugestão`
+                        : "Preço alinhado";
           const priceStatusTone = !marginOk
             ? "text-danger"
-            : priceStatus.includes("+"
-              )
+            : priceStatus.includes("+")
               ? "text-warning-foreground"
               : "text-success";
 
@@ -274,7 +272,6 @@ export function QuoteItemTable({
                 <Icon className={cn("h-4 w-4", cls.tone)} />
               </div>
 
-
               {/* Product info */}
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
@@ -294,18 +291,18 @@ export function QuoteItemTable({
                   SKU {item.sku} · {classification.matched?.product.unit ?? "un"}
                 </div>
                 <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
-                  <span>{MATCH_METHOD_LABEL[classification.matched?.matchMethod ?? "not_found"]}</span>
+                  <span>
+                    {MATCH_METHOD_LABEL[classification.matched?.matchMethod ?? "not_found"]}
+                  </span>
                   <span className="capitalize">{classification.matched?.confidence ?? "low"}</span>
-                  <span>{classification.matched?.erpConfirmed ? "ERP confirmado" : "ERP pendente"}</span>
+                  <span>
+                    {classification.matched?.erpConfirmed ? "ERP confirmado" : "ERP pendente"}
+                  </span>
                 </div>
                 <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-border/80 bg-muted/20 px-2 py-1 text-[10px] font-semibold text-muted-foreground">
                   <span className={priceStatusTone}>{priceStatus}</span>
                 </div>
               </div>
-
-
-
-
 
               {/* Requested qty */}
               <div className="flex items-center justify-end">
@@ -313,9 +310,7 @@ export function QuoteItemTable({
                   type="number"
                   min={0}
                   value={item.quantity}
-                  onChange={(e) =>
-                    onUpdateItem(index, { quantity: Number(e.target.value) || 0 })
-                  }
+                  onChange={(e) => onUpdateItem(index, { quantity: Number(e.target.value) || 0 })}
                   className="h-8 w-20 text-right num text-sm"
                 />
               </div>
@@ -373,16 +368,11 @@ export function QuoteItemTable({
               {/* Margin */}
               <div className="flex flex-col items-center justify-center">
                 <span
-                  className={cn(
-                    "num text-sm font-bold",
-                    marginOk ? "text-success" : "text-danger",
-                  )}
+                  className={cn("num text-sm font-bold", marginOk ? "text-success" : "text-danger")}
                 >
                   {formatPct(margin)}
                 </span>
-                <span className="num text-[10px] text-muted-foreground">
-                  {formatBRL(total)}
-                </span>
+                <span className="num text-[10px] text-muted-foreground">{formatBRL(total)}</span>
               </div>
 
               {/* Action buttons */}
@@ -404,7 +394,9 @@ export function QuoteItemTable({
                     className="h-7 px-2 text-[10px] border-warning/30 text-warning-foreground hover:bg-warning/10"
                     onClick={() => onToggleSelection(index)}
                   >
-                    {isSelected ? `✓ ${classification.attendQty}` : `Parcial (${classification.attendQty})`}
+                    {isSelected
+                      ? `✓ ${classification.attendQty}`
+                      : `Parcial (${classification.attendQty})`}
                   </Button>
                 )}
                 {classification.classification === "no_stock" && (
@@ -416,7 +408,6 @@ export function QuoteItemTable({
               </div>
             </div>
           );
-
         })}
       </div>
 
@@ -434,4 +425,3 @@ export function QuoteItemTable({
     </div>
   );
 }
-
