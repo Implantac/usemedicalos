@@ -1,24 +1,49 @@
 import { useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, Download, FileText, Sparkles, Trash2, X } from "lucide-react";
 import { generateProposalPdf } from "@/lib/medical/proposal-pdf";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { ClientTier, Quote, QuoteStatus } from "@/lib/medical/types";
 import { CLIENT_TIER_DISCOUNT, STATUS_LABEL } from "@/lib/medical/types";
-import { basePrice, formatBRL, formatPct, itemMargin, itemTotal, pricingSignal, quoteTotals, suggestPrice } from "@/lib/medical/pricing";
+import {
+  basePrice,
+  formatBRL,
+  formatPct,
+  itemMargin,
+  itemTotal,
+  pricingSignal,
+  quoteTotals,
+  suggestPrice,
+} from "@/lib/medical/pricing";
 import { useTenantConfig } from "@/hooks/use-tenant-config";
 import { useProductOverrides } from "@/hooks/use-product-overrides";
 import { useQuotes } from "@/hooks/use-quotes";
 import { enrichProductsWithMarket } from "@/lib/medical/pricing-flywheel";
-import { calculateSuggestedPrice, PRICING_STATUS_LABEL, type PricingStatus } from "@/lib/medical/pricing-engine";
+import {
+  calculateSuggestedPrice,
+  PRICING_STATUS_LABEL,
+  type PricingStatus,
+} from "@/lib/medical/pricing-engine";
 
-import { PriorityBadge, SourceTag, StatusBadge } from "./badges";
+import { PartnerTag, PriorityBadge, SourceTag, StatusBadge } from "./badges";
 import { SlaIndicator } from "./sla-indicator";
 import { sendToUseSistemas } from "@/lib/medical/use-sistemas-mock";
 import { appendActivity } from "@/lib/medical/activity";
@@ -27,16 +52,11 @@ import { checkQuote } from "@/lib/medical/compliance";
 import { ComplianceAlert } from "./compliance-alert";
 import { CommissionBadge } from "./commission-badge";
 import { ClientIntelCard } from "./client-intel-card";
-import {
-  addOverride,
-  listOverrides,
-  revokeOverride,
-} from "@/lib/medical/compliance-override";
+import { addOverride, listOverrides, revokeOverride } from "@/lib/medical/compliance-override";
 import { benchmarkFor, type Region } from "@/lib/medical/benchmarks";
 import { ownerById, PRODUCTS } from "@/lib/medical/mock-data";
 import { usePermissions } from "@/hooks/use-permissions";
 import { ArrowDown, ArrowUp, Minus } from "lucide-react";
-
 
 interface Props {
   quote: Quote | null;
@@ -51,7 +71,13 @@ export function QuoteDrawer(props: Props) {
   return <QuoteDrawerInner {...props} quote={props.quote} />;
 }
 
-function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdateQuote }: Props & { quote: Quote }) {
+function QuoteDrawerInner({
+  quote,
+  onClose,
+  onUpdateItem,
+  onRemoveItem,
+  onUpdateQuote,
+}: Props & { quote: Quote }) {
   const [submitting, setSubmitting] = useState(false);
   const [activityVersion, setActivityVersion] = useState(0);
   const [overrideVersion, setOverrideVersion] = useState(0);
@@ -63,7 +89,6 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
     [quote.id, overrideVersion],
   );
   const { config: tenantConfig } = useTenantConfig(quote.tenant_id);
-
 
   const minMargin = tenantConfig.min_margin;
   const totals = quoteTotals(quote.items);
@@ -80,12 +105,12 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
     return m;
   }, [allQuotes, applyProductOverride]);
 
-
   const compliance = checkQuote(quote, overriddenSkus);
   const complianceBlocked = compliance.status === "blocked";
   const complianceRequiresConfirm =
     compliance.status === "warning" || compliance.status === "overridden";
-  const complianceGateOk = !complianceBlocked && (!complianceRequiresConfirm || complianceConfirmed);
+  const complianceGateOk =
+    !complianceBlocked && (!complianceRequiresConfirm || complianceConfirmed);
   const canSend = marginOk && !hasNegative && complianceGateOk;
 
   const bumpActivity = () => setActivityVersion((v) => v + 1);
@@ -139,8 +164,17 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
     setSubmitting(true);
     try {
       const res = await sendToUseSistemas(quote);
-      onUpdateQuote(quote.id, { status: "enviado", use_sistemas_synced: true, use_sistemas_order_id: res.order_id });
-      appendActivity({ quote_id: quote.id, type: "sent_use_sistemas", message: `Enviado ao Use Sistemas`, meta: { order_id: res.order_id } });
+      onUpdateQuote(quote.id, {
+        status: "enviado",
+        use_sistemas_synced: true,
+        use_sistemas_order_id: res.order_id,
+      });
+      appendActivity({
+        quote_id: quote.id,
+        type: "sent_use_sistemas",
+        message: `Enviado ao Use Sistemas`,
+        meta: { order_id: res.order_id },
+      });
       bumpActivity();
       toast.success(res.message);
     } catch {
@@ -151,7 +185,12 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
   };
 
   return (
-    <Sheet open onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Sheet
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
       <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl">
         <SheetHeader className="space-y-2 border-b bg-card p-4">
           <div className="min-w-0 pr-8">
@@ -164,6 +203,7 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
             <PriorityBadge priority={quote.priority} />
             <StatusBadge status={quote.status} />
             <SourceTag source={quote.source_type} />
+            <PartnerTag partnerId={quote.origin_partner_id} />
             <SlaIndicator deadline={quote.sla_deadline} />
             {quote.use_sistemas_synced && (
               <span className="inline-flex items-center gap-1 rounded-md bg-success/15 px-2 py-0.5 text-[11px] font-semibold text-success">
@@ -206,24 +246,24 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
             />
           </section>
 
-
-
-
-
-
           {/* Payload original + IA classification */}
           <section className="border-b p-4">
             <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
               Payload original
             </h3>
-            <p className="rounded-md bg-muted p-3 text-sm text-foreground">{quote.original_payload}</p>
+            <p className="rounded-md bg-muted p-3 text-sm text-foreground">
+              {quote.original_payload}
+            </p>
             {quote.keywords.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary">
                   <Sparkles className="h-3 w-3" /> Auto-classificação:
                 </span>
                 {quote.keywords.map((k) => (
-                  <span key={k} className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary">
+                  <span
+                    key={k}
+                    className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary"
+                  >
                     {k}
                   </span>
                 ))}
@@ -245,9 +285,16 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
                 const m = itemMargin(it);
                 const catalogProduct = productBySku.get(it.sku);
                 const engine = catalogProduct
-                  ? calculateSuggestedPrice(catalogProduct, { tier: quote.client_tier ?? "B", quantity: it.quantity, minMargin, targetMargin: tenantConfig.target_margin })
+                  ? calculateSuggestedPrice(catalogProduct, {
+                      tier: quote.client_tier ?? "B",
+                      quantity: it.quantity,
+                      minMargin,
+                      targetMargin: tenantConfig.target_margin,
+                    })
                   : null;
-                const suggested = engine ? engine.suggested_price : suggestPrice(it, tenantConfig.target_margin);
+                const suggested = engine
+                  ? engine.suggested_price
+                  : suggestPrice(it, tenantConfig.target_margin);
                 const base = basePrice(it.cost_price);
                 const signal = pricingSignal(it, minMargin);
 
@@ -274,7 +321,12 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
                         size="icon"
                         className="h-7 w-7 text-muted-foreground hover:text-danger"
                         onClick={() => {
-                          appendActivity({ quote_id: quote.id, type: "item_removed", message: `Item removido: ${it.name}`, meta: { sku: it.sku } });
+                          appendActivity({
+                            quote_id: quote.id,
+                            type: "item_removed",
+                            message: `Item removido: ${it.name}`,
+                            meta: { sku: it.sku },
+                          });
                           onRemoveItem(quote.id, idx);
                           bumpActivity();
                         }}
@@ -290,31 +342,49 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
                           type="number"
                           min={1}
                           value={it.quantity}
-                          onChange={(e) => onUpdateItem(quote.id, idx, { quantity: Number(e.target.value) || 0 })}
+                          onChange={(e) =>
+                            onUpdateItem(quote.id, idx, { quantity: Number(e.target.value) || 0 })
+                          }
                           className="h-8 num"
                         />
                       </div>
                       <div>
-                        <Label className="text-[10px] uppercase text-muted-foreground">Preço unit.</Label>
+                        <Label className="text-[10px] uppercase text-muted-foreground">
+                          Preço unit.
+                        </Label>
                         <Input
                           type="number"
                           step="0.01"
                           value={it.unit_price}
-                          onChange={(e) => onUpdateItem(quote.id, idx, { unit_price: Number(e.target.value) || 0 })}
+                          onChange={(e) =>
+                            onUpdateItem(quote.id, idx, { unit_price: Number(e.target.value) || 0 })
+                          }
                           className={cn(
                             "h-8 num",
-                            negative && "border-danger bg-danger/5 text-danger focus-visible:ring-danger",
-                            belowBase && !negative && "border-warning/60 focus-visible:ring-warning",
+                            negative &&
+                              "border-danger bg-danger/5 text-danger focus-visible:ring-danger",
+                            belowBase &&
+                              !negative &&
+                              "border-warning/60 focus-visible:ring-warning",
                           )}
                         />
                       </div>
                       <div>
                         <Label className="text-[10px] uppercase text-muted-foreground">Total</Label>
-                        <div className="flex h-8 items-center num text-sm font-semibold">{formatBRL(itemTotal(it))}</div>
+                        <div className="flex h-8 items-center num text-sm font-semibold">
+                          {formatBRL(itemTotal(it))}
+                        </div>
                       </div>
                       <div>
-                        <Label className="text-[10px] uppercase text-muted-foreground">Margem</Label>
-                        <div className={cn("flex h-8 items-center num text-sm font-semibold", ok ? "text-success" : "text-danger")}>
+                        <Label className="text-[10px] uppercase text-muted-foreground">
+                          Margem
+                        </Label>
+                        <div
+                          className={cn(
+                            "flex h-8 items-center num text-sm font-semibold",
+                            ok ? "text-success" : "text-danger",
+                          )}
+                        >
                           {formatPct(m)}
                         </div>
                       </div>
@@ -323,7 +393,9 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
                     {negative && (
                       <div className="mt-2 flex items-start gap-1.5 rounded-md border border-danger/40 bg-danger/10 px-2 py-1.5 text-[11px] font-medium text-danger">
                         <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
-                        <span>Margem negativa: ajuste necessário — preço abaixo do custo de aquisição.</span>
+                        <span>
+                          Margem negativa: ajuste necessário — preço abaixo do custo de aquisição.
+                        </span>
                       </div>
                     )}
                     {belowBase && (
@@ -341,7 +413,9 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
                         </span>
                         <div className="flex items-center gap-2">
                           {engine && <EngineStatusChip status={engine.status} />}
-                          <span className="num text-xs font-bold text-foreground">{formatBRL(suggested)}</span>
+                          <span className="num text-xs font-bold text-foreground">
+                            {formatBRL(suggested)}
+                          </span>
                           <Button
                             size="sm"
                             variant="outline"
@@ -365,15 +439,18 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
                       {engine && (
                         <div className="mt-1 grid grid-cols-3 gap-1 text-[10px] text-muted-foreground num">
                           <span>Floor {formatBRL(engine.floor_price)}</span>
-                          <span>CMED {engine.compliance_cap ? formatBRL(engine.compliance_cap) : "—"}</span>
-                          <span>Mercado {engine.market_target ? formatBRL(engine.market_target) : "—"}</span>
+                          <span>
+                            CMED {engine.compliance_cap ? formatBRL(engine.compliance_cap) : "—"}
+                          </span>
+                          <span>
+                            Mercado {engine.market_target ? formatBRL(engine.market_target) : "—"}
+                          </span>
                         </div>
                       )}
                     </div>
                   </div>
                 );
               })}
-
             </div>
           </section>
 
@@ -387,7 +464,11 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
               onBlur={(e) => {
                 if ((e.target.value ?? "") !== (quote.notes ?? "")) return;
                 if (e.target.value?.trim()) {
-                  appendActivity({ quote_id: quote.id, type: "notes_updated", message: "Notas internas atualizadas" });
+                  appendActivity({
+                    quote_id: quote.id,
+                    type: "notes_updated",
+                    message: "Notas internas atualizadas",
+                  });
                   bumpActivity();
                 }
               }}
@@ -417,7 +498,9 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
             </div>
             <div>
               <div className="text-[10px] uppercase text-muted-foreground">Margem</div>
-              <div className={cn("num text-sm font-bold", marginOk ? "text-success" : "text-danger")}>
+              <div
+                className={cn("num text-sm font-bold", marginOk ? "text-success" : "text-danger")}
+              >
                 {formatPct(totals.margin)}
               </div>
             </div>
@@ -426,7 +509,9 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
           {!marginOk && (
             <div className="mb-2 flex items-start gap-2 rounded-md border border-danger/30 bg-danger/10 p-2 text-xs text-danger">
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-              <span>Margem abaixo de {formatPct(minMargin)}. Ajuste antes de enviar a proposta.</span>
+              <span>
+                Margem abaixo de {formatPct(minMargin)}. Ajuste antes de enviar a proposta.
+              </span>
             </div>
           )}
 
@@ -446,10 +531,14 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
                 bumpActivity();
               }}
             >
-              <SelectTrigger className="h-9 w-full sm:w-48"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-9 w-full sm:w-48">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 {(Object.keys(STATUS_LABEL) as QuoteStatus[]).map((s) => (
-                  <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>
+                  <SelectItem key={s} value={s}>
+                    {STATUS_LABEL[s]}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -459,7 +548,11 @@ function QuoteDrawerInner({ quote, onClose, onUpdateItem, onRemoveItem, onUpdate
               onClick={() => {
                 try {
                   generateProposalPdf(quote);
-                  appendActivity({ quote_id: quote.id, type: "pdf_generated", message: "Proposta PDF gerada" });
+                  appendActivity({
+                    quote_id: quote.id,
+                    type: "pdf_generated",
+                    message: "Proposta PDF gerada",
+                  });
                   bumpActivity();
                   toast.success("Proposta PDF gerada.");
                 } catch (e) {
@@ -505,7 +598,17 @@ function BenchmarkMini({
   const mk = benchmarkFor(region);
   const marginDelta = selfMargin - mk.avgMargin;
   const ticketDelta = mk.avgTicket ? (selfTicket - mk.avgTicket) / mk.avgTicket : 0;
-  const Row = ({ label, value, delta, kind }: { label: string; value: string; delta: number; kind: "pp" | "pct" }) => {
+  const Row = ({
+    label,
+    value,
+    delta,
+    kind,
+  }: {
+    label: string;
+    value: string;
+    delta: number;
+    kind: "pp" | "pct";
+  }) => {
     const zero = Math.abs(delta) < 0.001;
     const up = delta > 0;
     const Icon = zero ? Minus : up ? ArrowUp : ArrowDown;
@@ -516,7 +619,9 @@ function BenchmarkMini({
         <span className="text-muted-foreground">{label}</span>
         <div className="flex items-center gap-2">
           <span className="num font-semibold text-foreground">{value}</span>
-          <span className={cn("inline-flex items-center gap-0.5 num text-[11px] font-semibold", tone)}>
+          <span
+            className={cn("inline-flex items-center gap-0.5 num text-[11px] font-semibold", tone)}
+          >
             <Icon className="h-3 w-3" />
             {deltaLabel}
           </span>
@@ -530,11 +635,23 @@ function BenchmarkMini({
         <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           Comparativo de mercado
         </span>
-        <span className="text-[10px] text-muted-foreground">{region} · n={mk.sampleSize}</span>
+        <span className="text-[10px] text-muted-foreground">
+          {region} · n={mk.sampleSize}
+        </span>
       </div>
       <div className="space-y-1">
-        <Row label="Margem vs mercado" value={formatPct(selfMargin)} delta={marginDelta} kind="pp" />
-        <Row label="Ticket vs mercado" value={formatBRL(selfTicket)} delta={ticketDelta} kind="pct" />
+        <Row
+          label="Margem vs mercado"
+          value={formatPct(selfMargin)}
+          delta={marginDelta}
+          kind="pp"
+        />
+        <Row
+          label="Ticket vs mercado"
+          value={formatBRL(selfTicket)}
+          delta={ticketDelta}
+          kind="pct"
+        />
       </div>
       <p className="mt-1.5 text-[10px] text-muted-foreground">
         Amostras anonimizadas por região (LGPD).
@@ -570,7 +687,13 @@ const TIER_TONE: Record<ClientTier, string> = {
   C: "bg-warning/15 text-warning-foreground border-warning/30",
 };
 
-function ClientTierSelector({ value, onChange }: { value: ClientTier; onChange: (t: ClientTier) => void }) {
+function ClientTierSelector({
+  value,
+  onChange,
+}: {
+  value: ClientTier;
+  onChange: (t: ClientTier) => void;
+}) {
   const tiers: ClientTier[] = ["A", "B", "C"];
   return (
     <div className="flex items-center justify-between rounded-lg border bg-card px-2.5 py-2">
@@ -597,7 +720,9 @@ function ClientTierSelector({ value, onChange }: { value: ClientTier; onChange: 
               )}
             >
               <span className="text-xs leading-none">{t}</span>
-              <span className="mt-0.5 num text-[9px] leading-none">-{(discount * 100).toFixed(0)}%</span>
+              <span className="mt-0.5 num text-[9px] leading-none">
+                -{(discount * 100).toFixed(0)}%
+              </span>
             </button>
           );
         })}
@@ -605,6 +730,3 @@ function ClientTierSelector({ value, onChange }: { value: ClientTier; onChange: 
     </div>
   );
 }
-
-
-

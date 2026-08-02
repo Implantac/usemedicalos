@@ -1,7 +1,24 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { PermissionGate } from "@/components/medical/permission-gate";
 import { useMemo, useState } from "react";
-import { AlertCircle, Bell, CheckCircle2, Copy, Gauge, KeyRound, Plug, PlayCircle, Power, Save, ShieldAlert, Sliders, Trash2, Send, Zap } from "lucide-react";
+import {
+  AlertCircle,
+  Bell,
+  CheckCircle2,
+  Copy,
+  Gauge,
+  KeyRound,
+  Plug,
+  PlayCircle,
+  Power,
+  Save,
+  ShieldAlert,
+  Sliders,
+  Store,
+  Trash2,
+  Send,
+  Zap,
+} from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { Button } from "@/components/ui/button";
@@ -32,11 +49,19 @@ import {
   toggleSubscription,
   type OutboundChannel,
 } from "@/lib/medical/outbound-webhooks";
-import { getCachedSuggestion, getPriceCacheStats, resetPriceCache } from "@/lib/medical/price-cache";
+import {
+  getCachedSuggestion,
+  getPriceCacheStats,
+  resetPriceCache,
+} from "@/lib/medical/price-cache";
 import { INITIAL_QUOTES } from "@/lib/medical/mock-data";
 import { cn } from "@/lib/utils";
-
-
+import { ECOSYSTEM_PARTNERS } from "@/lib/medical/ecosystem/partners";
+import {
+  buildLocalQuoteFromSimulation,
+  sendSimulatedQuote,
+  type SimulablePartnerId,
+} from "@/lib/medical/ecosystem/simulator";
 
 export const Route = createFileRoute("/integracoes")({
   head: () => ({
@@ -59,7 +84,7 @@ export const Route = createFileRoute("/integracoes")({
 function IntegrationsPage() {
   const navigate = useNavigate();
   const { mappings, saveMapping, deleteMapping } = useErpMappings();
-  const { addQuote } = useQuotes();
+  const { addQuote, ingestPortalQuote } = useQuotes();
   const { tenant, scope } = useActiveTenant();
   const [payload, setPayload] = useState(() => JSON.stringify(SAMPLE_ERP_PAYLOAD, null, 2));
   const [mapping, setMapping] = useState(() => JSON.stringify(SAMPLE_MAPPING, null, 2));
@@ -68,8 +93,12 @@ function IntegrationsPage() {
 
   function sendToQuarantine() {
     let parsedPayload: unknown = payload;
-    try { parsedPayload = JSON.parse(payload); } catch { /* mantém string crua */ }
-    const errors = result?.errors ?? [payloadErr, mappingErr].filter(Boolean) as string[];
+    try {
+      parsedPayload = JSON.parse(payload);
+    } catch {
+      /* mantém string crua */
+    }
+    const errors = result?.errors ?? ([payloadErr, mappingErr].filter(Boolean) as string[]);
     quarantine({
       tenant_id: scope === "all" ? null : scope,
       source: "sandbox",
@@ -80,12 +109,19 @@ function IntegrationsPage() {
     toast.success("Payload enviado para a Quarentena.");
   }
 
-
   const [payloadErr, mappingErr] = useMemo(() => {
     let pe: string | null = null;
     let me: string | null = null;
-    try { JSON.parse(payload); } catch (e) { pe = (e as Error).message; }
-    try { JSON.parse(mapping); } catch (e) { me = (e as Error).message; }
+    try {
+      JSON.parse(payload);
+    } catch (e) {
+      pe = (e as Error).message;
+    }
+    try {
+      JSON.parse(mapping);
+    } catch (e) {
+      me = (e as Error).message;
+    }
     return [pe, me];
   }, [payload, mapping]);
 
@@ -136,7 +172,9 @@ function IntegrationsPage() {
         <TenantScopeBanner hint="Cotações ingeridas entram no tenant ativo" />
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-lg font-bold tracking-tight text-foreground">Portal de integrações</h1>
+            <h1 className="text-lg font-bold tracking-tight text-foreground">
+              Portal de integrações
+            </h1>
             <p className="text-xs text-muted-foreground">
               Mapeie campos do seu ERP, salve o preset e ingira cotações no pipeline.
             </p>
@@ -163,7 +201,6 @@ function IntegrationsPage() {
           }}
         />
 
-
         {mappings.length > 0 && (
           <div className="rounded-lg border bg-card p-3 card-shadow">
             <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
@@ -171,14 +208,24 @@ function IntegrationsPage() {
             </h3>
             <div className="flex flex-wrap gap-2">
               {mappings.map((m) => (
-                <div key={m.id} className="inline-flex items-center gap-1 rounded border bg-background px-2 py-1 text-xs">
+                <div
+                  key={m.id}
+                  className="inline-flex items-center gap-1 rounded border bg-background px-2 py-1 text-xs"
+                >
                   <button
-                    onClick={() => { setMapping(JSON.stringify(m.config, null, 2)); toast.info(`Carregado: ${m.name}`); }}
+                    onClick={() => {
+                      setMapping(JSON.stringify(m.config, null, 2));
+                      toast.info(`Carregado: ${m.name}`);
+                    }}
                     className="font-medium text-foreground hover:text-primary"
                   >
                     {m.name}
                   </button>
-                  <button onClick={() => deleteMapping(m.id)} aria-label="Excluir" className="text-muted-foreground hover:text-destructive">
+                  <button
+                    onClick={() => deleteMapping(m.id)}
+                    aria-label="Excluir"
+                    className="text-muted-foreground hover:text-destructive"
+                  >
                     <Trash2 className="h-3 w-3" />
                   </button>
                 </div>
@@ -188,8 +235,18 @@ function IntegrationsPage() {
         )}
 
         <div className="grid gap-3 lg:grid-cols-2">
-          <Editor title="Payload do ERP (exemplo)" value={payload} onChange={setPayload} error={payloadErr} />
-          <Editor title="Configuração de mapeamento (JSONPath)" value={mapping} onChange={setMapping} error={mappingErr} />
+          <Editor
+            title="Payload do ERP (exemplo)"
+            value={payload}
+            onChange={setPayload}
+            error={payloadErr}
+          />
+          <Editor
+            title="Configuração de mapeamento (JSONPath)"
+            value={mapping}
+            onChange={setMapping}
+            error={mappingErr}
+          />
         </div>
 
         <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-card p-3 card-shadow">
@@ -205,27 +262,45 @@ function IntegrationsPage() {
         </div>
 
         {result && (
-          <div className={cn(
-            "rounded-lg border p-3 card-shadow",
-            result.ok ? "border-success/40 bg-success/5" : "border-destructive/40 bg-destructive/5",
-          )}>
+          <div
+            className={cn(
+              "rounded-lg border p-3 card-shadow",
+              result.ok
+                ? "border-success/40 bg-success/5"
+                : "border-destructive/40 bg-destructive/5",
+            )}
+          >
             <div className="flex items-center gap-2 text-sm font-semibold">
               {result.ok ? (
-                <><CheckCircle2 className="h-4 w-4 text-success" /> Mapeamento válido</>
+                <>
+                  <CheckCircle2 className="h-4 w-4 text-success" /> Mapeamento válido
+                </>
               ) : (
-                <><AlertCircle className="h-4 w-4 text-destructive" /> Corrija os erros abaixo</>
+                <>
+                  <AlertCircle className="h-4 w-4 text-destructive" /> Corrija os erros abaixo
+                </>
               )}
             </div>
             {!result.ok && (
               <>
                 <ul className="mt-2 list-disc pl-5 text-xs text-destructive">
-                  {result.errors.map((e, i) => <li key={i}>{e}</li>)}
+                  {result.errors.map((e, i) => (
+                    <li key={i}>{e}</li>
+                  ))}
                 </ul>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <Button size="sm" variant="outline" className="gap-1.5" onClick={sendToQuarantine}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={sendToQuarantine}
+                  >
                     <ShieldAlert className="h-3.5 w-3.5" /> Enviar para Quarentena
                   </Button>
-                  <Link to="/quarentena" className="text-xs font-medium text-primary underline-offset-2 hover:underline">
+                  <Link
+                    to="/quarentena"
+                    className="text-xs font-medium text-primary underline-offset-2 hover:underline"
+                  >
                     Ver fila de quarentena
                   </Link>
                 </div>
@@ -233,7 +308,7 @@ function IntegrationsPage() {
             )}
             {result.ok && result.draft && (
               <pre className="mt-2 max-h-72 overflow-auto rounded bg-card p-2 text-[11px] leading-snug">
-{JSON.stringify(result.draft, null, 2)}
+                {JSON.stringify(result.draft, null, 2)}
               </pre>
             )}
           </div>
@@ -250,7 +325,11 @@ function IntegrationsPage() {
           <PriceCacheCard />
         </div>
 
-        <SignatureHelper payload={payload} mapping={mapping} disabled={!!payloadErr || !!mappingErr} />
+        <SignatureHelper
+          payload={payload}
+          mapping={mapping}
+          disabled={!!payloadErr || !!mappingErr}
+        />
 
         <div className="rounded-lg border bg-card p-3 text-xs text-muted-foreground card-shadow">
           <strong className="text-foreground">Endpoint público:</strong>{" "}
@@ -258,13 +337,20 @@ function IntegrationsPage() {
           <code>{`{ tenant_token, mapping, payload }`}</code>. Header{" "}
           <code>x-use-signature: sha256=&lt;HMAC&gt;</code> (use o helper acima).
         </div>
+        <EcosystemSimulatorCard onIngest={ingestPortalQuote} />
       </main>
       <Toaster position="top-right" richColors />
     </div>
   );
 }
 
-function TenantConfigCard({ tenantId, tenantName }: { tenantId: string | null; tenantName: string | null }) {
+function TenantConfigCard({
+  tenantId,
+  tenantName,
+}: {
+  tenantId: string | null;
+  tenantName: string | null;
+}) {
   const { config, update, reset } = useTenantConfig(tenantId);
   const [minPct, setMinPct] = useState(() => (config.min_margin * 100).toFixed(1));
   const [tgtPct, setTgtPct] = useState(() => (config.target_margin * 100).toFixed(1));
@@ -275,7 +361,9 @@ function TenantConfigCard({ tenantId, tenantName }: { tenantId: string | null; t
         <div className="flex items-center gap-2 font-semibold text-foreground">
           <Sliders className="h-4 w-4 text-brand" /> Config por tenant
         </div>
-        <p className="mt-1">Selecione um tenant no switcher do header para editar o piso de margem e o alvo da IA.</p>
+        <p className="mt-1">
+          Selecione um tenant no switcher do header para editar o piso de margem e o alvo da IA.
+        </p>
       </div>
     );
   }
@@ -283,7 +371,8 @@ function TenantConfigCard({ tenantId, tenantName }: { tenantId: string | null; t
   function save() {
     const mn = Number(minPct) / 100;
     const tg = Number(tgtPct) / 100;
-    if (!Number.isFinite(mn) || mn < 0 || mn > 0.9) return toast.error("Margem mínima inválida (0–90%).");
+    if (!Number.isFinite(mn) || mn < 0 || mn > 0.9)
+      return toast.error("Margem mínima inválida (0–90%).");
     if (!Number.isFinite(tg) || tg < mn) return toast.error("Alvo deve ser ≥ ao piso.");
     update({ min_margin: mn, target_margin: tg });
     toast.success("Config atualizada.");
@@ -296,17 +385,30 @@ function TenantConfigCard({ tenantId, tenantName }: { tenantId: string | null; t
           <Sliders className="h-4 w-4 text-brand" /> Margem — {tenantName}
         </div>
         <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-          padrão {(DEFAULT_TENANT_CONFIG.min_margin * 100).toFixed(0)}% / {(DEFAULT_TENANT_CONFIG.target_margin * 100).toFixed(0)}%
+          padrão {(DEFAULT_TENANT_CONFIG.min_margin * 100).toFixed(0)}% /{" "}
+          {(DEFAULT_TENANT_CONFIG.target_margin * 100).toFixed(0)}%
         </span>
       </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <label className="block text-xs">
-          <span className="mb-1 block font-medium text-muted-foreground">Piso duro (bloqueia envio) %</span>
-          <Input value={minPct} onChange={(e) => setMinPct(e.target.value)} inputMode="decimal" className="h-8 text-xs" />
+          <span className="mb-1 block font-medium text-muted-foreground">
+            Piso duro (bloqueia envio) %
+          </span>
+          <Input
+            value={minPct}
+            onChange={(e) => setMinPct(e.target.value)}
+            inputMode="decimal"
+            className="h-8 text-xs"
+          />
         </label>
         <label className="block text-xs">
           <span className="mb-1 block font-medium text-muted-foreground">Alvo da IA %</span>
-          <Input value={tgtPct} onChange={(e) => setTgtPct(e.target.value)} inputMode="decimal" className="h-8 text-xs" />
+          <Input
+            value={tgtPct}
+            onChange={(e) => setTgtPct(e.target.value)}
+            inputMode="decimal"
+            className="h-8 text-xs"
+          />
         </label>
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
@@ -317,7 +419,12 @@ function TenantConfigCard({ tenantId, tenantName }: { tenantId: string | null; t
           size="sm"
           variant="ghost"
           className="gap-1.5"
-          onClick={() => { reset(); setMinPct((DEFAULT_TENANT_CONFIG.min_margin * 100).toFixed(1)); setTgtPct((DEFAULT_TENANT_CONFIG.target_margin * 100).toFixed(1)); toast.success("Restaurado ao padrão."); }}
+          onClick={() => {
+            reset();
+            setMinPct((DEFAULT_TENANT_CONFIG.min_margin * 100).toFixed(1));
+            setTgtPct((DEFAULT_TENANT_CONFIG.target_margin * 100).toFixed(1));
+            toast.success("Restaurado ao padrão.");
+          }}
         >
           Restaurar padrão
         </Button>
@@ -326,10 +433,17 @@ function TenantConfigCard({ tenantId, tenantName }: { tenantId: string | null; t
   );
 }
 
-
 function Editor({
-  title, value, onChange, error,
-}: { title: string; value: string; onChange: (v: string) => void; error: string | null }) {
+  title,
+  value,
+  onChange,
+  error,
+}: {
+  title: string;
+  value: string;
+  onChange: (v: string) => void;
+  error: string | null;
+}) {
   return (
     <div className="rounded-lg border bg-card p-3 card-shadow">
       <div className="mb-2 flex items-center justify-between">
@@ -354,7 +468,15 @@ function Editor({
   );
 }
 
-function SignatureHelper({ payload, mapping, disabled }: { payload: string; mapping: string; disabled: boolean }) {
+function SignatureHelper({
+  payload,
+  mapping,
+  disabled,
+}: {
+  payload: string;
+  mapping: string;
+  disabled: boolean;
+}) {
   const [secret, setSecret] = useState("");
   const [token, setToken] = useState("tenant-demo-token");
   const [sig, setSig] = useState<string | null>(null);
@@ -363,7 +485,10 @@ function SignatureHelper({ payload, mapping, disabled }: { payload: string; mapp
   const [busy, setBusy] = useState(false);
 
   async function buildBody(): Promise<string | null> {
-    if (disabled) { toast.error("Corrija o JSON antes."); return null; }
+    if (disabled) {
+      toast.error("Corrija o JSON antes.");
+      return null;
+    }
     try {
       return JSON.stringify({
         tenant_token: token,
@@ -418,9 +543,21 @@ function SignatureHelper({ payload, mapping, disabled }: { payload: string; mapp
         <KeyRound className="h-4 w-4 text-brand" /> Gerador de assinatura HMAC + teste ao vivo
       </div>
       <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto_auto]">
-        <Input placeholder="ERP_INGEST_SECRET (opcional em dev)" value={secret} onChange={(e) => setSecret(e.target.value)} className="h-8 text-xs" />
-        <Input placeholder="tenant_token" value={token} onChange={(e) => setToken(e.target.value)} className="h-8 text-xs" />
-        <Button size="sm" onClick={generate} className="gap-1.5"><KeyRound className="h-4 w-4" /> Assinar</Button>
+        <Input
+          placeholder="ERP_INGEST_SECRET (opcional em dev)"
+          value={secret}
+          onChange={(e) => setSecret(e.target.value)}
+          className="h-8 text-xs"
+        />
+        <Input
+          placeholder="tenant_token"
+          value={token}
+          onChange={(e) => setToken(e.target.value)}
+          className="h-8 text-xs"
+        />
+        <Button size="sm" onClick={generate} className="gap-1.5">
+          <KeyRound className="h-4 w-4" /> Assinar
+        </Button>
         <Button size="sm" variant="outline" onClick={callLive} disabled={busy} className="gap-1.5">
           <PlayCircle className="h-4 w-4" /> {busy ? "Enviando..." : "Chamar endpoint"}
         </Button>
@@ -435,13 +572,19 @@ function SignatureHelper({ payload, mapping, disabled }: { payload: string; mapp
       )}
       {liveResp && (
         <div className="mt-2">
-          <div className={cn(
-            "mb-1 inline-block rounded px-2 py-0.5 text-[10px] font-bold",
-            liveResp.status < 300 ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive",
-          )}>
+          <div
+            className={cn(
+              "mb-1 inline-block rounded px-2 py-0.5 text-[10px] font-bold",
+              liveResp.status < 300
+                ? "bg-success/15 text-success"
+                : "bg-destructive/15 text-destructive",
+            )}
+          >
             HTTP {liveResp.status}
           </div>
-          <pre className="max-h-56 overflow-auto rounded bg-background p-2 text-[11px] leading-snug">{liveResp.body}</pre>
+          <pre className="max-h-56 overflow-auto rounded bg-background p-2 text-[11px] leading-snug">
+            {liveResp.body}
+          </pre>
         </div>
       )}
     </div>
@@ -478,17 +621,28 @@ function ConnectorsGrid({ onApplyPreset }: { onApplyPreset: (c: ErpConnector) =>
               onClick={() => setSelected(active ? null : c)}
               className={cn(
                 "group flex flex-col items-start gap-1 rounded-md border bg-background p-3 text-left transition-smooth press",
-                active ? "border-primary ring-2 ring-primary/30" : "hover:border-primary/40 hover:bg-accent/40",
+                active
+                  ? "border-primary ring-2 ring-primary/30"
+                  : "hover:border-primary/40 hover:bg-accent/40",
               )}
             >
               <div className="flex w-full items-center justify-between gap-2">
                 <span className="text-sm font-semibold text-foreground">{c.name}</span>
-                <span className={cn("rounded px-1.5 py-0.5 text-[10px] font-bold uppercase", statusStyle[c.status])}>
+                <span
+                  className={cn(
+                    "rounded px-1.5 py-0.5 text-[10px] font-bold uppercase",
+                    statusStyle[c.status],
+                  )}
+                >
                   {statusLabel[c.status]}
                 </span>
               </div>
-              <span className="text-[11px] text-muted-foreground">{c.vendor} · Auth: {c.authType}</span>
-              <p className="text-[11px] leading-snug text-muted-foreground line-clamp-3">{c.description}</p>
+              <span className="text-[11px] text-muted-foreground">
+                {c.vendor} · Auth: {c.authType}
+              </span>
+              <p className="text-[11px] leading-snug text-muted-foreground line-clamp-3">
+                {c.description}
+              </p>
             </button>
           );
         })}
@@ -505,7 +659,12 @@ function ConnectorsGrid({ onApplyPreset }: { onApplyPreset: (c: ErpConnector) =>
                   : "Preencha as credenciais. Nada é enviado agora — apenas gera o preset."}
               </div>
             </div>
-            <Button size="sm" variant="ghost" onClick={() => setSelected(null)} className="h-6 px-2 text-[11px]">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setSelected(null)}
+              className="h-6 px-2 text-[11px]"
+            >
               <Trash2 className="h-3 w-3" /> Fechar
             </Button>
           </div>
@@ -534,7 +693,9 @@ function ConnectorsGrid({ onApplyPreset }: { onApplyPreset: (c: ErpConnector) =>
               <Save className="h-3 w-3" /> Salvar preset
             </Button>
             {selected.defaultEndpoint && (
-              <code className="rounded bg-background px-2 py-1 text-[11px]">POST {selected.defaultEndpoint}</code>
+              <code className="rounded bg-background px-2 py-1 text-[11px]">
+                POST {selected.defaultEndpoint}
+              </code>
             )}
           </div>
         </div>
@@ -543,7 +704,6 @@ function ConnectorsGrid({ onApplyPreset }: { onApplyPreset: (c: ErpConnector) =>
   );
 }
 
-
 function OutboundWebhooksCard() {
   const { subs, logs, test } = useOutboundWebhooks();
   const [channel, setChannel] = useState<OutboundChannel>("slack");
@@ -551,10 +711,12 @@ function OutboundWebhooksCard() {
   const [label, setLabel] = useState("");
 
   function add() {
-    if (!url.trim() || !/^https?:\/\//.test(url)) return toast.error("Informe uma URL http(s) válida.");
+    if (!url.trim() || !/^https?:\/\//.test(url))
+      return toast.error("Informe uma URL http(s) válida.");
     if (!label.trim()) return toast.error("Dê um rótulo (ex.: #vendas-critico).");
     addSubscription({ channel, url, label });
-    setUrl(""); setLabel("");
+    setUrl("");
+    setLabel("");
     toast.success("Webhook cadastrado. Disparos automáticos a cada 30s.");
   }
 
@@ -575,8 +737,8 @@ function OutboundWebhooksCard() {
         </Button>
       </div>
       <p className="mb-3 text-[11px] leading-snug text-muted-foreground">
-        Envia mensagem para Slack/Teams/WhatsApp quando uma cotação Tier A ficar atrasada.
-        Dedupe por cotação; polling a cada 30s enquanto a aba estiver aberta.
+        Envia mensagem para Slack/Teams/WhatsApp quando uma cotação Tier A ficar atrasada. Dedupe
+        por cotação; polling a cada 30s enquanto a aba estiver aberta.
       </p>
 
       <div className="grid gap-2 sm:grid-cols-[100px_1fr_1fr_auto]">
@@ -590,18 +752,35 @@ function OutboundWebhooksCard() {
           <option value="whatsapp">WhatsApp</option>
           <option value="webhook">Webhook</option>
         </select>
-        <Input placeholder="URL do webhook" value={url} onChange={(e) => setUrl(e.target.value)} className="h-8 text-xs" />
-        <Input placeholder="Rótulo (ex: #vendas-critico)" value={label} onChange={(e) => setLabel(e.target.value)} className="h-8 text-xs" />
-        <Button size="sm" onClick={add} className="gap-1.5"><Save className="h-3.5 w-3.5" /> Adicionar</Button>
+        <Input
+          placeholder="URL do webhook"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          className="h-8 text-xs"
+        />
+        <Input
+          placeholder="Rótulo (ex: #vendas-critico)"
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          className="h-8 text-xs"
+        />
+        <Button size="sm" onClick={add} className="gap-1.5">
+          <Save className="h-3.5 w-3.5" /> Adicionar
+        </Button>
       </div>
 
       {subs.length > 0 && (
         <ul className="mt-3 space-y-1">
           {subs.map((s) => (
-            <li key={s.id} className="flex items-center justify-between gap-2 rounded border bg-background px-2 py-1 text-xs">
+            <li
+              key={s.id}
+              className="flex items-center justify-between gap-2 rounded border bg-background px-2 py-1 text-xs"
+            >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold uppercase">{s.channel}</span>
+                  <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold uppercase">
+                    {s.channel}
+                  </span>
                   <span className="truncate font-medium text-foreground">{s.label}</span>
                 </div>
                 <div className="truncate text-[10px] text-muted-foreground">{s.url}</div>
@@ -616,7 +795,11 @@ function OutboundWebhooksCard() {
               >
                 <Power className="h-3 w-3" /> {s.enabled ? "ON" : "OFF"}
               </button>
-              <button onClick={() => removeSubscription(s.id)} className="text-muted-foreground hover:text-destructive" aria-label="Remover">
+              <button
+                onClick={() => removeSubscription(s.id)}
+                className="text-muted-foreground hover:text-destructive"
+                aria-label="Remover"
+              >
                 <Trash2 className="h-3 w-3" />
               </button>
             </li>
@@ -626,13 +809,22 @@ function OutboundWebhooksCard() {
 
       {logs.length > 0 && (
         <div className="mt-3">
-          <div className="mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Últimos disparos</div>
+          <div className="mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+            Últimos disparos
+          </div>
           <ul className="max-h-32 space-y-0.5 overflow-auto text-[10px] text-muted-foreground">
             {logs.slice(0, 6).map((l) => (
               <li key={l.id} className="flex items-center gap-2">
-                <span className={cn("h-1.5 w-1.5 rounded-full", l.status === "success" ? "bg-success" : "bg-destructive")} />
+                <span
+                  className={cn(
+                    "h-1.5 w-1.5 rounded-full",
+                    l.status === "success" ? "bg-success" : "bg-destructive",
+                  )}
+                />
                 <span className="tabular-nums">{new Date(l.at).toLocaleTimeString("pt-BR")}</span>
-                <span className="truncate">quote {l.quote_id} · {l.info}</span>
+                <span className="truncate">
+                  quote {l.quote_id} · {l.info}
+                </span>
               </li>
             ))}
           </ul>
@@ -646,7 +838,9 @@ function PriceCacheCard() {
   const [stats, setStats] = useState(() => getPriceCacheStats());
   const [busy, setBusy] = useState(false);
 
-  function refresh() { setStats(getPriceCacheStats()); }
+  function refresh() {
+    setStats(getPriceCacheStats());
+  }
 
   async function warm() {
     setBusy(true);
@@ -674,10 +868,24 @@ function PriceCacheCard() {
           <Gauge className="h-4 w-4 text-brand" /> Cache de precificação
         </div>
         <div className="flex gap-1">
-          <Button size="sm" variant="outline" className="h-7 gap-1.5" onClick={warm} disabled={busy}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 gap-1.5"
+            onClick={warm}
+            disabled={busy}
+          >
             <Zap className="h-3.5 w-3.5" /> {busy ? "Aquecendo..." : "Aquecer"}
           </Button>
-          <Button size="sm" variant="ghost" className="h-7 gap-1.5" onClick={() => { resetPriceCache(); refresh(); }}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 gap-1.5"
+            onClick={() => {
+              resetPriceCache();
+              refresh();
+            }}
+          >
             <Trash2 className="h-3.5 w-3.5" /> Limpar
           </Button>
         </div>
@@ -687,20 +895,38 @@ function PriceCacheCard() {
         aproximar o comportamento do Redis planejado.
       </p>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Stat label="Hit rate" value={`${hitPct}%`} tone={stats.hitRate >= 0.7 ? "success" : stats.hitRate >= 0.4 ? "brand" : "muted"} />
+        <Stat
+          label="Hit rate"
+          value={`${hitPct}%`}
+          tone={stats.hitRate >= 0.7 ? "success" : stats.hitRate >= 0.4 ? "brand" : "muted"}
+        />
         <Stat label="Hits" value={String(stats.hits)} />
         <Stat label="Misses" value={String(stats.misses)} />
-        <Stat label="Miss médio" value={`${stats.avgMissMs.toFixed(0)}ms`} tone={stats.avgMissMs < 100 ? "success" : "destructive"} />
+        <Stat
+          label="Miss médio"
+          value={`${stats.avgMissMs.toFixed(0)}ms`}
+          tone={stats.avgMissMs < 100 ? "success" : "destructive"}
+        />
       </div>
       <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
-        <span>Entradas em cache: <strong className="text-foreground">{stats.size}</strong></span>
+        <span>
+          Entradas em cache: <strong className="text-foreground">{stats.size}</strong>
+        </span>
         <span>Evicções: {stats.evictions}</span>
       </div>
     </div>
   );
 }
 
-function Stat({ label, value, tone = "muted" }: { label: string; value: string; tone?: "success" | "destructive" | "brand" | "muted" }) {
+function Stat({
+  label,
+  value,
+  tone = "muted",
+}: {
+  label: string;
+  value: string;
+  tone?: "success" | "destructive" | "brand" | "muted";
+}) {
   const styles: Record<string, string> = {
     success: "text-success",
     destructive: "text-destructive",
@@ -709,8 +935,136 @@ function Stat({ label, value, tone = "muted" }: { label: string; value: string; 
   };
   return (
     <div className="rounded border bg-background p-2">
-      <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </div>
       <div className={cn("text-sm font-bold tabular-nums", styles[tone])}>{value}</div>
+    </div>
+  );
+}
+
+const SIM_PARTNER_IDS: SimulablePartnerId[] = ["bionexo", "apoio", "marketplace_demo"];
+
+type EcosystemSimResponse = Partial<
+  Record<
+    "ok" | "quote_id" | "external_id" | "status" | "origin_partner_id" | "error",
+    string | boolean
+  >
+>;
+
+function EcosystemSimulatorCard({
+  onIngest,
+}: {
+  onIngest: (quote: import("@/lib/medical/types").Quote) => void;
+}) {
+  const [partnerId, setPartnerId] = useState<SimulablePartnerId>("bionexo");
+  const [busy, setBusy] = useState(false);
+  const [resp, setResp] = useState<EcosystemSimResponse | null>(null);
+  const [ingested, setIngested] = useState(false);
+
+  const partner = ECOSYSTEM_PARTNERS.find((p) => p.id === partnerId);
+
+  async function run() {
+    setBusy(true);
+    setResp(null);
+    setIngested(false);
+    try {
+      const r = await sendSimulatedQuote(partnerId);
+      setResp(r);
+      if (r.ok) toast.success(`RFQ entregue à Ecosystem API (quote ${r.quote_id}).`);
+      else toast.error(r.error ?? "Falha ao simular RFQ.");
+    } catch (e) {
+      toast.error((e as Error).message);
+      setResp({ ok: false, error: (e as Error).message });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function ingestLocally() {
+    const quote = buildLocalQuoteFromSimulation(partnerId);
+    if (!quote) return toast.error("Não foi possível montar a cotação local.");
+    onIngest(quote);
+    setIngested(true);
+    toast.success(`Cotação ${quote.id} ingerida na Inbox (via adaptador Bionexo).`);
+  }
+
+  return (
+    <div className="rounded-lg border bg-card p-3 card-shadow">
+      <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
+        <Store className="h-4 w-4 text-brand" /> Simulador de Ecossistema
+      </div>
+      <p className="mb-3 text-[11px] leading-snug text-muted-foreground">
+        Exercita o fluxo de um parceiro externo (Bionexo / Apoio / Marketplace) contra a{" "}
+        <code className="rounded bg-background px-1">POST /api/public/ecosystem/quotes</code> — com
+        HMAC do parceiro, escopo e rate limit. Em dev o secret é resolvido automaticamente (fallback{" "}
+        <code className="rounded bg-background px-1">{"dev-<partner>-secret"}</code>); em produção
+        usa a env var configurada.
+      </p>
+
+      <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+        <select
+          value={partnerId}
+          onChange={(e) => setPartnerId(e.target.value as SimulablePartnerId)}
+          className="h-8 rounded border bg-background px-2 text-xs"
+          aria-label="Parceiro do simulador"
+        >
+          {SIM_PARTNER_IDS.map((id) => {
+            const p = ECOSYSTEM_PARTNERS.find((x) => x.id === id);
+            return (
+              <option key={id} value={id}>
+                {p?.name ?? id}
+              </option>
+            );
+          })}
+        </select>
+        <Button size="sm" onClick={run} disabled={busy} className="gap-1.5">
+          <PlayCircle className="h-4 w-4" /> {busy ? "Enviando..." : "Enviar RFQ simulada"}
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={ingestLocally}
+          disabled={!partner}
+          className="gap-1.5"
+        >
+          <Send className="h-4 w-4" /> {ingested ? "Ingerida!" : "Ingerir localmente"}
+        </Button>
+      </div>
+
+      {resp && (
+        <div
+          className={cn(
+            "mt-3 rounded-md border p-3",
+            resp.ok ? "border-success/40 bg-success/5" : "border-destructive/40 bg-destructive/5",
+          )}
+        >
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            {resp.ok ? (
+              <>
+                <CheckCircle2 className="h-4 w-4 text-success" />
+                Ecosystem API aceitou a cotação
+              </>
+            ) : (
+              <>
+                <AlertCircle className="h-4 w-4 text-destructive" />
+                Ecosystem API rejeitou
+              </>
+            )}
+          </div>
+          <pre className="mt-2 max-h-48 overflow-auto rounded bg-card p-2 text-[11px] leading-snug">
+            {JSON.stringify(resp, null, 2)}
+          </pre>
+          {resp.ok && !ingested && (
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              Em dev o endpoint não persiste — use{" "}
+              <strong className="text-foreground">Ingerir localmente</strong> para criar a cotação
+              na Inbox (com <code className="rounded bg-background px-1">origin_partner_id</code>{" "}
+              marcado, visível nos selos de origem).
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

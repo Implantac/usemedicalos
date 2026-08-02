@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import {
   authenticatePartner,
   ExternalQuoteSchema,
@@ -6,12 +6,16 @@ import {
   partnerHasScope,
   partnerRateLimit,
 } from "./api";
-import { signForPartner, getPartner } from "./partners";
+import { signForPartner, getPartner, devPartnerSecret } from "./partners";
 import { __resetRateLimit } from "../rate-limit";
 
 beforeEach(() => {
   __resetRateLimit();
   process.env.MARKETPLACE_DEMO_HMAC_SECRET = "demo-test-secret";
+});
+
+afterEach(() => {
+  delete process.env.MARKETPLACE_DEMO_HMAC_SECRET;
 });
 
 const VALID_QUOTE = {
@@ -24,12 +28,8 @@ const VALID_QUOTE = {
 describe("ecosystem/api", () => {
   it("valida ExternalQuoteSchema", () => {
     expect(ExternalQuoteSchema.safeParse(VALID_QUOTE).success).toBe(true);
-    expect(
-      ExternalQuoteSchema.safeParse({ ...VALID_QUOTE, items: [] }).success,
-    ).toBe(false);
-    expect(
-      ExternalQuoteSchema.safeParse({ ...VALID_QUOTE, customer: {} }).success,
-    ).toBe(false);
+    expect(ExternalQuoteSchema.safeParse({ ...VALID_QUOTE, items: [] }).success).toBe(false);
+    expect(ExternalQuoteSchema.safeParse({ ...VALID_QUOTE, customer: {} }).success).toBe(false);
   });
 
   it("valida OrderCallbackSchema", () => {
@@ -86,4 +86,3 @@ describe("ecosystem/api", () => {
     expect(r1.headers["x-ratelimit-limit"]).toBe(String(p.rate_limit_per_min));
   });
 });
-

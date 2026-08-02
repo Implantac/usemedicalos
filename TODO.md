@@ -1,41 +1,34 @@
-﻿# Plano — Fase 3: Ecossistema (Ecosystem API + Bionexo + origin_partner_id)
+﻿# Plano — Incremento: Ecossistema na Interface
 
 ## Contexto
-- Fase 2 (Benchmarking + Regulated AI) e a feature de Licitações já estão completas (101/101 testes).
-- Fase 3 está parcialmente scaffoldada: `ecosystem-types.ts` (só tipos), `erp-mapping.ts` (funciona),
-  API keys + webhook HMAC + rate-limit. Faltam os endpoints Ecosystem, o adaptador Bionexo
-  e o `origin_partner_id` no modelo.
+- Fase 3 (Ecosystem API + Bionexo + origin_partner_id) está commitada e verificada (117 testes, build ok).
+- A camada de backend do ecossistema está completa, mas a interface ainda não expõe `origin_partner_id`
+  e não há um sandbox dev utilizável (sem env vars, o HMAC falha e não há simulador de marketplace).
 
 ## Etapas
-### 1. Modelo + tipos
-- [x] Adicionar `origin_partner_id?: string` ao `Quote` em `src/lib/medical/types.ts`
-- [x] Ampliar `src/lib/medical/ecosystem-types.ts` com tipos de resposta (QuoteResult, CallbackResult, etc.)
 
-### 2. Registro de parceiros
-- [x] Criar `src/lib/medical/ecosystem/partners.ts` — registro de parceiros (id, name, secret_ref, rate_limit) + lookup por id + validação HMAC por parceiro
+### 1. Selo de origem parceira na UI
+- [x] Criar `PartnerTag` em `src/components/medical/badges.tsx` (exibe Bionexo/Apoio/Marketplace via `origin_partner_id`)
+- [x] Exibir `PartnerTag` na linha da cotação em `src/components/medical/quote-inbox.tsx` (modo detalhada)
+- [x] Exibir `PartnerTag` no cabeçalho do `src/components/medical/quote-drawer.tsx`
+- [x] Adicionar coluna `partner` no CSV export da inbox
 
-### 3. Adaptador Bionexo
-- [x] Criar `src/lib/medical/ecosystem/bionexo.ts` — transforma payload do portal Bionexo em `IngestPayload`/`Quote`
+### 2. Fallback dev-friendly para HMAC
+- [x] `src/lib/medical/ecosystem/partners.ts`: fallback para secret determinístico de dev quando env não configurado
+- [x] Ajustar `src/lib/medical/ecosystem/partners.test.ts` e `api.test.ts` para cobrir fallback dev
 
-### 4. Ecosystem API (server routes)
-- [x] Criar `src/routes/api/public/ecosystem/quotes.ts` — `POST` (marketplace envia cotação) com HMAC por parceiro + rate-limit
-- [x] Criar `src/routes/api/public/ecosystem/catalog.ts` — `GET` (parceiro consulta catálogo)
-- [x] Criar `src/routes/api/public/ecosystem/orders/callback.ts` — `POST` (webhook status de pedido)
-- [x] Regenerar `routeTree.gen.ts` com as 3 novas rotas (`tsr generate`)
-- [x] Autenticação server-side: HMAC por parceiro registrado (`x-partner-signature`) + rate-limit por parceiro + escopos
-- [ ] Cloud: migrar `resolveApiKey`/partners para Supabase (ver TODO(cloud) nos arquivos)
+### 3. Simulador de Marketplace
+- [x] Criar `src/lib/medical/ecosystem/simulator.ts` (gera payloads, assina, chama `/api/public/ecosystem/quotes`, cria Quote local via `ingestPortalQuote`)
+- [x] Criar `src/lib/medical/ecosystem/simulator.test.ts`
+- [x] Adicionar card "Simulador de Ecossistema" em `src/routes/integracoes.tsx`
 
-### 5. Testes
-- [x] `src/lib/medical/ecosystem/partners.test.ts`
-- [x] `src/lib/medical/ecosystem/bionexo.test.ts`
-- [x] `src/lib/medical/ecosystem/api.test.ts` (validação HMAC, rate-limit, payload inválido)
+### 4. Exposição no Painel de Licitações
+- [x] Exibir `PartnerTag` em `src/components/medical/tender-board.tsx`
 
-### 6. Integração + docs
-- [x] Conectar `origin_partner_id` nas cotações ingeridas via Ecosystem API (`bionexoToQuote` com `partnerId`)
-- [x] Atualizar `docs/roadmap/fase-3.md` com checkboxes concluídos
-
-## Verificação final
-- [x] `vitest run` passando (117 testes, 30 arquivos)
+## Verificação final (pós-prettier)
+- [x] `vitest run` passando — **127/127** (31 arquivos; inclui 22 novos testes de ecossistema: partners 7, api 7, simulator 8)
 - [x] `tsc --noEmit` sem erros
-- [x] `eslint` limpo nos arquivos da feature
+- [x] `eslint` sem erros nos arquivos alterados (0 errors, apenas 3 warnings preexistentes)
+- [x] `vite build` completo ok
+- [x] Atualizar `docs/roadmap/fase-3.md`
 

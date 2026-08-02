@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { PartnerTag } from "./badges";
 import type { Quote } from "@/lib/medical/types";
 import { SOURCE_LABEL, STATUS_LABEL } from "@/lib/medical/types";
 import { formatBRL, formatPct } from "@/lib/medical/pricing";
@@ -282,6 +283,7 @@ export function TenderBoard({ quotes, participating, onParticipate, onWithdraw }
                     <Badge variant="outline" className="text-[10px] font-medium">
                       {SOURCE_LABEL[quote.source_type]}
                     </Badge>
+                    <PartnerTag partnerId={quote.origin_partner_id} />
                     {joined && (
                       <Badge className="gap-1 bg-primary text-[10px] text-primary-foreground">
                         <CheckCircle2 className="h-3 w-3" /> Participando

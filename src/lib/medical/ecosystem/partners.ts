@@ -47,8 +47,32 @@ export function getPartner(id: string): EcosystemPartner | undefined {
   return ECOSYSTEM_PARTNERS.find((p) => p.id === id);
 }
 
+/**
+ * Resolve o secret HMAC de um parceiro.
+ *
+ * Ordem de prioridade:
+ *   1. Env var configurada (`BIONEXO_HMAC_SECRET`, etc.) — produção/Cloud.
+ *   2. Secret determinístico de DEV (`dev-<partnerId>-secret`) — permite usar o
+ *      sandbox de Ecosystem no preview/local sem configurar nada.
+ *
+ * O fallback de dev usa um valor derivado do id (não hardcoded igual para todos),
+ * mas que NUNCA deve ser usado em produção — em produção sempre se seta a env.
+ */
 export function resolvePartnerSecret(partner: EcosystemPartner): string | undefined {
-  return process.env[partner.secret_ref];
+  const fromEnv = process.env[partner.secret_ref];
+  if (fromEnv) return fromEnv;
+  if (import.meta.env?.DEV || import.meta.env?.MODE !== "production") {
+    return `dev-${partner.id}-secret`;
+  }
+  return undefined;
+}
+
+/**
+ * Secrets de dev por parceiro (para uso no simulador / testes).
+ * Em produção essas chaves são ignoradas — `resolvePartnerSecret` prioriza a env.
+ */
+export function devPartnerSecret(partnerId: string): string {
+  return `dev-${partnerId}-secret`;
 }
 
 /** Assina um corpo com o secret do parceiro (hex). Retorna null se indisponível. */
@@ -75,4 +99,3 @@ export function verifyPartnerSignature(
   if (a.length !== b.length) return false;
   return timingSafeEqual(a, b);
 }
-

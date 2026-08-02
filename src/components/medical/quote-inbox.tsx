@@ -1,5 +1,39 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, BellOff, Bookmark, BookmarkPlus, Building2, CheckSquare, Circle, Clock, Copy, Download, FileSpreadsheet, Filter, Flame, Inbox as InboxIcon, Layers, Link2, Mail, MailOpen, MessageCircle, Moon, Pin, PinOff, Rows3, Search, Share2, Square, Sunrise, Timer, Trash2, Undo2, Upload, X, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  BellOff,
+  Bookmark,
+  BookmarkPlus,
+  Building2,
+  CheckSquare,
+  Circle,
+  Clock,
+  Copy,
+  Download,
+  FileSpreadsheet,
+  Filter,
+  Flame,
+  Inbox as InboxIcon,
+  Layers,
+  Link2,
+  Mail,
+  MailOpen,
+  MessageCircle,
+  Moon,
+  Pin,
+  PinOff,
+  Rows3,
+  Search,
+  Share2,
+  Square,
+  Sunrise,
+  Timer,
+  Trash2,
+  Undo2,
+  Upload,
+  X,
+  Zap,
+} from "lucide-react";
 import { useInboxDensity } from "@/hooks/use-inbox-density";
 import { useQuoteReads } from "@/hooks/use-quote-reads";
 
@@ -7,18 +41,33 @@ import type { Priority, Quote, QuoteStatus } from "@/lib/medical/types";
 import { STATUS_LABEL } from "@/lib/medical/types";
 import { quoteTotals, formatBRL, formatPct } from "@/lib/medical/pricing";
 import { generateProposalPdf } from "@/lib/medical/proposal-pdf";
-import { nextStatus, prevStatus, slaBucketOf, SLA_LABEL, type SlaBucket } from "@/lib/medical/pipeline";
+import {
+  nextStatus,
+  prevStatus,
+  slaBucketOf,
+  SLA_LABEL,
+  type SlaBucket,
+} from "@/lib/medical/pipeline";
 import { OWNERS, TENANTS, tenantById, ownerById } from "@/lib/medical/mock-data";
 import { slaState } from "./sla-indicator";
-import { PriorityBadge, SourceTag, StatusBadge } from "./badges";
+import { PartnerTag, PriorityBadge, SourceTag, StatusBadge } from "./badges";
 import { SlaIndicator } from "./sla-indicator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -84,7 +133,19 @@ async function copyQuoteLink(qt: Quote) {
   }
 }
 
-export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePin, onSnooze, onReassign, onSetPriority, onSetTier, onAppendNote, onDuplicate }: Props) {
+export function QuoteInbox({
+  quotes,
+  selectedId,
+  onSelect,
+  onAdvance,
+  onTogglePin,
+  onSnooze,
+  onReassign,
+  onSetPriority,
+  onSetTier,
+  onAppendNote,
+  onDuplicate,
+}: Props) {
   const [q, setQ] = useState("");
   const [tenant, setTenant] = useState<string>("todos");
   const [owner, setOwner] = useState<string>("todos");
@@ -98,7 +159,6 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
   const { isRead, markRead, markUnread } = useQuoteReads();
   const foco = density === "foco";
 
-
   const [saveOpen, setSaveOpen] = useState(false);
   const [viewName, setViewName] = useState("");
   const [noteOpen, setNoteOpen] = useState(false);
@@ -106,9 +166,13 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
   const { views, saveView, deleteView } = useInboxViews();
   const fileRef = useRef<HTMLInputElement | null>(null);
 
-
   const currentState = (): InboxViewState => ({
-    q, tenant, owner, sla, statuses: Array.from(statuses), sort,
+    q,
+    tenant,
+    owner,
+    sla,
+    statuses: Array.from(statuses),
+    sort,
   });
 
   const applyState = (s: InboxViewState) => {
@@ -127,7 +191,10 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
     const encoded = url.searchParams.get("view");
     if (!encoded) return;
     const state = decodeViewState(encoded);
-    if (!state) { toast.error("Link de visualização inválido"); return; }
+    if (!state) {
+      toast.error("Link de visualização inválido");
+      return;
+    }
     applyState(state);
     url.searchParams.delete("view");
     window.history.replaceState(null, "", url.toString());
@@ -135,20 +202,25 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
-
   const toggleStatus = (s: QuoteStatus) => {
     setActiveViewId(null);
     setStatuses((prev) => {
       const next = new Set(prev);
-      if (next.has(s)) next.delete(s); else next.add(s);
+      if (next.has(s)) next.delete(s);
+      else next.add(s);
       return next;
     });
   };
 
   const clearFilters = () => {
-    setQ(""); setTenant("todos"); setOwner("todos"); setSla("todos");
-    setStatuses(new Set()); setSort("priority"); setActiveViewId(null); setPreset(null);
+    setQ("");
+    setTenant("todos");
+    setOwner("todos");
+    setSla("todos");
+    setStatuses(new Set());
+    setSort("priority");
+    setActiveViewId(null);
+    setPreset(null);
   };
 
   // Presets — atalhos "1-click" para as visões que mais aparecem no dia-a-dia.
@@ -160,7 +232,10 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
 
   const handleSaveView = () => {
     const name = viewName.trim();
-    if (!name) { toast.error("Dê um nome à visualização"); return; }
+    if (!name) {
+      toast.error("Dê um nome à visualização");
+      return;
+    }
     const v = saveView(name, currentState());
     setActiveViewId(v.id);
     setSaveOpen(false);
@@ -169,7 +244,10 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
   };
 
   const handleLoadView = (id: string) => {
-    if (id === "__none__") { setActiveViewId(null); return; }
+    if (id === "__none__") {
+      setActiveViewId(null);
+      return;
+    }
     const v = views.find((x) => x.id === id);
     if (!v) return;
     applyState(v.state);
@@ -239,10 +317,25 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
     return /[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   const handleExportCsv = () => {
-    if (filtered.length === 0) { toast("Nada para exportar com os filtros atuais"); return; }
+    if (filtered.length === 0) {
+      toast("Nada para exportar com os filtros atuais");
+      return;
+    }
     const header = [
-      "id","cliente","segmento","tenant","vendedor","status","prioridade",
-      "sla_deadline","recebida_em","receita","margem_pct","itens","pinned",
+      "id",
+      "cliente",
+      "segmento",
+      "tenant",
+      "vendedor",
+      "status",
+      "prioridade",
+      "sla_deadline",
+      "recebida_em",
+      "receita",
+      "margem_pct",
+      "itens",
+      "pinned",
+      "partner",
     ];
     const rows = filtered.map((qt) => {
       const totals = quoteTotals(qt.items);
@@ -260,7 +353,10 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         (totals.margin * 100).toFixed(2),
         qt.items.length,
         qt.pinned ? "sim" : "",
-      ].map(csvEscape).join(",");
+        qt.origin_partner_id ?? "",
+      ]
+        .map(csvEscape)
+        .join(",");
     });
     const csv = [header.join(","), ...rows].join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
@@ -275,8 +371,6 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
     toast.success(`${filtered.length} cotação(ões) exportadas para CSV`);
   };
 
-
-
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     const nowMs = Date.now();
@@ -284,7 +378,7 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
     const isAsleep = (x: Quote) => !!x.snoozed_until && new Date(x.snoozed_until).getTime() > nowMs;
     const list = quotes
       // Esconde adormecidas por padrão. Só aparecem no preset "adiadas".
-      .filter((x) => preset === "adiadas" ? isAsleep(x) : !isAsleep(x))
+      .filter((x) => (preset === "adiadas" ? isAsleep(x) : !isAsleep(x)))
       .filter((x) => tenant === "todos" || x.tenant_id === tenant)
       .filter((x) => owner === "todos" || x.owner_id === owner)
       .filter((x) => statuses.size === 0 || statuses.has(x.status))
@@ -307,7 +401,9 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
           ? true
           : x.customer_name.toLowerCase().includes(needle) ||
             x.id.toLowerCase().includes(needle) ||
-            x.items.some((i) => i.sku.toLowerCase().includes(needle) || i.name.toLowerCase().includes(needle)),
+            x.items.some(
+              (i) => i.sku.toLowerCase().includes(needle) || i.name.toLowerCase().includes(needle),
+            ),
       );
 
     return list.sort((a, b) => {
@@ -344,10 +440,13 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
     const from = qt.status;
     onAdvance(qt.id, to);
     const msg = `${qt.customer_name}: ${STATUS_LABEL[from]} → ${STATUS_LABEL[to]}`;
-    const action = { label: "Desfazer", onClick: () => {
-      onAdvance(qt.id, from);
-      toast(`${qt.customer_name}: revertido para ${STATUS_LABEL[from]}`);
-    }};
+    const action = {
+      label: "Desfazer",
+      onClick: () => {
+        onAdvance(qt.id, from);
+        toast(`${qt.customer_name}: revertido para ${STATUS_LABEL[from]}`);
+      },
+    };
     if (kind === "lost") toast.error(`${qt.customer_name} marcado como perdido`, { action });
     else if (kind === "regress") toast(msg, { action });
     else toast.success(msg, { action });
@@ -357,7 +456,8 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
   const toggleSelected = (id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
@@ -371,24 +471,37 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
     let applied = 0;
     for (const qt of targets) {
       const to =
-        kind === "advance" ? nextStatus(qt.status) :
-        kind === "regress" ? prevStatus(qt.status) :
-        kind === "won" ? ("ganho" as QuoteStatus) :
-        ("perdido" as QuoteStatus);
+        kind === "advance"
+          ? nextStatus(qt.status)
+          : kind === "regress"
+            ? prevStatus(qt.status)
+            : kind === "won"
+              ? ("ganho" as QuoteStatus)
+              : ("perdido" as QuoteStatus);
       if (!to || to === qt.status) continue;
       snapshots.push({ id: qt.id, from: qt.status });
       onAdvance(qt.id, to);
       applied++;
     }
-    if (applied === 0) { toast("Nenhuma cotação elegível para essa ação"); return; }
+    if (applied === 0) {
+      toast("Nenhuma cotação elegível para essa ação");
+      return;
+    }
     const label =
-      kind === "advance" ? "avançadas" :
-      kind === "regress" ? "revertidas" :
-      kind === "won" ? "marcadas como ganhas" : "marcadas como perdidas";
-    const action = { label: "Desfazer", onClick: () => {
-      snapshots.forEach((s) => onAdvance(s.id, s.from));
-      toast(`${snapshots.length} cotação(ões) restauradas`);
-    }};
+      kind === "advance"
+        ? "avançadas"
+        : kind === "regress"
+          ? "revertidas"
+          : kind === "won"
+            ? "marcadas como ganhas"
+            : "marcadas como perdidas";
+    const action = {
+      label: "Desfazer",
+      onClick: () => {
+        snapshots.forEach((s) => onAdvance(s.id, s.from));
+        toast(`${snapshots.length} cotação(ões) restauradas`);
+      },
+    };
     if (kind === "lost") toast.error(`${applied} cotação(ões) ${label}`, { action });
     else if (kind === "won") toast.success(`🏆 ${applied} cotação(ões) ${label}`, { action });
     else toast.success(`${applied} cotação(ões) ${label}`, { action });
@@ -463,7 +576,9 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
         } else {
           const until = e.shiftKey ? tomorrow9amISO() : inHoursISO(2);
           onSnooze(qt.id, until);
-          toast(`${qt.customer_name} adiada até ${new Date(until).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}`);
+          toast(
+            `${qt.customer_name} adiada até ${new Date(until).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}`,
+          );
         }
       } else if (e.key === "y" && idx >= 0) {
         // Copy deep-link para colar em chat/e-mail
@@ -493,7 +608,19 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [filtered, selectedId, onSelect, onAdvance, selected.size, onTogglePin, onSnooze, onDuplicate, views, activeViewId, activeCount]);
+  }, [
+    filtered,
+    selectedId,
+    onSelect,
+    onAdvance,
+    selected.size,
+    onTogglePin,
+    onSnooze,
+    onDuplicate,
+    views,
+    activeViewId,
+    activeCount,
+  ]);
 
   const handleRegress = (e: React.MouseEvent, qt: Quote) => {
     e.stopPropagation();
@@ -508,7 +635,12 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
   };
 
   // Wrap setters so manual filter changes clear active view marker
-  const wrap = <T,>(setter: (v: T) => void) => (v: T) => { setActiveViewId(null); setter(v); };
+  const wrap =
+    <T,>(setter: (v: T) => void) =>
+    (v: T) => {
+      setActiveViewId(null);
+      setter(v);
+    };
 
   return (
     <div className="flex h-full flex-col">
@@ -520,7 +652,9 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
           </span>
           <Select value={activeViewId ?? "__none__"} onValueChange={handleLoadView}>
             <SelectTrigger className="h-8 w-full sm:w-64">
-              <SelectValue placeholder={views.length ? "Carregar visualização…" : "Nenhuma salva"} />
+              <SelectValue
+                placeholder={views.length ? "Carregar visualização…" : "Nenhuma salva"}
+              />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__none__">— Sem visualização —</SelectItem>
@@ -556,7 +690,9 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 </p>
               </div>
               <DialogFooter>
-                <Button variant="ghost" onClick={() => setSaveOpen(false)}>Cancelar</Button>
+                <Button variant="ghost" onClick={() => setSaveOpen(false)}>
+                  Cancelar
+                </Button>
                 <Button onClick={handleSaveView}>Salvar</Button>
               </DialogFooter>
             </DialogContent>
@@ -625,13 +761,15 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
           </div>
         </div>
 
-
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={q}
-              onChange={(e) => { setActiveViewId(null); setQ(e.target.value); }}
+              onChange={(e) => {
+                setActiveViewId(null);
+                setQ(e.target.value);
+              }}
               placeholder="Buscar cliente, SKU ou ID…"
               className="h-9 pl-8"
             />
@@ -645,7 +783,9 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             <SelectContent>
               <SelectItem value="todos">Todos os tenants</SelectItem>
               {TENANTS.map((t) => (
-                <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                <SelectItem key={t.id} value={t.id}>
+                  {t.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -657,7 +797,9 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             <SelectContent>
               <SelectItem value="todos">Todos os vendedores</SelectItem>
               {OWNERS.map((o) => (
-                <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
+                <SelectItem key={o.id} value={o.id}>
+                  {o.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -668,7 +810,9 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             </SelectTrigger>
             <SelectContent>
               {(Object.keys(SLA_LABEL) as SlaBucket[]).map((s) => (
-                <SelectItem key={s} value={s}>{SLA_LABEL[s]}</SelectItem>
+                <SelectItem key={s} value={s}>
+                  {SLA_LABEL[s]}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -679,7 +823,9 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             </SelectTrigger>
             <SelectContent>
               {(Object.keys(SORT_LABEL) as InboxSort[]).map((s) => (
-                <SelectItem key={s} value={s}>Ordenar: {SORT_LABEL[s]}</SelectItem>
+                <SelectItem key={s} value={s}>
+                  Ordenar: {SORT_LABEL[s]}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -692,7 +838,8 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
           </span>
           {(() => {
             const nowMs = Date.now();
-            const isAsleep = (x: Quote) => !!x.snoozed_until && new Date(x.snoozed_until).getTime() > nowMs;
+            const isAsleep = (x: Quote) =>
+              !!x.snoozed_until && new Date(x.snoozed_until).getTime() > nowMs;
             const awake = quotes.filter((x) => !isAsleep(x));
             const counts: Record<PresetId, number> = {
               urgentes: awake.filter((x) => x.priority === "urgente").length,
@@ -705,14 +852,14 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
               fixadas: awake.filter((x) => !!x.pinned).length,
               adiadas: quotes.filter((x) => isAsleep(x)).length,
             };
-            return ([
+            return [
               { id: "urgentes" as const, label: "Urgentes", Icon: Flame },
               { id: "sla_risco" as const, label: "SLA em risco", Icon: Timer },
               { id: "novas" as const, label: "Novas RFQs", Icon: InboxIcon },
               { id: "nao_lidas" as const, label: "Não lidas", Icon: Mail },
               { id: "fixadas" as const, label: "Fixadas", Icon: Pin },
               { id: "adiadas" as const, label: "Adiadas", Icon: Moon },
-            ]).map(({ id, label, Icon }) => {
+            ].map(({ id, label, Icon }) => {
               const active = preset === id;
               const n = counts[id];
               return (
@@ -727,15 +874,19 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                     active
                       ? "border-primary bg-primary text-primary-foreground shadow-sm"
                       : n === 0
-                      ? "border-border/60 bg-background text-muted-foreground/50 cursor-not-allowed"
-                      : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-accent hover:text-foreground",
+                        ? "border-border/60 bg-background text-muted-foreground/50 cursor-not-allowed"
+                        : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:bg-accent hover:text-foreground",
                   )}
                 >
                   <Icon className="h-3 w-3" /> {label}
-                  <span className={cn(
-                    "ml-0.5 rounded-full px-1.5 py-px text-[10px] font-semibold tabular-nums",
-                    active ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-foreground/70",
-                  )}>
+                  <span
+                    className={cn(
+                      "ml-0.5 rounded-full px-1.5 py-px text-[10px] font-semibold tabular-nums",
+                      active
+                        ? "bg-primary-foreground/20 text-primary-foreground"
+                        : "bg-muted text-foreground/70",
+                    )}
+                  >
                     {n}
                   </span>
                 </button>
@@ -743,7 +894,6 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             });
           })()}
         </div>
-
 
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -781,7 +931,11 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             </Button>
           )}
           <div className="ml-auto flex items-center gap-1.5">
-            <div className="inline-flex rounded-md border bg-background p-0.5" role="tablist" aria-label="Densidade da inbox">
+            <div
+              className="inline-flex rounded-md border bg-background p-0.5"
+              role="tablist"
+              aria-label="Densidade da inbox"
+            >
               <button
                 type="button"
                 onClick={() => setDensity("foco")}
@@ -789,7 +943,9 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 title="Modo Foco — 3 colunas essenciais"
                 className={cn(
                   "inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-[11px] font-medium transition-smooth",
-                  foco ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                  foco
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 <Layers className="h-3 w-3" /> Foco
@@ -801,7 +957,9 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 title="Modo Detalhada — todas as metainformações"
                 className={cn(
                   "inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-[11px] font-medium transition-smooth",
-                  !foco ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                  !foco
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 <Rows3 className="h-3 w-3" /> Detalhada
@@ -826,71 +984,114 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
               : 0;
             return (
               <span className="hidden items-center gap-2 text-[11px] text-primary-foreground/85 sm:inline-flex">
-                <span>· Receita <strong className="font-semibold text-primary-foreground">{formatBRL(revenue)}</strong></span>
-                <span>· Margem média <strong className="font-semibold text-primary-foreground">{formatPct(avgMargin)}</strong></span>
+                <span>
+                  · Receita{" "}
+                  <strong className="font-semibold text-primary-foreground">
+                    {formatBRL(revenue)}
+                  </strong>
+                </span>
+                <span>
+                  · Margem média{" "}
+                  <strong className="font-semibold text-primary-foreground">
+                    {formatPct(avgMargin)}
+                  </strong>
+                </span>
               </span>
             );
           })()}
-          <Button size="sm" variant="ghost" className="h-6 gap-1 px-2 text-[11px] text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground" onClick={selectAllVisible}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 gap-1 px-2 text-[11px] text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground"
+            onClick={selectAllVisible}
+          >
             Selecionar todas ({filtered.length})
           </Button>
           <div className="ml-auto flex flex-wrap items-center gap-1">
-            <Button size="sm" variant="secondary" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("advance")}>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-6 gap-1 px-2 text-[11px]"
+              onClick={() => runBulk("advance")}
+            >
               <ArrowRight className="h-3 w-3" /> Avançar
             </Button>
-            <Button size="sm" variant="secondary" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("regress")}>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-6 gap-1 px-2 text-[11px]"
+              onClick={() => runBulk("regress")}
+            >
               <Undo2 className="h-3 w-3" /> Voltar
             </Button>
-            {onTogglePin && (() => {
-              const targets = filtered.filter((x) => selected.has(x.id));
-              const allPinned = targets.length > 0 && targets.every((x) => x.pinned);
-              return (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="h-6 gap-1 px-2 text-[11px]"
-                  onClick={() => {
-                    // Bulk pin/unpin — se todas já estão fixadas, desfixa; senão, fixa as que faltam.
-                    let n = 0;
-                    for (const qt of targets) {
-                      if (allPinned ? qt.pinned : !qt.pinned) { onTogglePin(qt.id); n++; }
-                    }
-                    if (n > 0) toast.success(`${n} cotação(ões) ${allPinned ? "desfixada(s)" : "fixada(s) no topo"}`);
-                    clearSelected();
-                  }}
-                >
-                  {allPinned ? <PinOff className="h-3 w-3" /> : <Pin className="h-3 w-3" />}
-                  {allPinned ? "Desfixar" : "Fixar"}
-                </Button>
-              );
-            })()}
-            {onSnooze && (() => {
-              const targets = filtered.filter((x) => selected.has(x.id));
-              const allAsleep = targets.length > 0 && targets.every((x) => x.snoozed_until && new Date(x.snoozed_until) > new Date());
-              return (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="h-6 gap-1 px-2 text-[11px]"
-                  title={allAsleep ? "Despertar selecionadas" : "Adiar 2h (Shift = amanhã 9h)"}
-                  onClick={(e) => {
-                    let n = 0;
-                    if (allAsleep) {
-                      for (const qt of targets) { onSnooze(qt.id, null); n++; }
-                      toast.success(`${n} cotação(ões) despertada(s)`);
-                    } else {
-                      const until = e.shiftKey ? tomorrow9amISO() : inHoursISO(2);
-                      for (const qt of targets) { onSnooze(qt.id, until); n++; }
-                      toast.success(`${n} cotação(ões) adiada(s) até ${new Date(until).toLocaleString("pt-BR")}`);
-                    }
-                    clearSelected();
-                  }}
-                >
-                  {allAsleep ? <Sunrise className="h-3 w-3" /> : <Moon className="h-3 w-3" />}
-                  {allAsleep ? "Despertar" : "Adiar"}
-                </Button>
-              );
-            })()}
+            {onTogglePin &&
+              (() => {
+                const targets = filtered.filter((x) => selected.has(x.id));
+                const allPinned = targets.length > 0 && targets.every((x) => x.pinned);
+                return (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-6 gap-1 px-2 text-[11px]"
+                    onClick={() => {
+                      // Bulk pin/unpin — se todas já estão fixadas, desfixa; senão, fixa as que faltam.
+                      let n = 0;
+                      for (const qt of targets) {
+                        if (allPinned ? qt.pinned : !qt.pinned) {
+                          onTogglePin(qt.id);
+                          n++;
+                        }
+                      }
+                      if (n > 0)
+                        toast.success(
+                          `${n} cotação(ões) ${allPinned ? "desfixada(s)" : "fixada(s) no topo"}`,
+                        );
+                      clearSelected();
+                    }}
+                  >
+                    {allPinned ? <PinOff className="h-3 w-3" /> : <Pin className="h-3 w-3" />}
+                    {allPinned ? "Desfixar" : "Fixar"}
+                  </Button>
+                );
+              })()}
+            {onSnooze &&
+              (() => {
+                const targets = filtered.filter((x) => selected.has(x.id));
+                const allAsleep =
+                  targets.length > 0 &&
+                  targets.every((x) => x.snoozed_until && new Date(x.snoozed_until) > new Date());
+                return (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-6 gap-1 px-2 text-[11px]"
+                    title={allAsleep ? "Despertar selecionadas" : "Adiar 2h (Shift = amanhã 9h)"}
+                    onClick={(e) => {
+                      let n = 0;
+                      if (allAsleep) {
+                        for (const qt of targets) {
+                          onSnooze(qt.id, null);
+                          n++;
+                        }
+                        toast.success(`${n} cotação(ões) despertada(s)`);
+                      } else {
+                        const until = e.shiftKey ? tomorrow9amISO() : inHoursISO(2);
+                        for (const qt of targets) {
+                          onSnooze(qt.id, until);
+                          n++;
+                        }
+                        toast.success(
+                          `${n} cotação(ões) adiada(s) até ${new Date(until).toLocaleString("pt-BR")}`,
+                        );
+                      }
+                      clearSelected();
+                    }}
+                  >
+                    {allAsleep ? <Sunrise className="h-3 w-3" /> : <Moon className="h-3 w-3" />}
+                    {allAsleep ? "Despertar" : "Adiar"}
+                  </Button>
+                );
+              })()}
             {onReassign && (
               <Select
                 value=""
@@ -899,7 +1100,10 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                   const targets = filtered.filter((x) => selected.has(x.id));
                   let n = 0;
                   for (const qt of targets) {
-                    if (qt.owner_id !== ownerId) { onReassign(qt.id, ownerId); n++; }
+                    if (qt.owner_id !== ownerId) {
+                      onReassign(qt.id, ownerId);
+                      n++;
+                    }
                   }
                   const label = ownerById(ownerId)?.name ?? ownerId;
                   if (n > 0) toast.success(`${n} cotação(ões) reatribuída(s) para ${label}`);
@@ -928,9 +1132,17 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                   const targets = filtered.filter((x) => selected.has(x.id));
                   let n = 0;
                   for (const qt of targets) {
-                    if (qt.priority !== priority) { onSetPriority(qt.id, priority); n++; }
+                    if (qt.priority !== priority) {
+                      onSetPriority(qt.id, priority);
+                      n++;
+                    }
                   }
-                  const label = { urgente: "Urgente", alta: "Alta", normal: "Normal", baixa: "Baixa" }[priority];
+                  const label = {
+                    urgente: "Urgente",
+                    alta: "Alta",
+                    normal: "Normal",
+                    baixa: "Baixa",
+                  }[priority];
                   if (n > 0) toast.success(`${n} cotação(ões) marcada(s) como ${label}`);
                   else toast(`Todas já estão em ${label}`);
                   clearSelected();
@@ -940,10 +1152,18 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                   <SelectValue placeholder="Prioridade…" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="urgente" className="text-xs">🔥 Urgente</SelectItem>
-                  <SelectItem value="alta" className="text-xs">⚡ Alta</SelectItem>
-                  <SelectItem value="normal" className="text-xs">Normal</SelectItem>
-                  <SelectItem value="baixa" className="text-xs">Baixa</SelectItem>
+                  <SelectItem value="urgente" className="text-xs">
+                    🔥 Urgente
+                  </SelectItem>
+                  <SelectItem value="alta" className="text-xs">
+                    ⚡ Alta
+                  </SelectItem>
+                  <SelectItem value="normal" className="text-xs">
+                    Normal
+                  </SelectItem>
+                  <SelectItem value="baixa" className="text-xs">
+                    Baixa
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -956,7 +1176,10 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                   const targets = filtered.filter((x) => selected.has(x.id));
                   let n = 0;
                   for (const qt of targets) {
-                    if (qt.client_tier !== tier) { onSetTier(qt.id, tier); n++; }
+                    if (qt.client_tier !== tier) {
+                      onSetTier(qt.id, tier);
+                      n++;
+                    }
                   }
                   if (n > 0) toast.success(`${n} cotação(ões) marcada(s) como Tier ${tier}`);
                   else toast(`Todas já estão em Tier ${tier}`);
@@ -967,9 +1190,15 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                   <SelectValue placeholder="Tier…" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="A" className="text-xs">🥇 Tier A</SelectItem>
-                  <SelectItem value="B" className="text-xs">🥈 Tier B</SelectItem>
-                  <SelectItem value="C" className="text-xs">🥉 Tier C</SelectItem>
+                  <SelectItem value="A" className="text-xs">
+                    🥇 Tier A
+                  </SelectItem>
+                  <SelectItem value="B" className="text-xs">
+                    🥈 Tier B
+                  </SelectItem>
+                  <SelectItem value="C" className="text-xs">
+                    🥉 Tier C
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -983,8 +1212,13 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                   className="h-6 gap-1 px-2 text-[11px]"
                   title={anyUnread ? "Marcar como lidas" : "Marcar como não lidas"}
                   onClick={() => {
-                    if (anyUnread) { markRead(ids); toast.success(`${ids.length} marcada(s) como lida(s)`); }
-                    else { markUnread(ids); toast.success(`${ids.length} marcada(s) como não lida(s)`); }
+                    if (anyUnread) {
+                      markRead(ids);
+                      toast.success(`${ids.length} marcada(s) como lida(s)`);
+                    } else {
+                      markUnread(ids);
+                      toast.success(`${ids.length} marcada(s) como não lida(s)`);
+                    }
                     clearSelected();
                   }}
                 >
@@ -999,7 +1233,10 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 variant="secondary"
                 className="h-6 gap-1 px-2 text-[11px]"
                 title="Adicionar nota às selecionadas"
-                onClick={() => { setNoteDraft(""); setNoteOpen(true); }}
+                onClick={() => {
+                  setNoteDraft("");
+                  setNoteOpen(true);
+                }}
               >
                 <FileSpreadsheet className="h-3 w-3" /> Nota
               </Button>
@@ -1030,20 +1267,41 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 const targets = filtered.filter((x) => selected.has(x.id));
                 if (targets.length === 0) return;
                 const header = [
-                  "id","cliente","segmento","tenant","vendedor","status","prioridade",
-                  "sla_deadline","recebida_em","receita","margem_pct","itens","pinned",
+                  "id",
+                  "cliente",
+                  "segmento",
+                  "tenant",
+                  "vendedor",
+                  "status",
+                  "prioridade",
+                  "sla_deadline",
+                  "recebida_em",
+                  "receita",
+                  "margem_pct",
+                  "itens",
+                  "pinned",
+                  "partner",
                 ];
                 const rows = targets.map((qt) => {
                   const totals = quoteTotals(qt.items);
                   return [
-                    qt.id, qt.customer_name, qt.customer_segment,
+                    qt.id,
+                    qt.customer_name,
+                    qt.customer_segment,
                     tenantById(qt.tenant_id)?.name ?? qt.tenant_id,
                     ownerById(qt.owner_id)?.name ?? qt.owner_id,
-                    STATUS_LABEL[qt.status], qt.priority,
-                    qt.sla_deadline, qt.received_at,
-                    totals.revenue.toFixed(2), (totals.margin * 100).toFixed(2),
-                    qt.items.length, qt.pinned ? "sim" : "",
-                  ].map(csvEscape).join(",");
+                    STATUS_LABEL[qt.status],
+                    qt.priority,
+                    qt.sla_deadline,
+                    qt.received_at,
+                    totals.revenue.toFixed(2),
+                    (totals.margin * 100).toFixed(2),
+                    qt.items.length,
+                    qt.pinned ? "sim" : "",
+                    qt.origin_partner_id ?? "",
+                  ]
+                    .map(csvEscape)
+                    .join(",");
                 });
                 const csv = [header.join(","), ...rows].join("\n");
                 const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
@@ -1068,7 +1326,9 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
               onClick={async () => {
                 const targets = filtered.filter((x) => selected.has(x.id));
                 if (targets.length === 0) return;
-                const lines = targets.map((qt) => `${qt.customer_name} — ${quoteDeepLink(qt.id)}`).join("\n");
+                const lines = targets
+                  .map((qt) => `${qt.customer_name} — ${quoteDeepLink(qt.id)}`)
+                  .join("\n");
                 try {
                   await navigator.clipboard.writeText(lines);
                   toast.success(`${targets.length} link(s) copiado(s)`);
@@ -1091,11 +1351,12 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 const header = `*USE Medical — Briefing (${targets.length} cotação(ões))*\nReceita potencial: *${formatBRL(totalRev)}*\n`;
                 const body = targets
                   .slice()
-                  .sort((a, b) => (PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]))
+                  .sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority])
                   .map((qt) => {
                     const t = quoteTotals(qt.items);
                     const sst = slaBucketOf(qt.sla_deadline);
-                    const flame = qt.priority === "urgente" ? "🔥 " : qt.priority === "alta" ? "⚡ " : "";
+                    const flame =
+                      qt.priority === "urgente" ? "🔥 " : qt.priority === "alta" ? "⚡ " : "";
                     const tenantName = tenantById(qt.tenant_id)?.name ?? qt.tenant_id;
                     return `${flame}*${qt.customer_name}* (${tenantName})\n   • ${qt.items.length} item(ns) · ${formatBRL(t.revenue)} · margem ${formatPct(t.margin)}\n   • Status: ${STATUS_LABEL[qt.status]} · SLA: ${SLA_LABEL[sst]}\n   • ${quoteDeepLink(qt.id)}`;
                   })
@@ -1159,7 +1420,11 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                   })
                   .join("\n\n");
                 const text = `${header}\n${body}`;
-                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+                window.open(
+                  `https://wa.me/?text=${encodeURIComponent(text)}`,
+                  "_blank",
+                  "noopener,noreferrer",
+                );
                 toast.message(`WhatsApp aberto com ${targets.length} cotação(ões)`);
               }}
             >
@@ -1201,21 +1466,37 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 const { sendToUseSistemas } = await import("@/lib/medical/use-sistemas-mock");
                 const { appendActivity } = await import("@/lib/medical/activity");
                 const { MIN_MARGIN } = await import("@/lib/medical/types");
-                let ok = 0, skipped = 0, failed = 0;
+                let ok = 0,
+                  skipped = 0,
+                  failed = 0;
                 for (const qt of targets) {
-                  if (qt.use_sistemas_synced) { skipped++; continue; }
+                  if (qt.use_sistemas_synced) {
+                    skipped++;
+                    continue;
+                  }
                   const t = quoteTotals(qt.items);
-                  if (t.margin < MIN_MARGIN) { skipped++; continue; }
+                  if (t.margin < MIN_MARGIN) {
+                    skipped++;
+                    continue;
+                  }
                   try {
                     const res = await sendToUseSistemas(qt);
                     onAdvance(qt.id, "enviado");
-                    appendActivity({ quote_id: qt.id, type: "sent_use_sistemas", message: "Enviado ao Use Sistemas (lote)", meta: { order_id: res.order_id } });
+                    appendActivity({
+                      quote_id: qt.id,
+                      type: "sent_use_sistemas",
+                      message: "Enviado ao Use Sistemas (lote)",
+                      meta: { order_id: res.order_id },
+                    });
                     ok++;
                     await new Promise((r) => setTimeout(r, 40));
-                  } catch { failed++; }
+                  } catch {
+                    failed++;
+                  }
                 }
                 if (ok > 0) toast.success(`${ok} cotação(ões) sincronizadas ao Use Sistemas`);
-                if (skipped > 0) toast.message(`${skipped} ignorada(s) (já sincronizadas ou margem < 12%)`);
+                if (skipped > 0)
+                  toast.message(`${skipped} ignorada(s) (já sincronizadas ou margem < 12%)`);
                 if (failed > 0) toast.error(`${failed} falha(s) de integração`);
                 clearSelected();
               }}
@@ -1272,7 +1553,10 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                   <script>window.onload=()=>{window.print();}</script>
                   </body></html>`;
                 const w = window.open("", "_blank", "noopener,noreferrer,width=900,height=700");
-                if (!w) { toast.error("Bloqueado pelo popup blocker"); return; }
+                if (!w) {
+                  toast.error("Bloqueado pelo popup blocker");
+                  return;
+                }
                 w.document.open();
                 w.document.write(html);
                 w.document.close();
@@ -1299,7 +1583,9 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 const events = targets.map((qt) => {
                   const t = quoteTotals(qt.items);
                   const tenantName = tenantById(qt.tenant_id)?.name ?? qt.tenant_id;
-                  const end = new Date(new Date(qt.sla_deadline).getTime() + 30 * 60_000).toISOString();
+                  const end = new Date(
+                    new Date(qt.sla_deadline).getTime() + 30 * 60_000,
+                  ).toISOString();
                   const summary = `SLA ${qt.customer_name} — ${formatBRL(t.revenue)}`;
                   const desc = `USE Medical — Cotação #${qt.id.toUpperCase()}\\nCliente: ${qt.customer_name}\\nTenant: ${tenantName}\\nItens: ${qt.items.length}\\nReceita: ${formatBRL(t.revenue)}\\nMargem: ${formatPct(t.margin)}\\nStatus: ${STATUS_LABEL[qt.status]}\\nPrioridade: ${qt.priority}\\nLink: ${quoteDeepLink(qt.id)}`;
                   return [
@@ -1342,13 +1628,28 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             >
               📅 Agenda
             </Button>
-            <Button size="sm" variant="secondary" className="h-6 gap-1 px-2 text-[11px] bg-success text-success-foreground hover:bg-success/90" onClick={() => runBulk("won")}>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-6 gap-1 px-2 text-[11px] bg-success text-success-foreground hover:bg-success/90"
+              onClick={() => runBulk("won")}
+            >
               🏆 Marcar ganhas
             </Button>
-            <Button size="sm" variant="destructive" className="h-6 gap-1 px-2 text-[11px]" onClick={() => runBulk("lost")}>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="h-6 gap-1 px-2 text-[11px]"
+              onClick={() => runBulk("lost")}
+            >
               Marcar perdidas
             </Button>
-            <Button size="sm" variant="ghost" className="h-6 gap-1 px-2 text-[11px] text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground" onClick={clearSelected}>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 gap-1 px-2 text-[11px] text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground"
+              onClick={clearSelected}
+            >
               <X className="h-3 w-3" /> Limpar
             </Button>
           </div>
@@ -1356,7 +1657,6 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
       )}
 
       <ul className="flex-1 divide-y overflow-y-auto">
-
         {filtered.length === 0 && (
           <li className="flex flex-col items-center gap-2 p-10 text-center">
             <div className="grid h-10 w-10 place-items-center rounded-full bg-muted text-muted-foreground">
@@ -1367,7 +1667,12 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
               Ajuste os filtros ou limpe a busca para ver todas as cotações do pipeline.
             </p>
             {activeCount > 0 && (
-              <Button size="sm" variant="outline" className="mt-1 h-7 gap-1 text-xs" onClick={clearFilters}>
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-1 h-7 gap-1 text-xs"
+                onClick={clearFilters}
+              >
                 <X className="h-3 w-3" /> Limpar filtros
               </Button>
             )}
@@ -1382,7 +1687,10 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
           const ow = ownerById(qt.owner_id);
           const isSel = selected.has(qt.id);
           const unread = !isRead(qt.id);
-          const handleOpen = () => { markRead([qt.id]); onSelect(qt.id); };
+          const handleOpen = () => {
+            markRead([qt.id]);
+            onSelect(qt.id);
+          };
           return (
             <li key={qt.id}>
               <div
@@ -1402,13 +1710,22 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                     type="button"
                     aria-label={isSel ? "Desmarcar cotação" : "Selecionar cotação"}
                     aria-pressed={isSel}
-                    onClick={(e) => { e.stopPropagation(); toggleSelected(qt.id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleSelected(qt.id);
+                    }}
                     className={cn(
                       "mt-0.5 shrink-0 rounded p-0.5 text-muted-foreground transition-opacity hover:text-primary",
-                      isSel || selected.size > 0 ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus:opacity-100",
+                      isSel || selected.size > 0
+                        ? "opacity-100"
+                        : "opacity-0 group-hover:opacity-100 focus:opacity-100",
                     )}
                   >
-                    {isSel ? <CheckSquare className="h-3.5 w-3.5 text-primary" /> : <Square className="h-3.5 w-3.5" />}
+                    {isSel ? (
+                      <CheckSquare className="h-3.5 w-3.5 text-primary" />
+                    ) : (
+                      <Square className="h-3.5 w-3.5" />
+                    )}
                   </button>
 
                   <div className="min-w-0 flex-1">
@@ -1420,10 +1737,16 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                           className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brand shadow-[0_0_0_2px_hsl(var(--brand)/0.15)]"
                         />
                       )}
-                      <span className={cn("truncate text-sm text-foreground", unread ? "font-bold" : "font-semibold")}>
+                      <span
+                        className={cn(
+                          "truncate text-sm text-foreground",
+                          unread ? "font-bold" : "font-semibold",
+                        )}
+                      >
                         {qt.customer_name}
                       </span>
                       {!foco && <SourceTag source={qt.source_type} />}
+                      {!foco && <PartnerTag partnerId={qt.origin_partner_id} />}
                       {!foco && (
                         <span className="inline-flex items-center gap-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                           <Building2 className="h-3 w-3" /> {t.name}
@@ -1432,7 +1755,8 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                     </div>
                     {!foco && (
                       <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                        #{qt.id.toUpperCase()} · {qt.customer_segment} · {ow.name} · {qt.items.length} item(ns)
+                        #{qt.id.toUpperCase()} · {qt.customer_segment} · {ow.name} ·{" "}
+                        {qt.items.length} item(ns)
                       </p>
                     )}
                     {foco && (
@@ -1451,7 +1775,11 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                         onClick={(e) => {
                           e.stopPropagation();
                           onTogglePin(qt.id);
-                          toast(qt.pinned ? `${qt.customer_name} desfixado` : `${qt.customer_name} fixado no topo`);
+                          toast(
+                            qt.pinned
+                              ? `${qt.customer_name} desfixado`
+                              : `${qt.customer_name} fixado no topo`,
+                          );
                         }}
                         className={cn(
                           "shrink-0 rounded p-0.5 transition-opacity hover:text-brand",
@@ -1460,45 +1788,62 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                             : "text-muted-foreground opacity-0 group-hover:opacity-100 focus:opacity-100",
                         )}
                       >
-                        {qt.pinned ? <Pin className="h-3.5 w-3.5 fill-current" /> : <PinOff className="h-3.5 w-3.5" />}
+                        {qt.pinned ? (
+                          <Pin className="h-3.5 w-3.5 fill-current" />
+                        ) : (
+                          <PinOff className="h-3.5 w-3.5" />
+                        )}
                       </button>
                     )}
-                    {onSnooze && (() => {
-                      const asleep = !!qt.snoozed_until && new Date(qt.snoozed_until).getTime() > Date.now();
-                      return (
-                        <button
-                          type="button"
-                          aria-label={asleep ? "Despertar cotação" : "Adiar cotação"}
-                          title={asleep
-                            ? `Adiada até ${new Date(qt.snoozed_until!).toLocaleString("pt-BR")} — clique para despertar`
-                            : "Adiar 2h · Shift+clique = amanhã 9h · atalho: s"}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (asleep) {
-                              onSnooze(qt.id, null);
-                              toast(`${qt.customer_name} despertada`);
-                            } else {
-                              const until = e.shiftKey ? tomorrow9amISO() : inHoursISO(2);
-                              onSnooze(qt.id, until);
-                              toast(`${qt.customer_name} adiada até ${new Date(until).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}`);
+                    {onSnooze &&
+                      (() => {
+                        const asleep =
+                          !!qt.snoozed_until && new Date(qt.snoozed_until).getTime() > Date.now();
+                        return (
+                          <button
+                            type="button"
+                            aria-label={asleep ? "Despertar cotação" : "Adiar cotação"}
+                            title={
+                              asleep
+                                ? `Adiada até ${new Date(qt.snoozed_until!).toLocaleString("pt-BR")} — clique para despertar`
+                                : "Adiar 2h · Shift+clique = amanhã 9h · atalho: s"
                             }
-                          }}
-                          className={cn(
-                            "shrink-0 rounded p-0.5 transition-opacity",
-                            asleep
-                              ? "text-brand opacity-100"
-                              : "text-muted-foreground opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-brand",
-                          )}
-                        >
-                          {asleep ? <Sunrise className="h-3.5 w-3.5" /> : <BellOff className="h-3.5 w-3.5" />}
-                        </button>
-                      );
-                    })()}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (asleep) {
+                                onSnooze(qt.id, null);
+                                toast(`${qt.customer_name} despertada`);
+                              } else {
+                                const until = e.shiftKey ? tomorrow9amISO() : inHoursISO(2);
+                                onSnooze(qt.id, until);
+                                toast(
+                                  `${qt.customer_name} adiada até ${new Date(until).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}`,
+                                );
+                              }
+                            }}
+                            className={cn(
+                              "shrink-0 rounded p-0.5 transition-opacity",
+                              asleep
+                                ? "text-brand opacity-100"
+                                : "text-muted-foreground opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-brand",
+                            )}
+                          >
+                            {asleep ? (
+                              <Sunrise className="h-3.5 w-3.5" />
+                            ) : (
+                              <BellOff className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                        );
+                      })()}
                     <button
                       type="button"
                       aria-label="Copiar link da cotação"
                       title="Copiar link (atalho: y)"
-                      onClick={(e) => { e.stopPropagation(); void copyQuoteLink(qt); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void copyQuoteLink(qt);
+                      }}
                       className="shrink-0 rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:text-brand focus:opacity-100 group-hover:opacity-100"
                     >
                       <Link2 className="h-3.5 w-3.5" />
@@ -1524,7 +1869,13 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                 {qt.snoozed_until && new Date(qt.snoozed_until).getTime() > Date.now() && (
                   <div className="mt-1 inline-flex items-center gap-1 rounded-md border border-brand/30 bg-brand/5 px-1.5 py-0.5 text-[10px] font-medium text-brand">
                     <Clock className="h-3 w-3" />
-                    Adiada até {new Date(qt.snoozed_until).toLocaleString("pt-BR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}
+                    Adiada até{" "}
+                    {new Date(qt.snoozed_until).toLocaleString("pt-BR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      day: "2-digit",
+                      month: "2-digit",
+                    })}
                   </div>
                 )}
 
@@ -1534,11 +1885,15 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                     {!foco && <StatusBadge status={qt.status} />}
                   </div>
                   <div className="num text-right leading-tight">
-                    <div className="text-sm font-semibold text-foreground">{formatBRL(totals.revenue)}</div>
-                    <div className={cn(
-                      "text-[10px] font-medium",
-                      totals.margin < 0.12 ? "text-danger" : "text-success",
-                    )}>
+                    <div className="text-sm font-semibold text-foreground">
+                      {formatBRL(totals.revenue)}
+                    </div>
+                    <div
+                      className={cn(
+                        "text-[10px] font-medium",
+                        totals.margin < 0.12 ? "text-danger" : "text-success",
+                      )}
+                    >
                       margem {formatPct(totals.margin)}
                     </div>
                   </div>
@@ -1578,7 +1933,6 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
                     )}
                   </div>
                 )}
-
               </div>
             </li>
           );
@@ -1601,7 +1955,9 @@ export function QuoteInbox({ quotes, selectedId, onSelect, onAdvance, onTogglePi
             A nota será anexada com carimbo de data/hora ao histórico de cada cotação selecionada.
           </p>
           <DialogFooter>
-            <Button variant="ghost" size="sm" onClick={() => setNoteOpen(false)}>Cancelar</Button>
+            <Button variant="ghost" size="sm" onClick={() => setNoteOpen(false)}>
+              Cancelar
+            </Button>
             <Button
               size="sm"
               disabled={!noteDraft.trim() || !onAppendNote}

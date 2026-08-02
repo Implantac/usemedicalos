@@ -1,7 +1,9 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import {
   ECOSYSTEM_PARTNERS,
+  devPartnerSecret,
   getPartner,
+  resolvePartnerSecret,
   signForPartner,
   verifyPartnerSignature,
 } from "./partners";
@@ -12,6 +14,11 @@ beforeEach(() => {
   __resetRateLimit();
   process.env.BIONEXO_HMAC_SECRET = "bionexo-test-secret";
   process.env.MARKETPLACE_DEMO_HMAC_SECRET = "demo-test-secret";
+});
+
+afterEach(() => {
+  delete process.env.BIONEXO_HMAC_SECRET;
+  delete process.env.MARKETPLACE_DEMO_HMAC_SECRET;
 });
 
 describe("ecosystem/partners", () => {
@@ -49,5 +56,15 @@ describe("ecosystem/partners", () => {
     expect(verifyPartnerSignature(partner, body, null)).toBe(false);
     expect(signForPartner("nao_existe", body)).toBeNull();
   });
-});
 
+  it("usa env var quando configurada (produção)", () => {
+    const p = getPartner("bionexo")!;
+    expect(resolvePartnerSecret(p)).toBe("bionexo-test-secret");
+  });
+
+  it("devPartnerSecret gera secret determinístico por parceiro", () => {
+    expect(devPartnerSecret("bionexo")).toBe("dev-bionexo-secret");
+    expect(devPartnerSecret("apoio")).toBe("dev-apoio-secret");
+    expect(devPartnerSecret("bionexo")).not.toBe(devPartnerSecret("apoio"));
+  });
+});
