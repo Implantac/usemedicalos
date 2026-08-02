@@ -92,6 +92,7 @@ export interface Quote {
   notes?: string;
   use_sistemas_synced?: boolean;
   use_sistemas_order_id?: string;
+  origin_partner_id?: string; // Fase 3 — parceiro do ecossistema (ex.: Bionexo)
   portal_meta?: PortalMeta;
   pinned?: boolean;
   snoozed_until?: string; // ISO — cotação some da inbox até essa data

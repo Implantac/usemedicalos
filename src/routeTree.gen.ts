@@ -36,7 +36,10 @@ import { Route as VendedorOwnerIdRouteImport } from './routes/vendedor.$ownerId'
 import { Route as ApiPublicCatalogRouteImport } from './routes/api/public/catalog'
 import { Route as ApiPublicUseSistemasRouteImport } from './routes/api/public/use-sistemas'
 import { Route as ApiV1IngestRouteImport } from './routes/api/v1/ingest'
+import { Route as ApiPublicEcosystemCatalogRouteImport } from './routes/api/public/ecosystem/catalog'
+import { Route as ApiPublicEcosystemQuotesRouteImport } from './routes/api/public/ecosystem/quotes'
 import { Route as ApiPublicErpIngestRouteImport } from './routes/api/public/erp.ingest'
+import { Route as ApiPublicEcosystemOrdersCallbackRouteImport } from './routes/api/public/ecosystem/orders/callback'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -173,11 +176,29 @@ const ApiV1IngestRoute = ApiV1IngestRouteImport.update({
   path: '/api/v1/ingest',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicEcosystemCatalogRoute =
+  ApiPublicEcosystemCatalogRouteImport.update({
+    id: '/api/public/ecosystem/catalog',
+    path: '/api/public/ecosystem/catalog',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicEcosystemQuotesRoute =
+  ApiPublicEcosystemQuotesRouteImport.update({
+    id: '/api/public/ecosystem/quotes',
+    path: '/api/public/ecosystem/quotes',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicErpIngestRoute = ApiPublicErpIngestRouteImport.update({
   id: '/api/public/erp/ingest',
   path: '/api/public/erp/ingest',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicEcosystemOrdersCallbackRoute =
+  ApiPublicEcosystemOrdersCallbackRouteImport.update({
+    id: '/api/public/ecosystem/orders/callback',
+    path: '/api/public/ecosystem/orders/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -207,7 +228,10 @@ export interface FileRoutesByFullPath {
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
   '/api/v1/ingest': typeof ApiV1IngestRoute
+  '/api/public/ecosystem/catalog': typeof ApiPublicEcosystemCatalogRoute
+  '/api/public/ecosystem/quotes': typeof ApiPublicEcosystemQuotesRoute
   '/api/public/erp/ingest': typeof ApiPublicErpIngestRoute
+  '/api/public/ecosystem/orders/callback': typeof ApiPublicEcosystemOrdersCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -237,7 +261,10 @@ export interface FileRoutesByTo {
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
   '/api/v1/ingest': typeof ApiV1IngestRoute
+  '/api/public/ecosystem/catalog': typeof ApiPublicEcosystemCatalogRoute
+  '/api/public/ecosystem/quotes': typeof ApiPublicEcosystemQuotesRoute
   '/api/public/erp/ingest': typeof ApiPublicErpIngestRoute
+  '/api/public/ecosystem/orders/callback': typeof ApiPublicEcosystemOrdersCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -268,7 +295,10 @@ export interface FileRoutesById {
   '/api/public/catalog': typeof ApiPublicCatalogRoute
   '/api/public/use-sistemas': typeof ApiPublicUseSistemasRoute
   '/api/v1/ingest': typeof ApiV1IngestRoute
+  '/api/public/ecosystem/catalog': typeof ApiPublicEcosystemCatalogRoute
+  '/api/public/ecosystem/quotes': typeof ApiPublicEcosystemQuotesRoute
   '/api/public/erp/ingest': typeof ApiPublicErpIngestRoute
+  '/api/public/ecosystem/orders/callback': typeof ApiPublicEcosystemOrdersCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -300,7 +330,10 @@ export interface FileRouteTypes {
     | '/api/public/catalog'
     | '/api/public/use-sistemas'
     | '/api/v1/ingest'
+    | '/api/public/ecosystem/catalog'
+    | '/api/public/ecosystem/quotes'
     | '/api/public/erp/ingest'
+    | '/api/public/ecosystem/orders/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -330,7 +363,10 @@ export interface FileRouteTypes {
     | '/api/public/catalog'
     | '/api/public/use-sistemas'
     | '/api/v1/ingest'
+    | '/api/public/ecosystem/catalog'
+    | '/api/public/ecosystem/quotes'
     | '/api/public/erp/ingest'
+    | '/api/public/ecosystem/orders/callback'
   id:
     | '__root__'
     | '/'
@@ -360,7 +396,10 @@ export interface FileRouteTypes {
     | '/api/public/catalog'
     | '/api/public/use-sistemas'
     | '/api/v1/ingest'
+    | '/api/public/ecosystem/catalog'
+    | '/api/public/ecosystem/quotes'
     | '/api/public/erp/ingest'
+    | '/api/public/ecosystem/orders/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -391,7 +430,10 @@ export interface RootRouteChildren {
   ApiPublicCatalogRoute: typeof ApiPublicCatalogRoute
   ApiPublicUseSistemasRoute: typeof ApiPublicUseSistemasRoute
   ApiV1IngestRoute: typeof ApiV1IngestRoute
+  ApiPublicEcosystemCatalogRoute: typeof ApiPublicEcosystemCatalogRoute
+  ApiPublicEcosystemQuotesRoute: typeof ApiPublicEcosystemQuotesRoute
   ApiPublicErpIngestRoute: typeof ApiPublicErpIngestRoute
+  ApiPublicEcosystemOrdersCallbackRoute: typeof ApiPublicEcosystemOrdersCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -585,11 +627,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1IngestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/ecosystem/catalog': {
+      id: '/api/public/ecosystem/catalog'
+      path: '/api/public/ecosystem/catalog'
+      fullPath: '/api/public/ecosystem/catalog'
+      preLoaderRoute: typeof ApiPublicEcosystemCatalogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ecosystem/quotes': {
+      id: '/api/public/ecosystem/quotes'
+      path: '/api/public/ecosystem/quotes'
+      fullPath: '/api/public/ecosystem/quotes'
+      preLoaderRoute: typeof ApiPublicEcosystemQuotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/erp/ingest': {
       id: '/api/public/erp/ingest'
       path: '/api/public/erp/ingest'
       fullPath: '/api/public/erp/ingest'
       preLoaderRoute: typeof ApiPublicErpIngestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ecosystem/orders/callback': {
+      id: '/api/public/ecosystem/orders/callback'
+      path: '/api/public/ecosystem/orders/callback'
+      fullPath: '/api/public/ecosystem/orders/callback'
+      preLoaderRoute: typeof ApiPublicEcosystemOrdersCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -623,7 +686,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCatalogRoute: ApiPublicCatalogRoute,
   ApiPublicUseSistemasRoute: ApiPublicUseSistemasRoute,
   ApiV1IngestRoute: ApiV1IngestRoute,
+  ApiPublicEcosystemCatalogRoute: ApiPublicEcosystemCatalogRoute,
+  ApiPublicEcosystemQuotesRoute: ApiPublicEcosystemQuotesRoute,
   ApiPublicErpIngestRoute: ApiPublicErpIngestRoute,
+  ApiPublicEcosystemOrdersCallbackRoute: ApiPublicEcosystemOrdersCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
