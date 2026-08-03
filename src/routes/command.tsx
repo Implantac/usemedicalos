@@ -194,7 +194,7 @@ function CommandCenterPage() {
                   </p>
                 </div>
                 <div className="mt-4 flex gap-2">
-                  <Button size="xs" variant="outline" className="h-7 text-[10px] border-danger/20 hover:bg-danger/10" asChild>
+                  <Button size="sm" variant="outline" className="h-7 text-[10px] border-danger/20 hover:bg-danger/10" asChild>
                     <Link to="/cotacao/$id" params={{ id: antiRec.quote.id }}>Ver detalhes</Link>
                   </Button>
                 </div>
