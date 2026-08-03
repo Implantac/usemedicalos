@@ -32,7 +32,6 @@ import { Route as ApiKeysRouteImport } from './routes/api-keys'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CotacaoIndexRouteImport } from './routes/cotacao.index'
 import { Route as VendedorOwnerIdRouteImport } from './routes/vendedor.$ownerId'
-import { Route as CotacaoIdRouteImport } from './routes/cotacao.$id'
 import { Route as ApiV1IngestRouteImport } from './routes/api/v1/ingest'
 import { Route as ApiPublicUseSistemasRouteImport } from './routes/api/public/use-sistemas'
 import { Route as ApiPublicCatalogRouteImport } from './routes/api/public/catalog'
@@ -156,11 +155,6 @@ const VendedorOwnerIdRoute = VendedorOwnerIdRouteImport.update({
   path: '/vendedor/$ownerId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CotacaoIdRoute = CotacaoIdRouteImport.update({
-  id: '/cotacao/$id',
-  path: '/cotacao/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiV1IngestRoute = ApiV1IngestRouteImport.update({
   id: '/api/v1/ingest',
   path: '/api/v1/ingest',
@@ -222,7 +216,6 @@ export interface FileRoutesByFullPath {
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sla-watchdog': typeof SlaWatchdogRoute
-  '/cotacao/$id': typeof CotacaoIdRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/cotacao/': typeof CotacaoIndexRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
@@ -255,7 +248,6 @@ export interface FileRoutesByTo {
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sla-watchdog': typeof SlaWatchdogRoute
-  '/cotacao/$id': typeof CotacaoIdRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/cotacao': typeof CotacaoIndexRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
@@ -289,7 +281,6 @@ export interface FileRoutesById {
   '/quarentena': typeof QuarentenaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sla-watchdog': typeof SlaWatchdogRoute
-  '/cotacao/$id': typeof CotacaoIdRoute
   '/vendedor/$ownerId': typeof VendedorOwnerIdRoute
   '/cotacao/': typeof CotacaoIndexRoute
   '/api/public/catalog': typeof ApiPublicCatalogRoute
@@ -324,7 +315,6 @@ export interface FileRouteTypes {
     | '/quarentena'
     | '/sitemap.xml'
     | '/sla-watchdog'
-    | '/cotacao/$id'
     | '/vendedor/$ownerId'
     | '/cotacao/'
     | '/api/public/catalog'
@@ -357,7 +347,6 @@ export interface FileRouteTypes {
     | '/quarentena'
     | '/sitemap.xml'
     | '/sla-watchdog'
-    | '/cotacao/$id'
     | '/vendedor/$ownerId'
     | '/cotacao'
     | '/api/public/catalog'
@@ -390,7 +379,6 @@ export interface FileRouteTypes {
     | '/quarentena'
     | '/sitemap.xml'
     | '/sla-watchdog'
-    | '/cotacao/$id'
     | '/vendedor/$ownerId'
     | '/cotacao/'
     | '/api/public/catalog'
@@ -424,7 +412,6 @@ export interface RootRouteChildren {
   QuarentenaRoute: typeof QuarentenaRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SlaWatchdogRoute: typeof SlaWatchdogRoute
-  CotacaoIdRoute: typeof CotacaoIdRoute
   VendedorOwnerIdRoute: typeof VendedorOwnerIdRoute
   CotacaoIndexRoute: typeof CotacaoIndexRoute
   ApiPublicCatalogRoute: typeof ApiPublicCatalogRoute
@@ -599,13 +586,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VendedorOwnerIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/cotacao/$id': {
-      id: '/cotacao/$id'
-      path: '/cotacao/$id'
-      fullPath: '/cotacao/$id'
-      preLoaderRoute: typeof CotacaoIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/v1/ingest': {
       id: '/api/v1/ingest'
       path: '/api/v1/ingest'
@@ -680,7 +660,6 @@ const rootRouteChildren: RootRouteChildren = {
   QuarentenaRoute: QuarentenaRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SlaWatchdogRoute: SlaWatchdogRoute,
-  CotacaoIdRoute: CotacaoIdRoute,
   VendedorOwnerIdRoute: VendedorOwnerIdRoute,
   CotacaoIndexRoute: CotacaoIndexRoute,
   ApiPublicCatalogRoute: ApiPublicCatalogRoute,
@@ -694,13 +673,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
