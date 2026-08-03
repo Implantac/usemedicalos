@@ -17,9 +17,10 @@ export type ActivityType =
   | "client_tier_changed"
   | "ingested_from_portal"
   | "portal_response_taken"
-  | "product_quick_created"
+| "product_quick_created"
   | "snapshot_sent"
-  | "quote_restored";
+  | "quote_restored"
+  | "csv_imported";
 
 export interface Activity {
   id: string;
