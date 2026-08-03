@@ -25,6 +25,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CopilotoRouteImport } from './routes/copiloto'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ComplianceRouteImport } from './routes/compliance'
+import { Route as CommandRouteImport } from './routes/command'
 import { Route as CloudReadinessRouteImport } from './routes/cloud-readiness'
 import { Route as BenchmarkingRouteImport } from './routes/benchmarking'
 import { Route as AuditoriaRouteImport } from './routes/auditoria'
@@ -121,6 +122,11 @@ const ComplianceRoute = ComplianceRouteImport.update({
   path: '/compliance',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommandRoute = CommandRouteImport.update({
+  id: '/command',
+  path: '/command',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CloudReadinessRoute = CloudReadinessRouteImport.update({
   id: '/cloud-readiness',
   path: '/cloud-readiness',
@@ -206,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/auditoria': typeof AuditoriaRoute
   '/benchmarking': typeof BenchmarkingRoute
   '/cloud-readiness': typeof CloudReadinessRoute
+  '/command': typeof CommandRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/copiloto': typeof CopilotoRoute
@@ -239,6 +246,7 @@ export interface FileRoutesByTo {
   '/auditoria': typeof AuditoriaRoute
   '/benchmarking': typeof BenchmarkingRoute
   '/cloud-readiness': typeof CloudReadinessRoute
+  '/command': typeof CommandRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/copiloto': typeof CopilotoRoute
@@ -273,6 +281,7 @@ export interface FileRoutesById {
   '/auditoria': typeof AuditoriaRoute
   '/benchmarking': typeof BenchmarkingRoute
   '/cloud-readiness': typeof CloudReadinessRoute
+  '/command': typeof CommandRoute
   '/compliance': typeof ComplianceRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/copiloto': typeof CopilotoRoute
@@ -308,6 +317,7 @@ export interface FileRouteTypes {
     | '/auditoria'
     | '/benchmarking'
     | '/cloud-readiness'
+    | '/command'
     | '/compliance'
     | '/configuracoes'
     | '/copiloto'
@@ -341,6 +351,7 @@ export interface FileRouteTypes {
     | '/auditoria'
     | '/benchmarking'
     | '/cloud-readiness'
+    | '/command'
     | '/compliance'
     | '/configuracoes'
     | '/copiloto'
@@ -374,6 +385,7 @@ export interface FileRouteTypes {
     | '/auditoria'
     | '/benchmarking'
     | '/cloud-readiness'
+    | '/command'
     | '/compliance'
     | '/configuracoes'
     | '/copiloto'
@@ -408,6 +420,7 @@ export interface RootRouteChildren {
   AuditoriaRoute: typeof AuditoriaRoute
   BenchmarkingRoute: typeof BenchmarkingRoute
   CloudReadinessRoute: typeof CloudReadinessRoute
+  CommandRoute: typeof CommandRoute
   ComplianceRoute: typeof ComplianceRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   CopilotoRoute: typeof CopilotoRoute
@@ -550,6 +563,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComplianceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/command': {
+      id: '/command'
+      path: '/command'
+      fullPath: '/command'
+      preLoaderRoute: typeof CommandRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cloud-readiness': {
       id: '/cloud-readiness'
       path: '/cloud-readiness'
@@ -664,6 +684,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuditoriaRoute: AuditoriaRoute,
   BenchmarkingRoute: BenchmarkingRoute,
   CloudReadinessRoute: CloudReadinessRoute,
+  CommandRoute: CommandRoute,
   ComplianceRoute: ComplianceRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   CopilotoRoute: CopilotoRoute,
@@ -694,13 +715,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
