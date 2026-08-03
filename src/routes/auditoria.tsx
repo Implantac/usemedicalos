@@ -50,6 +50,7 @@ const TYPE_LABEL: Record<ActivityType, string> = {
   product_quick_created: "Produto cadastrado rápido",
   snapshot_sent: "Versão enviada registrada",
   quote_restored: "Preços restaurados do envio",
+  csv_imported: "Importação CSV",
 };
 
 const HIGH_RISK: ActivityType[] = [
