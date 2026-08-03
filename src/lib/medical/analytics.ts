@@ -27,12 +27,8 @@ export function computeKpis(quotes: Quote[]): Kpis {
   const won = closed.filter((q) => q.status === "ganho");
   const totals = quotes.map((q) => quoteTotals(q.items));
   const pipeline = active.reduce((s, q) => s + quoteTotals(q.items).revenue, 0);
-  const avgTicket = quotes.length
-    ? totals.reduce((s, t) => s + t.revenue, 0) / quotes.length
-    : 0;
-  const avgMargin = totals.length
-    ? totals.reduce((s, t) => s + t.margin, 0) / totals.length
-    : 0;
+  const avgTicket = quotes.length ? totals.reduce((s, t) => s + t.revenue, 0) / quotes.length : 0;
+  const avgMargin = totals.length ? totals.reduce((s, t) => s + t.margin, 0) / totals.length : 0;
   const winRate = closed.length ? won.length / closed.length : 0;
   const openForSla = quotes.filter(
     (q) => q.status === "aguardando_precificacao" || q.status === "em_negociacao",
@@ -70,6 +66,38 @@ export function dailySeries(quotes: Quote[], days: number): DailyPoint[] {
     const received = inDay.length;
     const sent = inDay.filter((q) => q.status !== "aguardando_precificacao").length;
     out.push({ day: label, received, sent });
+  }
+  return out;
+}
+
+export interface TrendPoint {
+  day: string; // "dd/MM"
+  commission: number;
+  won: number;
+}
+
+/**
+ * Comissão e total ganho por dia (últimos N dias) — para o gráfico de
+ * performance de 30 dias do vendedor.
+ */
+export function performanceTrend(quotes: Quote[], days: number): TrendPoint[] {
+  const out: TrendPoint[] = [];
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  for (let i = days - 1; i >= 0; i--) {
+    const start = now.getTime() - i * 86_400_000;
+    const end = start + 86_400_000;
+    const label = new Date(start).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+    let commission = 0;
+    let won = 0;
+    for (const q of quotes) {
+      const t = new Date(q.received_at).getTime();
+      if (t < start || t >= end) continue;
+      const c = computeCommission(q);
+      commission += c.total;
+      if (q.status === "ganho") won += quoteTotals(q.items).revenue;
+    }
+    out.push({ day: label, commission, won });
   }
   return out;
 }
@@ -124,13 +152,17 @@ export function leaderboard(quotes: Quote[]): OwnerRow[] {
       pipeline: mine
         .filter((q) => OPEN.includes(q.status))
         .reduce((s, q) => s + quoteTotals(q.items).revenue, 0),
-      avgResponseHours: responses.length ? responses.reduce((a, b) => a + b, 0) / responses.length : 0,
+      avgResponseHours: responses.length
+        ? responses.reduce((a, b) => a + b, 0) / responses.length
+        : 0,
       avgMargin: totals.length ? totals.reduce((s, t) => s + t.margin, 0) / totals.length : 0,
       conversion: closed.length ? won.length / closed.length : 0,
       commissionWon,
       commissionPipeline,
     };
-  }).sort((a, b) => b.commissionWon + b.commissionPipeline - (a.commissionWon + a.commissionPipeline));
+  }).sort(
+    (a, b) => b.commissionWon + b.commissionPipeline - (a.commissionWon + a.commissionPipeline),
+  );
 }
 
 export function exceptions(quotes: Quote[]): Quote[] {

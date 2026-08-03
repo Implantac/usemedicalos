@@ -19,7 +19,10 @@ export const Route = createFileRoute("/auditoria")({
   head: () => ({
     meta: [
       { title: "Auditoria — USE Medical Commercial OS" },
-      { name: "description", content: "Trilha de auditoria imutável (hash-chain) de todas as atividades de cotação." },
+      {
+        name: "description",
+        content: "Trilha de auditoria imutável (hash-chain) de todas as atividades de cotação.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -44,6 +47,7 @@ const TYPE_LABEL: Record<ActivityType, string> = {
   client_tier_changed: "Tier alterado",
   ingested_from_portal: "Ingestão de portal",
   portal_response_taken: "Resposta tomada",
+  product_quick_created: "Produto cadastrado rápido",
 };
 
 const HIGH_RISK: ActivityType[] = [
@@ -62,10 +66,7 @@ function AuditoriaPage() {
 
   const allActivities = useMemo<Activity[]>(() => loadActivities(), []);
   const chain = useMemo(() => verifyChain(allActivities), [allActivities]);
-  const brokenSet = useMemo(
-    () => new Set(chain.broken.map((b) => b.activityId)),
-    [chain.broken],
-  );
+  const brokenSet = useMemo(() => new Set(chain.broken.map((b) => b.activityId)), [chain.broken]);
 
   const quoteIndex = useMemo(() => {
     const m = new Map<string, { tenantId: string; customer: string }>();
@@ -98,13 +99,23 @@ function AuditoriaPage() {
 
   function exportCsv() {
     const rows = [
-      ["timestamp", "quote_id", "tenant", "cliente", "tipo", "mensagem", "prev_hash", "hash", "integridade"],
+      [
+        "timestamp",
+        "quote_id",
+        "tenant",
+        "cliente",
+        "tipo",
+        "mensagem",
+        "prev_hash",
+        "hash",
+        "integridade",
+      ],
       ...filtered.map((a) => {
         const meta = quoteIndex.get(a.quote_id);
         return [
           a.created_at,
           a.quote_id,
-          meta ? tenantIndex.get(meta.tenantId) ?? meta.tenantId : "—",
+          meta ? (tenantIndex.get(meta.tenantId) ?? meta.tenantId) : "—",
           meta?.customer ?? "—",
           TYPE_LABEL[a.type] ?? a.type,
           a.message.replace(/"/g, '""'),
@@ -228,7 +239,7 @@ function AuditoriaPage() {
                 )}
                 {filtered.map((a) => {
                   const meta = quoteIndex.get(a.quote_id);
-                  const tenantName = meta ? tenantIndex.get(meta.tenantId) ?? meta.tenantId : "—";
+                  const tenantName = meta ? (tenantIndex.get(meta.tenantId) ?? meta.tenantId) : "—";
                   const isBroken = brokenSet.has(a.id);
                   const isRisk = HIGH_RISK.includes(a.type);
                   return (
@@ -263,9 +274,7 @@ function AuditoriaPage() {
                         <span
                           className={cn(
                             "rounded px-1.5 py-0.5 text-[10px] font-semibold",
-                            isRisk
-                              ? "bg-warn/15 text-warn"
-                              : "bg-muted text-muted-foreground",
+                            isRisk ? "bg-warn/15 text-warn" : "bg-muted text-muted-foreground",
                           )}
                         >
                           {TYPE_LABEL[a.type] ?? a.type}

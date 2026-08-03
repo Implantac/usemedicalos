@@ -1,19 +1,39 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useMemo } from "react";
-import { Activity, ArrowDown, ArrowLeft, ArrowUp, Award, Coins, DollarSign, Minus, Percent, Ticket, TrendingUp } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  Activity,
+  ArrowDown,
+  ArrowLeft,
+  ArrowUp,
+  Award,
+  Coins,
+  DollarSign,
+  Gauge,
+  Minus,
+  Percent,
+  Ticket,
+  TrendingUp,
+  Trophy,
+} from "lucide-react";
 import { AppHeader } from "@/components/medical/app-header";
 import { TenantScopeBanner } from "@/components/medical/tenant-scope-banner";
 import { KpiCard } from "@/components/medical/kpi-card";
 import { PriorityBadge, StatusBadge } from "@/components/medical/badges";
 import { SlaIndicator } from "@/components/medical/sla-indicator";
 import { DailyGoalRing } from "@/components/medical/daily-goal-ring";
+import { AchievementBadge } from "@/components/medical/achievement-badge";
+import { PerformanceChart } from "@/components/medical/performance-chart";
 import { useQuotes } from "@/hooks/use-quotes";
+import { useOwnerGoals } from "@/hooks/use-owner-goals";
 import { OWNERS, ownerById } from "@/lib/medical/mock-data";
-import { computeKpis } from "@/lib/medical/analytics";
+import { computeAchievements } from "@/lib/medical/achievements";
+import { computeKpis, leaderboard, performanceTrend } from "@/lib/medical/analytics";
 import { formatBRL, formatPct, quoteTotals } from "@/lib/medical/pricing";
 import { summarizeForOwner } from "@/lib/medical/commission";
 import { benchmarkFor, type Region } from "@/lib/medical/benchmarks";
 import { Toaster } from "@/components/ui/sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/vendedor/$ownerId")({
@@ -49,14 +69,34 @@ function OwnerPage() {
   const { ownerId } = Route.useParams();
   const owner = ownerById(ownerId);
   const { quotes, resetDemo } = useQuotes();
+  const { getGoal, setGoal, resetGoal, DEFAULT_GOAL } = useOwnerGoals();
+  const [goalEdit, setGoalEdit] = useState<number | null>(null);
+
+  const dailyGoal = getGoal(ownerId);
 
   const mine = useMemo(() => quotes.filter((q) => q.owner_id === ownerId), [quotes, ownerId]);
   const kpis = useMemo(() => computeKpis(mine), [mine]);
-  const commission = useMemo(() => summarizeForOwner(mine), [mine]);
+  const commission = useMemo(() => summarizeForOwner(mine, dailyGoal), [mine, dailyGoal]);
+  const achievements = useMemo(() => computeAchievements(ownerId, quotes), [ownerId, quotes]);
+  const trend = useMemo(() => performanceTrend(mine, 30), [mine]);
+  const board = useMemo(() => leaderboard(quotes), [quotes]);
+  const ranking = useMemo(() => {
+    const idx = board.findIndex((r) => r.owner.id === ownerId);
+    return idx >= 0 ? idx + 1 : null;
+  }, [board, ownerId]);
   const sorted = useMemo(
     () => [...mine].sort((a, b) => (a.received_at < b.received_at ? 1 : -1)),
     [mine],
   );
+
+  const unlockedCount = achievements.filter((a) => a.unlocked).length;
+
+  const saveGoal = () => {
+    if (goalEdit === null) return;
+    if (!Number.isFinite(goalEdit) || goalEdit < 0) return;
+    setGoal(ownerId, goalEdit);
+    setGoalEdit(null);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -76,8 +116,12 @@ function OwnerPage() {
               {owner.initials}
             </div>
             <div className="min-w-0">
-              <h1 className="truncate text-lg font-bold tracking-tight text-foreground">{owner.name}</h1>
-              <p className="truncate text-xs text-muted-foreground">Território: {owner.territory}</p>
+              <h1 className="truncate text-lg font-bold tracking-tight text-foreground">
+                {owner.name}
+              </h1>
+              <p className="truncate text-xs text-muted-foreground">
+                Território: {owner.territory}
+              </p>
             </div>
           </div>
         </div>
@@ -99,10 +143,20 @@ function OwnerPage() {
               </div>
               <div className="mt-1 text-xs text-muted-foreground">
                 {commission.quote_count} cotação(ões) no mês · margem média{" "}
-                <span className={kpis.avgMargin >= 0.15 ? "font-bold text-success" : kpis.avgMargin >= 0.12 ? "font-bold text-warning-foreground" : "font-bold text-danger"}>
+                <span
+                  className={
+                    kpis.avgMargin >= 0.15
+                      ? "font-bold text-success"
+                      : kpis.avgMargin >= 0.12
+                        ? "font-bold text-warning-foreground"
+                        : "font-bold text-danger"
+                  }
+                >
                   {formatPct(kpis.avgMargin)}
                 </span>
-                {kpis.avgMargin < 0.15 && kpis.avgMargin >= 0.12 && " — cada +1% de margem sobe seu tier"}
+                {kpis.avgMargin < 0.15 &&
+                  kpis.avgMargin >= 0.12 &&
+                  " — cada +1% de margem sobe seu tier"}
                 {kpis.avgMargin < 0.12 && " — margem crítica: comissão zerada"}
               </div>
             </div>
@@ -115,8 +169,18 @@ function OwnerPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
-          <KpiCard label="Cotações ativas" value={kpis.activeCount} icon={Activity} tone="primary" />
-          <KpiCard label="Pipeline aberto" value={formatBRL(kpis.pipeline)} icon={TrendingUp} tone="success" />
+          <KpiCard
+            label="Cotações ativas"
+            value={kpis.activeCount}
+            icon={Activity}
+            tone="primary"
+          />
+          <KpiCard
+            label="Pipeline aberto"
+            value={formatBRL(kpis.pipeline)}
+            icon={TrendingUp}
+            tone="success"
+          />
           <KpiCard label="Ticket médio" value={formatBRL(kpis.avgTicket)} icon={Ticket} />
           <KpiCard
             label="Win rate"
@@ -133,11 +197,132 @@ function OwnerPage() {
         </div>
 
         <div className="grid gap-2 md:grid-cols-4">
+          <div className="rounded-lg border bg-card p-3 card-shadow">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <Trophy className="h-4 w-4 text-brand" /> Ranking de comissão
+              </div>
+              {ranking !== null && (
+                <span className="rounded bg-brand/15 px-2 py-0.5 text-[11px] font-bold text-brand">
+                  #{ranking}
+                </span>
+              )}
+            </div>
+            <div className="mt-2 text-[11px] text-muted-foreground">
+              {ranking !== null
+                ? `Você está em ${ranking}º lugar entre ${board.length} vendedores em comissão estimada este mês.`
+                : "Sem dados para ranquear."}
+            </div>
+            <Button asChild size="sm" variant="outline" className="mt-3 h-7 gap-1 text-[11px]">
+              <Link to="/dashboard" search={{ period: 30 }}>
+                Ver ranking completo
+              </Link>
+            </Button>
+          </div>
           <DailyGoalRing progress={commission.daily_progress} goal={commission.daily_goal} />
-          <KpiCard label="Comissão MTD" value={formatBRL(commission.mtd_total)} icon={Coins} tone="success" />
-          <KpiCard label="Ganhas (mês)" value={formatBRL(commission.mtd_won)} icon={Award} tone="primary" />
-          <KpiCard label="Pipeline comissão" value={formatBRL(commission.mtd_pipeline)} icon={TrendingUp} />
+          <KpiCard
+            label="Comissão MTD"
+            value={formatBRL(commission.mtd_total)}
+            icon={Coins}
+            tone="success"
+          />
+          <KpiCard
+            label="Ganhas (mês)"
+            value={formatBRL(commission.mtd_won)}
+            icon={Award}
+            tone="primary"
+          />
         </div>
+
+        {/* Meta diária configurável */}
+        <div className="rounded-lg border bg-card p-3 card-shadow">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Gauge className="h-4 w-4 text-brand" /> Meta diária de comissão
+            </div>
+            {goalEdit === null ? (
+              <div className="flex items-center gap-2">
+                <span className="num text-sm font-bold text-foreground">
+                  {formatBRL(dailyGoal)}
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 gap-1 text-[11px]"
+                  onClick={() => setGoalEdit(dailyGoal)}
+                >
+                  Editar
+                </Button>
+                {dailyGoal !== DEFAULT_GOAL && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 text-[11px]"
+                    onClick={() => resetGoal(ownerId)}
+                  >
+                    Restaurar padrão
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={0}
+                  step={50}
+                  value={goalEdit}
+                  onChange={(e) => setGoalEdit(Number(e.target.value))}
+                  className="h-8 w-32 num"
+                  autoFocus
+                />
+                <Button size="sm" className="h-8 gap-1 text-[11px]" onClick={saveGoal}>
+                  Salvar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 text-[11px]"
+                  onClick={() => setGoalEdit(null)}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            )}
+          </div>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            A meta diária alimenta o anel de progresso e a conquista de "Consistência".
+          </p>
+        </div>
+
+        <div className="grid gap-2 md:grid-cols-4">
+          <KpiCard
+            label="Pipeline comissão"
+            value={formatBRL(commission.mtd_pipeline)}
+            icon={TrendingUp}
+          />
+        </div>
+
+        <div className="grid gap-3 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <PerformanceChart data={trend} />
+          </div>
+          <div className="rounded-lg border bg-card p-3 card-shadow">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                Conquistas
+              </h3>
+              <span className="text-[10px] text-muted-foreground">
+                {unlockedCount}/{achievements.length}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {achievements.map((a) => (
+                <AchievementBadge key={a.id} achievement={a} />
+              ))}
+            </div>
+          </div>
+        </div>
+
         <RegionBenchmarkCard
           region={owner.territory as Region}
           quotes={mine}
@@ -145,7 +330,6 @@ function OwnerPage() {
           selfAvgTicket={kpis.avgTicket}
           selfWinRate={kpis.winRate}
         />
-
 
         <div className="overflow-hidden rounded-lg border bg-card card-shadow">
           <div className="border-b bg-muted/40 px-2 py-1">
@@ -188,10 +372,16 @@ function OwnerPage() {
                             {q.customer_segment} · #{q.id.toUpperCase()}
                           </div>
                         </td>
-                        <td className="px-2 py-1"><PriorityBadge priority={q.priority} /></td>
-                        <td className="px-2 py-1"><StatusBadge status={q.status} /></td>
+                        <td className="px-2 py-1">
+                          <PriorityBadge priority={q.priority} />
+                        </td>
+                        <td className="px-2 py-1">
+                          <StatusBadge status={q.status} />
+                        </td>
                         <td className="px-2 py-1 text-right num">{q.items.length}</td>
-                        <td className="px-2 py-1 text-right num font-semibold">{formatBRL(t.revenue)}</td>
+                        <td className="px-2 py-1 text-right num font-semibold">
+                          {formatBRL(t.revenue)}
+                        </td>
                         <td
                           className={
                             "px-2 py-1 text-right num font-semibold " +
@@ -201,7 +391,8 @@ function OwnerPage() {
                           {formatPct(t.margin)}
                         </td>
                         <td className="px-2 py-1 text-right">
-                          {q.status === "aguardando_precificacao" || q.status === "em_negociacao" ? (
+                          {q.status === "aguardando_precificacao" ||
+                          q.status === "em_negociacao" ? (
                             <SlaIndicator deadline={q.sla_deadline} compact />
                           ) : (
                             <span className="text-[10px] text-muted-foreground">—</span>
@@ -264,12 +455,16 @@ function RegionBenchmarkCard({
         <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
         <div className="mt-0.5 flex items-baseline justify-between gap-2">
           <span className="num text-lg font-bold text-foreground">{value}</span>
-          <span className={cn("inline-flex items-center gap-0.5 num text-[11px] font-semibold", tone)}>
+          <span
+            className={cn("inline-flex items-center gap-0.5 num text-[11px] font-semibold", tone)}
+          >
             <Icon className="h-3 w-3" />
             {deltaLabel}
           </span>
         </div>
-        <div className="text-[10px] text-muted-foreground">Mercado: <span className="num">{marketLabel}</span></div>
+        <div className="text-[10px] text-muted-foreground">
+          Mercado: <span className="num">{marketLabel}</span>
+        </div>
       </div>
     );
   };
@@ -285,9 +480,27 @@ function RegionBenchmarkCard({
         </span>
       </div>
       <div className="grid gap-2 sm:grid-cols-3">
-        <Cell label="Margem média" value={formatPct(selfAvgMargin)} marketLabel={formatPct(mk.avgMargin)} delta={marginDelta} kind="pp" />
-        <Cell label="Ticket médio" value={formatBRL(selfAvgTicket)} marketLabel={formatBRL(mk.avgTicket)} delta={ticketDelta} kind="pct" />
-        <Cell label="Win rate" value={closed.length ? formatPct(selfWinRate) : "—"} marketLabel={formatPct(mk.winRate)} delta={closed.length ? winDelta : 0} kind="pp" />
+        <Cell
+          label="Margem média"
+          value={formatPct(selfAvgMargin)}
+          marketLabel={formatPct(mk.avgMargin)}
+          delta={marginDelta}
+          kind="pp"
+        />
+        <Cell
+          label="Ticket médio"
+          value={formatBRL(selfAvgTicket)}
+          marketLabel={formatBRL(mk.avgTicket)}
+          delta={ticketDelta}
+          kind="pct"
+        />
+        <Cell
+          label="Win rate"
+          value={closed.length ? formatPct(selfWinRate) : "—"}
+          marketLabel={formatPct(mk.winRate)}
+          delta={closed.length ? winDelta : 0}
+          kind="pp"
+        />
       </div>
       <p className="mt-2 text-[10px] text-muted-foreground">
         Baseline de mercado anonimizado por região (LGPD). Nenhum distribuidor é identificável.

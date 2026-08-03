@@ -3,7 +3,6 @@
 import type { ClientTier, QuoteStatus } from "./types";
 import { GENESIS_HASH, hashActivity } from "./audit-chain";
 
-
 export type ActivityType =
   | "created"
   | "status_changed"
@@ -17,7 +16,8 @@ export type ActivityType =
   | "compliance_override_revoked"
   | "client_tier_changed"
   | "ingested_from_portal"
-  | "portal_response_taken";
+  | "portal_response_taken"
+  | "product_quick_created";
 
 export interface Activity {
   id: string;
@@ -41,7 +41,6 @@ export interface Activity {
   /** SHA-256 do payload canônico + prev_hash. */
   hash?: string;
 }
-
 
 const KEY = "use-medical:activities:v1";
 
@@ -76,8 +75,6 @@ export function appendActivity(entry: Omit<Activity, "id" | "created_at">): Acti
   return activity;
 }
 
-
 export function getActivitiesFor(quoteId: string): Activity[] {
   return loadActivities().filter((a) => a.quote_id === quoteId);
 }
-

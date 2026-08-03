@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle2, Download, FileText, Sparkles, Trash2, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Download, FileText, PackagePlus, Sparkles, Trash2, X } from "lucide-react";
 import { generateProposalPdf } from "@/lib/medical/proposal-pdf";
 import {
   Sheet,
@@ -44,6 +44,8 @@ import {
 } from "@/lib/medical/pricing-engine";
 
 import { PartnerTag, PriorityBadge, SourceTag, StatusBadge } from "./badges";
+import { QuickProductDialog } from "./quick-product-dialog";
+import { useProductCatalog } from "@/lib/medical/product-catalog";
 import { SlaIndicator } from "./sla-indicator";
 import { sendToUseSistemas } from "@/lib/medical/use-sistemas-mock";
 import { appendActivity } from "@/lib/medical/activity";
@@ -82,6 +84,8 @@ function QuoteDrawerInner({
   const [activityVersion, setActivityVersion] = useState(0);
   const [overrideVersion, setOverrideVersion] = useState(0);
   const [complianceConfirmed, setComplianceConfirmed] = useState(false);
+  const [quickProductTarget, setQuickProductTarget] = useState<{ index: number; sku: string; name: string } | null>(null);
+  const { catalog: catalogWithAdditions, add: addToCatalog } = useProductCatalog();
   const { can } = usePermissions();
   const canComplianceOverride = can("compliance.override");
   const overriddenSkus = useMemo(
@@ -98,12 +102,12 @@ function QuoteDrawerInner({
   // Motor de precificação 4 camadas: catálogo enriquecido pelo flywheel + overrides do gestor.
   const { quotes: allQuotes } = useQuotes();
   const { applyTo: applyProductOverride } = useProductOverrides();
-  const productBySku = useMemo(() => {
-    const enriched = enrichProductsWithMarket(PRODUCTS, allQuotes).map(applyProductOverride);
+const productBySku = useMemo(() => {
+    const enriched = enrichProductsWithMarket(catalogWithAdditions, allQuotes).map(applyProductOverride);
     const m = new Map<string, (typeof enriched)[number]>();
     for (const p of enriched) m.set(p.sku, p);
     return m;
-  }, [allQuotes, applyProductOverride]);
+  }, [catalogWithAdditions, allQuotes, applyProductOverride]);
 
   const compliance = checkQuote(quote, overriddenSkus);
   const complianceBlocked = compliance.status === "blocked";
@@ -113,7 +117,29 @@ function QuoteDrawerInner({
     !complianceBlocked && (!complianceRequiresConfirm || complianceConfirmed);
   const canSend = marginOk && !hasNegative && complianceGateOk;
 
-  const bumpActivity = () => setActivityVersion((v) => v + 1);
+const bumpActivity = () => setActivityVersion((v) => v + 1);
+
+  const handleQuickProductCreated = (product: { id: string; sku: string; cost_price: number }) => {
+    if (!quickProductTarget) return;
+    const { index } = quickProductTarget;
+    // Atualiza o item com o custo real do novo produto e sugere preço
+    const suggestedPrice = product.cost_price * 1.3;
+    onUpdateItem(quote.id, index, {
+      product_id: product.id,
+      sku: product.sku,
+      cost_price: product.cost_price,
+      unit_price: suggestedPrice,
+    });
+    appendActivity({
+      quote_id: quote.id,
+      type: "product_quick_created",
+      message: `Produto cadastrado rapidamente: ${product.sku} (custo: ${formatBRL(product.cost_price)})`,
+      meta: { sku: product.sku },
+    });
+    bumpActivity();
+    toast.success(`${product.sku} cadastrado e aplicado na cotação.`);
+    setQuickProductTarget(null);
+  };
 
   const handleOverride = (sku: string) => {
     const reason = window.prompt(
@@ -283,7 +309,8 @@ function QuoteDrawerInner({
             <div className="space-y-2">
               {quote.items.map((it, idx) => {
                 const m = itemMargin(it);
-                const catalogProduct = productBySku.get(it.sku);
+const catalogProduct = productBySku.get(it.sku);
+                const notFound = !catalogProduct;
                 const engine = catalogProduct
                   ? calculateSuggestedPrice(catalogProduct, {
                       tier: quote.client_tier ?? "B",
@@ -310,10 +337,19 @@ function QuoteDrawerInner({
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
+<div className="min-w-0">
                         <div className="truncate text-sm font-semibold">{it.name}</div>
-                        <div className="text-[11px] text-muted-foreground num">
-                          SKU {it.sku} · custo {formatBRL(it.cost_price)} · piso {formatBRL(base)}
+                        <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground num">
+                          <span>SKU {it.sku} · custo {formatBRL(it.cost_price)} · piso {formatBRL(base)}</span>
+                          {notFound && (
+                            <button
+                              type="button"
+                              onClick={() => setQuickProductTarget({ index: idx, sku: it.sku, name: it.name })}
+                              className="inline-flex items-center gap-1 rounded-md bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand hover:bg-brand/20"
+                            >
+                              <PackagePlus className="h-3 w-3" /> Cadastrar
+                            </button>
+                          )}
                         </div>
                       </div>
                       <Button
@@ -580,7 +616,17 @@ function QuoteDrawerInner({
               </span>
             </Button>
           </div>
-        </div>
+</div>
+
+        {quickProductTarget && (
+          <QuickProductDialog
+            open={!!quickProductTarget}
+            onClose={() => setQuickProductTarget(null)}
+            sku={quickProductTarget.sku}
+            name={quickProductTarget.name}
+            onCreated={handleQuickProductCreated}
+          />
+        )}
       </SheetContent>
     </Sheet>
   );
