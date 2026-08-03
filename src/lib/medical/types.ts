@@ -31,6 +31,8 @@ export interface Tenant {
   cnpj: string;
   erp_type: ErpType;
   region?: string;
+  min_margin?: number;
+  target_margin?: number;
 }
 
 
@@ -94,6 +96,7 @@ export interface Quote {
   use_sistemas_order_id?: string;
   origin_partner_id?: string; // Fase 3 — parceiro do ecossistema (ex.: Bionexo)
   portal_meta?: PortalMeta;
+  platform?: string; // Para compatibilidade com UI operacional
   pinned?: boolean;
   snoozed_until?: string; // ISO — cotação some da inbox até essa data
 }
