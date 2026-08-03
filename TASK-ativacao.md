@@ -23,5 +23,8 @@
 - [x] Integrar `snapshot_sent`/`quote_restored` em `activity.ts`, `quote-drawer.tsx`, `quote-timeline.tsx`, `auditoria.tsx`
 - [x] Verificação: tsc (0), vitest (138/138), eslint (0 erros)
 - [x] Docs atualizados: TODO.md, PLANO-MELHORIAS.md, TASK-melhoria4.md, TASK-ativacao.md
-- [ ] Commit da Melhoria #4
+- [x] Commit da Melhoria #4 (ce7a17c)
+
+## Passo 6 — Próxima melhoria
+- [ ] Iniciar Melhoria #6 (Bridge ERP Offline via CSV)
 
