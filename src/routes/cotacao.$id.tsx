@@ -1,10 +1,4 @@
-/**
- * Workspace de Cotação Operacional
- * 
- * Foca na "bancada de trabalho do vendedor".
- * O vendedor trabalha item a item, validando estoque, margem e histórico.
- */
-
+import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { 
   ArrowLeft, 
@@ -12,21 +6,22 @@ import {
   ChevronRight, 
   Send, 
   CheckCircle2, 
-  AlertTriangle,
   Zap,
   LayoutGrid,
   List
 } from "lucide-react";
-import { Link, useParams, useNavigate } from "@tanstack/react-router";
 import { useQuotes } from "@/hooks/use-quotes";
 import { Button } from "@/components/ui/button";
 import { QuoteItemTable } from "@/components/medical/quote-item-table";
 import { QuoteSummaryBar } from "@/components/medical/quote-summary-bar";
-import { formatBRL } from "@/lib/medical/pricing";
 import { useActiveTenant } from "@/hooks/use-active-tenant";
 import { toast } from "sonner";
 
-export default function OperationalQuotePage() {
+export const Route = createFileRoute("/cotacao/$id")({
+  component: OperationalQuotePage,
+});
+
+function OperationalQuotePage() {
   const { id } = useParams({ from: "/cotacao/$id" });
   const navigate = useNavigate();
   const { quotes, updateQuote, resetDemo } = useQuotes();
