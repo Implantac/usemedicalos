@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   ShieldOff,
   Sparkles,
+  Table as TableIcon,
   TrendingUp,
   UserCog,
   Zap,
@@ -43,6 +44,7 @@ const ICONS: Record<ActivityType, typeof ActivityIcon> = {
   product_quick_created: PackagePlus,
   snapshot_sent: History,
   quote_restored: RotateCcw,
+  csv_imported: TableIcon,
 };
 
 function formatRelative(iso: string): string {
