@@ -16,6 +16,7 @@ import { ShortcutsHelp } from "../components/medical/shortcuts-help";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/medical/app-sidebar";
 import { AiDock } from "@/components/medical/ai-dock";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
