@@ -48,6 +48,8 @@ const TYPE_LABEL: Record<ActivityType, string> = {
   ingested_from_portal: "Ingestão de portal",
   portal_response_taken: "Resposta tomada",
   product_quick_created: "Produto cadastrado rápido",
+  snapshot_sent: "Versão enviada registrada",
+  quote_restored: "Preços restaurados do envio",
 };
 
 const HIGH_RISK: ActivityType[] = [

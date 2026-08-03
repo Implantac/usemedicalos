@@ -31,10 +31,15 @@
 - [x] **`vendedor.$ownerId.tsx`** — integração: hero comissão, meta configurável, ranking, conquistas, benchmark, gráfico 30d
 - [x] Testes: 133/133 passando, tsc limpo, eslint limpo
 
-## Pendente (próximas melhorias)
-
 ### 4. 📋 Versionamento de cotação pré-envio — Melhoria #4
-- Snapshot do estado antes de enviar, diff visual
+- [x] Snapshot do estado antes de enviar, diff visual
+- [x] `snapshot.ts`: captura/compare/restore
+- [x] `version-diff.tsx`: diff visual por item
+- [x] `quote-drawer.tsx`: snapshot no envio, botão restaurar
+- [x] `quote-timeline.tsx` + `auditoria.tsx`: novos tipos de atividade
+- [x] Testes: 138/138 passando, tsc limpo, eslint 0 erros
+
+## Pendente (próximas melhorias)
 
 ### 5. 🔗 Bridge ERP offline via CSV — Melhoria #6
 - Importar/exportar cotações em CSV para ERP sem API

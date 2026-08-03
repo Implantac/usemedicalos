@@ -1,8 +1,30 @@
 import { useEffect, useState } from "react";
-import { Activity as ActivityIcon, CheckCircle2, FileText, MessageSquare, Package, PackagePlus, Radio, Send, ShieldAlert, ShieldCheck, ShieldOff, Sparkles, TrendingUp, UserCog, Zap } from "lucide-react";
-import { getActivitiesFor, loadActivities, type Activity, type ActivityType } from "@/lib/medical/activity";
+import {
+  Activity as ActivityIcon,
+  CheckCircle2,
+  FileText,
+  History,
+  MessageSquare,
+  Package,
+  PackagePlus,
+  Radio,
+  RotateCcw,
+  Send,
+  ShieldAlert,
+  ShieldCheck,
+  ShieldOff,
+  Sparkles,
+  TrendingUp,
+  UserCog,
+  Zap,
+} from "lucide-react";
+import {
+  getActivitiesFor,
+  loadActivities,
+  type Activity,
+  type ActivityType,
+} from "@/lib/medical/activity";
 import { verifyChain, type ChainVerification } from "@/lib/medical/audit-chain";
-
 
 const ICONS: Record<ActivityType, typeof ActivityIcon> = {
   created: Package,
@@ -16,9 +38,11 @@ const ICONS: Record<ActivityType, typeof ActivityIcon> = {
   compliance_override: ShieldCheck,
   compliance_override_revoked: ShieldOff,
   client_tier_changed: UserCog,
-ingested_from_portal: Radio,
+  ingested_from_portal: Radio,
   portal_response_taken: Zap,
   product_quick_created: PackagePlus,
+  snapshot_sent: History,
+  quote_restored: RotateCcw,
 };
 
 function formatRelative(iso: string): string {
@@ -59,7 +83,6 @@ export function QuoteTimeline({ quoteId, version = 0 }: Props) {
 
   const brokenIds = new Set((chain?.broken ?? []).map((b) => b.activityId));
 
-
   return (
     <div className="space-y-2">
       {chain && (
@@ -70,11 +93,7 @@ export function QuoteTimeline({ quoteId, version = 0 }: Props) {
               : "border-danger/50 bg-danger/10 text-danger"
           }`}
         >
-          {chain.valid ? (
-            <ShieldCheck className="h-3 w-3" />
-          ) : (
-            <ShieldAlert className="h-3 w-3" />
-          )}
+          {chain.valid ? <ShieldCheck className="h-3 w-3" /> : <ShieldAlert className="h-3 w-3" />}
           {chain.valid
             ? `Audit trail íntegro (${chain.ok}/${chain.total} elos verificados)`
             : `Audit trail comprometido — ${chain.broken.length} elo(s) quebrado(s)`}
@@ -98,7 +117,9 @@ export function QuoteTimeline({ quoteId, version = 0 }: Props) {
                   {a.message}
                   {isBroken && <span className="ml-1 font-mono text-[10px]">[TAMPERED]</span>}
                 </p>
-                <span className="shrink-0 text-[10px] text-muted-foreground">{formatRelative(a.created_at)}</span>
+                <span className="shrink-0 text-[10px] text-muted-foreground">
+                  {formatRelative(a.created_at)}
+                </span>
               </div>
               {a.meta?.order_id && (
                 <div className="mt-0.5 inline-flex items-center gap-1 text-[10px] text-success">
@@ -112,4 +133,3 @@ export function QuoteTimeline({ quoteId, version = 0 }: Props) {
     </div>
   );
 }
-

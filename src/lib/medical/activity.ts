@@ -17,7 +17,9 @@ export type ActivityType =
   | "client_tier_changed"
   | "ingested_from_portal"
   | "portal_response_taken"
-  | "product_quick_created";
+  | "product_quick_created"
+  | "snapshot_sent"
+  | "quote_restored";
 
 export interface Activity {
   id: string;
@@ -35,6 +37,24 @@ export interface Activity {
     tier?: ClientTier;
     source_platform?: string;
     portal_reference?: string;
+    /** Snapshot de itens enviado (Melhoria #4). */
+    quote_snapshot?: {
+      items: {
+        sku: string;
+        name: string;
+        quantity: number;
+        unit_price: number;
+        cost_price: number;
+      }[];
+      revenue?: number;
+      cost?: number;
+    };
+    /** Parâmetros do diff para exibição (Melhoria #4). */
+    snapshot_diff?: {
+      unchanged: boolean;
+      changedCount: number;
+      revenueDelta: number;
+    };
   };
   /** Hash-chain: hash da atividade anterior (imutabilidade auditável). */
   prev_hash?: string;

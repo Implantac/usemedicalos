@@ -97,10 +97,14 @@ Com base na análise completa do código-fonte, manifesto do produto e roadmap, 
 - **Reverter para versão enviada:** botão "Restaurar preços do envio" no drawer
 
 **Arquivos a criar/modificar:**
-- `src/lib/medical/activity.ts` — adicionar tipo `snapshot_sent` e `quote_snapshot` aos metadados
-- `src/components/medical/quote-drawer.tsx` — capturar snapshot antes de enviar, exibir diff
-- `src/components/medical/quote-timeline.tsx` — renderizar snapshot com detalhes
+- `src/lib/medical/snapshot.ts` — novo (captura/compare/restore)
+- `src/lib/medical/activity.ts` — adicionar tipo `snapshot_sent` e `quote_restored` + metadata
 - `src/components/medical/version-diff.tsx` — novo (componente de diff visual)
+- `src/components/medical/quote-drawer.tsx` — capturar snapshot antes de enviar, handler de restauração
+- `src/components/medical/quote-timeline.tsx` — renderizar diff + botão restaurar
+- `src/routes/auditoria.tsx` — labels para os novos tipos
+
+**Status: ✅ Implementado** (testes 138/138, tsc limpo, eslint 0 erros)
 
 ---
 

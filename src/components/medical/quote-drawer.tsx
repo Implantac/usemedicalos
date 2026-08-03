@@ -1,5 +1,14 @@
 import { useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle2, Download, FileText, PackagePlus, Sparkles, Trash2, X } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Download,
+  FileText,
+  PackagePlus,
+  Sparkles,
+  Trash2,
+  X,
+} from "lucide-react";
 import { generateProposalPdf } from "@/lib/medical/proposal-pdf";
 import {
   Sheet,
@@ -59,6 +68,14 @@ import { benchmarkFor, type Region } from "@/lib/medical/benchmarks";
 import { ownerById, PRODUCTS } from "@/lib/medical/mock-data";
 import { usePermissions } from "@/hooks/use-permissions";
 import { ArrowDown, ArrowUp, Minus } from "lucide-react";
+import {
+  captureSnapshot,
+  diffSnapshot,
+  getLatestSnapshot,
+  restoreFromSnapshot,
+  storeSnapshot,
+} from "@/lib/medical/snapshot";
+import { VersionDiff } from "./version-diff";
 
 interface Props {
   quote: Quote | null;
@@ -84,7 +101,11 @@ function QuoteDrawerInner({
   const [activityVersion, setActivityVersion] = useState(0);
   const [overrideVersion, setOverrideVersion] = useState(0);
   const [complianceConfirmed, setComplianceConfirmed] = useState(false);
-  const [quickProductTarget, setQuickProductTarget] = useState<{ index: number; sku: string; name: string } | null>(null);
+  const [quickProductTarget, setQuickProductTarget] = useState<{
+    index: number;
+    sku: string;
+    name: string;
+  } | null>(null);
   const { catalog: catalogWithAdditions, add: addToCatalog } = useProductCatalog();
   const { can } = usePermissions();
   const canComplianceOverride = can("compliance.override");
@@ -102,8 +123,10 @@ function QuoteDrawerInner({
   // Motor de precificação 4 camadas: catálogo enriquecido pelo flywheel + overrides do gestor.
   const { quotes: allQuotes } = useQuotes();
   const { applyTo: applyProductOverride } = useProductOverrides();
-const productBySku = useMemo(() => {
-    const enriched = enrichProductsWithMarket(catalogWithAdditions, allQuotes).map(applyProductOverride);
+  const productBySku = useMemo(() => {
+    const enriched = enrichProductsWithMarket(catalogWithAdditions, allQuotes).map(
+      applyProductOverride,
+    );
     const m = new Map<string, (typeof enriched)[number]>();
     for (const p of enriched) m.set(p.sku, p);
     return m;
@@ -117,7 +140,7 @@ const productBySku = useMemo(() => {
     !complianceBlocked && (!complianceRequiresConfirm || complianceConfirmed);
   const canSend = marginOk && !hasNegative && complianceGateOk;
 
-const bumpActivity = () => setActivityVersion((v) => v + 1);
+  const bumpActivity = () => setActivityVersion((v) => v + 1);
 
   const handleQuickProductCreated = (product: { id: string; sku: string; cost_price: number }) => {
     if (!quickProductTarget) return;
@@ -187,6 +210,9 @@ const bumpActivity = () => setActivityVersion((v) => v + 1);
       toast.error("Cotação bloqueada por restrição ANVISA/CMED.");
       return;
     }
+    // Versionamento (Melhoria #4): captura snapshot ANTES de enviar.
+    const snapshot = captureSnapshot(quote);
+    storeSnapshot(snapshot);
     setSubmitting(true);
     try {
       const res = await sendToUseSistemas(quote);
@@ -201,6 +227,25 @@ const bumpActivity = () => setActivityVersion((v) => v + 1);
         message: `Enviado ao Use Sistemas`,
         meta: { order_id: res.order_id },
       });
+      appendActivity({
+        quote_id: quote.id,
+        type: "snapshot_sent",
+        message: `Versão enviada registrada (${snapshot.items.length} itens, ${formatBRL(snapshot.revenue)})`,
+        meta: {
+          order_id: res.order_id,
+          quote_snapshot: {
+            items: snapshot.items.map((it) => ({
+              sku: it.sku,
+              name: it.name,
+              quantity: it.quantity,
+              unit_price: it.unit_price,
+              cost_price: it.cost_price,
+            })),
+            revenue: snapshot.revenue,
+            cost: snapshot.cost,
+          },
+        },
+      });
       bumpActivity();
       toast.success(res.message);
     } catch {
@@ -208,6 +253,28 @@ const bumpActivity = () => setActivityVersion((v) => v + 1);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const snapshot = getLatestSnapshot(quote.id);
+  const diff = snapshot ? diffSnapshot(snapshot, quote) : null;
+
+  const handleRestore = () => {
+    if (!snapshot) return;
+    const restored = restoreFromSnapshot(snapshot, quote);
+    restored.forEach((item, idx) => {
+      onUpdateItem(quote.id, idx, {
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        cost_price: item.cost_price,
+      });
+    });
+    appendActivity({
+      quote_id: quote.id,
+      type: "quote_restored",
+      message: `Preços restaurados para a versão enviada (${formatBRL(snapshot.revenue)})`,
+    });
+    bumpActivity();
+    toast.success("Itens restaurados para a versão enviada.");
   };
 
   return (
@@ -309,7 +376,7 @@ const bumpActivity = () => setActivityVersion((v) => v + 1);
             <div className="space-y-2">
               {quote.items.map((it, idx) => {
                 const m = itemMargin(it);
-const catalogProduct = productBySku.get(it.sku);
+                const catalogProduct = productBySku.get(it.sku);
                 const notFound = !catalogProduct;
                 const engine = catalogProduct
                   ? calculateSuggestedPrice(catalogProduct, {
@@ -337,14 +404,18 @@ const catalogProduct = productBySku.get(it.sku);
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
-<div className="min-w-0">
+                      <div className="min-w-0">
                         <div className="truncate text-sm font-semibold">{it.name}</div>
                         <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground num">
-                          <span>SKU {it.sku} · custo {formatBRL(it.cost_price)} · piso {formatBRL(base)}</span>
+                          <span>
+                            SKU {it.sku} · custo {formatBRL(it.cost_price)} · piso {formatBRL(base)}
+                          </span>
                           {notFound && (
                             <button
                               type="button"
-                              onClick={() => setQuickProductTarget({ index: idx, sku: it.sku, name: it.name })}
+                              onClick={() =>
+                                setQuickProductTarget({ index: idx, sku: it.sku, name: it.name })
+                              }
                               className="inline-flex items-center gap-1 rounded-md bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand hover:bg-brand/20"
                             >
                               <PackagePlus className="h-3 w-3" /> Cadastrar
@@ -517,6 +588,11 @@ const catalogProduct = productBySku.get(it.sku);
             <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">
               Timeline de atividades
             </h3>
+            {diff && (
+              <div className="mb-3">
+                <VersionDiff diff={diff} onRestore={handleRestore} />
+              </div>
+            )}
             <QuoteTimeline quoteId={quote.id} version={activityVersion} />
           </section>
         </div>
@@ -616,7 +692,7 @@ const catalogProduct = productBySku.get(it.sku);
               </span>
             </Button>
           </div>
-</div>
+        </div>
 
         {quickProductTarget && (
           <QuickProductDialog
