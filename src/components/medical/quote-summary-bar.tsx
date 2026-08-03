@@ -1,182 +1,81 @@
-/**
- * Quote Summary Bar — USE Medical
- *
- * Barra de resumo que mostra itens atendidos, valor total, margem, etc.
- * Aparece no topo da tela operacional de cotação.
- */
-
 import { useMemo } from "react";
-import {
-  CheckCircle2,
-  DollarSign,
-  Percent,
-  Send,
-  ShoppingCart,
-  Target,
-  TrendingUp,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { formatBRL, formatPct, itemMargin, itemTotal } from "@/lib/medical/pricing";
 import { cn } from "@/lib/utils";
 import type { QuoteItem } from "@/lib/medical/types";
-import { itemMargin, itemTotal, formatBRL, formatPct } from "@/lib/medical/pricing";
-
-interface SummaryCounts {
-  total: number;
-  canAttend: number;
-  partial: number;
-  noStock: number;
-  notFound: number;
-}
 
 interface Props {
+  selectedItemsCount: number;
+  totalItemsCount: number;
   items: QuoteItem[];
-  summary: SummaryCounts;
-  selectedItems: Set<number>;
-  customerName: string;
-  sourceLabel: string;
-  onSendProposal: () => void;
-  onSelectAll: () => void;
-  onSelectRecommended: () => void;
-  minMargin: number;
+  selectedIndices: Set<number>;
 }
 
-export function QuoteSummaryBar({
-  items,
-  summary,
-  selectedItems,
-  customerName,
-  sourceLabel,
-  onSendProposal,
-  onSelectAll,
-  onSelectRecommended,
-  minMargin,
+export function QuoteSummaryBar({ 
+  selectedItemsCount, 
+  totalItemsCount, 
+  items, 
+  selectedIndices 
 }: Props) {
-  const totals = useMemo(() => {
-    if (selectedItems.size === 0) {
-      return { revenue: 0, cost: 0, margin: 0, items: 0 };
-    }
-    const selected = Array.from(selectedItems).map((idx) => items[idx]);
-    const revenue = selected.reduce((s, it) => s + itemTotal(it), 0);
-    const cost = selected.reduce((s, it) => s + it.cost_price * it.quantity, 0);
-    const margin = revenue > 0 ? (revenue - cost) / revenue : 0;
-    return { revenue, cost, margin, items: selectedItems.size };
-  }, [items, selectedItems]);
+  const stats = useMemo(() => {
+    let revenue = 0;
+    let cost = 0;
+    
+    Array.from(selectedIndices).forEach(idx => {
+      const item = items[idx];
+      if (item) {
+        revenue += itemTotal(item);
+        cost += item.cost_price * item.quantity;
+      }
+    });
 
-  const totalItems = items.length;
-  const canSend = selectedItems.size > 0;
-  const marginOk = totals.margin >= minMargin;
+    const profit = revenue - cost;
+    const margin = revenue > 0 ? profit / revenue : 0;
+
+    return { revenue, cost, profit, margin };
+  }, [items, selectedIndices]);
 
   return (
-    <div className="rounded-lg border bg-linear-to-r from-primary/5 via-card to-card p-3 card-shadow">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Left: customer info */}
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h2 className="truncate text-sm font-bold text-foreground">{customerName}</h2>
-            <span className="shrink-0 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-              {sourceLabel}
-            </span>
-          </div>
-          <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
-          <span>{summary.canAttend} atender</span>
-          <span>{summary.partial} parcial</span>
-          <span>{summary.noStock} sem estoque</span>
-          <span>{summary.notFound} não localizado</span>
-        </div>
-        <p className="text-[10px] text-muted-foreground">
-            {totalItems} itens · {selectedItems.size} selecionados
-          </p>
-        </div>
+    <div className="flex items-center gap-6">
+      <div className="flex flex-col">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          Itens Selecionados
+        </span>
+        <span className="text-sm font-bold text-foreground">
+          {selectedItemsCount} / {totalItemsCount}
+        </span>
+      </div>
 
-        {/* Center: totals */}
-        <div className="flex flex-wrap items-center gap-4">
-          {selectedItems.size > 0 ? (
-            <>
-              <Metric
-                icon={DollarSign}
-                label="Valor"
-                value={formatBRL(totals.revenue)}
-                tone="text-foreground"
-              />
-              <Metric
-                icon={Target}
-                label="Custo"
-                value={formatBRL(totals.cost)}
-                tone="text-muted-foreground"
-              />
-              <Metric
-                icon={Percent}
-                label="Margem"
-                value={formatPct(totals.margin)}
-                tone={marginOk ? "text-success" : "text-danger"}
-              />
-              <Metric
-                icon={TrendingUp}
-                label="Lucro"
-                value={formatBRL(totals.revenue - totals.cost)}
-                tone={totals.revenue - totals.cost > 0 ? "text-success" : "text-danger"}
-              />
-            </>
-          ) : (
-            <span className="text-xs text-muted-foreground">
-              Selecione os itens que deseja atender
-            </span>
-          )}
-        </div>
+      <div className="h-8 w-px bg-border" />
 
+      <div className="flex flex-col">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          Receita Bruta
+        </span>
+        <span className="text-sm font-bold text-foreground">
+          {formatBRL(stats.revenue)}
+        </span>
+      </div>
 
-        {/* Right: actions */}
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-8 text-xs"
-            onClick={onSelectAll}
-          >
-            Selecionar todos
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-8 text-xs"
-            onClick={onSelectRecommended}
-          >
-            Recomendados
-          </Button>
-          <Button
-            size="sm"
-            className="h-8 gap-1.5 text-xs"
-            disabled={!canSend}
-            onClick={onSendProposal}
-          >
-            <Send className="h-3.5 w-3.5" />
-            Enviar proposta
-          </Button>
-        </div>
+      <div className="hidden flex-col md:flex">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          Lucro Estimado
+        </span>
+        <span className="text-sm font-bold text-success">
+          {formatBRL(stats.profit)}
+        </span>
+      </div>
+
+      <div className="flex flex-col">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          Margem Média
+        </span>
+        <span className={cn(
+          "text-sm font-bold",
+          stats.margin >= 0.12 ? "text-success" : "text-danger"
+        )}>
+          {formatPct(stats.margin)}
+        </span>
       </div>
     </div>
   );
 }
-
-function Metric({
-  icon: Icon,
-  label,
-  value,
-  tone,
-}: {
-  icon: typeof DollarSign;
-  label: string;
-  value: string;
-  tone: string;
-}) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-      <div>
-        <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{label}</div>
-        <div className={cn("num text-sm font-bold", tone)}>{value}</div>
-      </div>
-    </div>
-  );
-}
-

@@ -152,6 +152,7 @@ function RootComponent() {
         <CommandPalette />
         <ShortcutsHelp />
         <AiDock />
+        <Toaster position="top-right" richColors />
       </SidebarProvider>
     </QueryClientProvider>
   );
