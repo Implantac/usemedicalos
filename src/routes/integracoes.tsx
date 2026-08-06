@@ -64,6 +64,7 @@ import {
   type SimulablePartnerId,
 } from "@/lib/medical/ecosystem/simulator";
 import { CsvImportDialog } from "@/components/medical/csv-import-dialog";
+import { appendActivity } from "@/lib/medical/activity";
 
 export const Route = createFileRoute("/integracoes")({
   head: () => ({
@@ -86,7 +87,7 @@ export const Route = createFileRoute("/integracoes")({
 function IntegrationsPage() {
   const navigate = useNavigate();
   const { mappings, saveMapping, deleteMapping } = useErpMappings();
-  const { addQuote, ingestPortalQuote, quotes } = useQuotes();
+const { addQuote, ingestPortalQuote, updateItem, setStatus, quotes } = useQuotes();
   const { tenant, scope } = useActiveTenant();
   const [payload, setPayload] = useState(() => JSON.stringify(SAMPLE_ERP_PAYLOAD, null, 2));
   const [mapping, setMapping] = useState(() => JSON.stringify(SAMPLE_MAPPING, null, 2));
@@ -168,7 +169,7 @@ function IntegrationsPage() {
     navigate({ to: "/inbox", search: { open: q.id } });
   }
 
-  function handleCsvImport(input: {
+function handleCsvImport(input: {
     customer_name: string;
     customer_segment: string;
     items: {
@@ -190,6 +191,38 @@ function IntegrationsPage() {
     });
     toast.success(`Cotação ${q.id} criada a partir do CSV do ERP.`);
     navigate({ to: "/inbox", search: { open: q.id } });
+  }
+
+function handleCsvApplyReturn(
+    quoteId: string,
+    result: {
+      updatedItems: number;
+      applied: { sku: string; cost_price?: number }[];
+      updatedStatuses: { from: import("@/lib/medical/types").QuoteStatus; to: import("@/lib/medical/types").QuoteStatus }[];
+    },
+  ) {
+    // Atualiza o custo dos itens que o ERP retornou.
+    for (const a of result.applied) {
+      if (a.cost_price == null) continue;
+      const quote = quotes.find((q) => q.id === quoteId);
+      const idx = quote?.items.findIndex((it) => it.sku === a.sku);
+      if (quote && idx != null && idx >= 0) {
+        updateItem(quoteId, idx, { cost_price: a.cost_price });
+      }
+    }
+    // Aplica transição de status (ex.: faturado → ganho).
+    for (const s of result.updatedStatuses) {
+      setStatus(quoteId, s.to);
+      appendActivity({
+        quote_id: quoteId,
+        type: "csv_imported",
+        message: `Retorno do ERP — status alterado de ${s.from} para ${s.to}`,
+        meta: { from: s.from, to: s.to, source_platform: "csv" },
+      });
+    }
+    toast.success(
+      `Retorno aplicado: ${result.updatedItems} item(ns) atualizado(s), ${result.updatedStatuses.length} status alterado(s).`,
+    );
   }
 
   return (
@@ -374,11 +407,12 @@ function IntegrationsPage() {
         </div>
         <EcosystemSimulatorCard onIngest={ingestPortalQuote} />
       </main>
-      <CsvImportDialog
+<CsvImportDialog
         open={csvOpen}
         onClose={() => setCsvOpen(false)}
         quotes={quotes}
         onImport={handleCsvImport}
+        onApplyReturn={handleCsvApplyReturn}
       />
       <Toaster position="top-right" richColors />
     </div>

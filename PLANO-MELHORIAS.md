@@ -161,6 +161,33 @@ Com base na análise completa do código-fonte, manifesto do produto e roadmap, 
 - `src/routes/integracoes.tsx` — adicionar seção "Bridge ERP Offline" com upload/download
 - `src/hooks/use-erp-mappings.tsx` — adicionar templates CSV
 
+**Status: ✅ Implementado** (testes 148/148, tsc limpo, eslint 0 erros)
+
+---
+
+## 7. 🔄 Retorno do ERP — Fechar o Ciclo do CSV Bridge ✅ IMPLEMENTADO
+
+**Problema:** O CSV bridge da Melhoria #6 exporta cotações e importa rascunhos, mas não processa o **retorno do ERP** — preço de custo atualizado, estoque e status do pedido. É o que traz valor de volta para o sistema.
+
+**O que já existe:**
+- `src/lib/medical/csv-bridge.ts` — parser/gerador CSV com templates (Protheus, Sankhya, Use, Genérico)
+- `src/components/medical/csv-import-dialog.tsx` — dialog com abas de exportação/importação
+- `src/routes/integracoes.tsx` — `handleCsvImport` + botão "Bridge ERP (CSV)"
+
+**O que implementar:**
+- **`parseCsvReturn`:** ler CSV de retorno do ERP (SKU → custo atualizado, estoque, status do pedido) com aliases flexíveis de coluna
+- **`applyReturnToQuote`:** aplicar as devoluções a uma cotação (atualiza custo/estoque/status) e gerar atividades de auditoria
+- **Aba "Retorno do ERP" no dialog:** upload de CSV de retorno + seleção da cotação + aplicação
+- **`handleCsvApplyReturn` em integracoes.tsx:** aplicar custo/status na cotação e registrar atividade `csv_imported`
+
+**Arquivos a criar/modificar:**
+- `src/lib/medical/csv-bridge.ts` — adicionar `parseCsvReturn()` + `applyReturnToQuote()`
+- `src/lib/medical/csv-bridge.test.ts` — testes unitários para `parseCsvReturn` e `applyReturnToQuote`
+- `src/components/medical/csv-import-dialog.tsx` — nova aba "Retorno do ERP"
+- `src/routes/integracoes.tsx` — `handleCsvApplyReturn` + `onApplyReturn`
+
+**Status: ✅ Implementado** (testes 155/155, tsc 0 erros)
+
 ---
 
 ## Prioridade Técnica Sugerida

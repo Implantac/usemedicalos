@@ -42,12 +42,19 @@
 - [x] sla-alert-bell.tsx: toggle de som + badge de contagem
 - [ ] Disparo server-side agendado (documentar — requer Lovable Cloud + web-push)
 
-### 7. Sincronização multi-usuário (Supabase) — Melhoria #2
+### 7. Retorno do ERP (fechar o ciclo do CSV) — Melhoria #7
+- [x] csv-bridge.ts: `parseCsvReturn()` (SKU → custo, estoque, status) + `applyReturnToQuote()`
+- [x] csv-bridge.test.ts: testes unitários para `parseCsvReturn` e `applyReturnToQuote` (17 testes)
+- [x] csv-import-dialog.tsx: nova aba "Retorno do ERP" (upload de CSV de retorno + aplicação na cotação)
+- [x] integracoes.tsx: `handleCsvApplyReturn` + `onApplyReturn` conectado ao dialog
+- [x] Testes: 155/155 passando, tsc 0 erros
+
+### 8. Sincronização multi-usuário (Supabase) — Melhoria #2
 - [ ] src/lib/medical/repo/supabase.ts (implementação real)
 - [ ] src/hooks/use-repo.tsx (context provider)
 - [ ] Documentar server functions + seed
 - [ ] Migração gradual dos hooks (pós-estrutura)
 
-### 8. Roadmap Fase 2 — Data Flywheel + Regulated AI
+### 9. Roadmap Fase 2 — Data Flywheel + Regulated AI
 - [ ] Data Flywheel / Benchmarking
 - [ ] Regulated AI

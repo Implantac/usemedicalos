@@ -5,7 +5,7 @@
 // - Exportar: Quote[] -> CSV no formato que o ERP espera (template).
 // - Importar: CSV do ERP -> rascunho de cotação (cliente, itens, custo, status).
 
-import type { Quote, QuoteItem } from "./types";
+import type { Quote, QuoteItem, QuoteStatus } from "./types";
 
 export type CsvTemplateId = "protheus" | "sankhya" | "use-sistemas" | "generic";
 
@@ -392,4 +392,232 @@ export function exportQuotesToCsv(quotes: Quote[], templateId: CsvTemplateId): s
     }
   }
   return generateCsv(rows, tpl.columns);
+}
+
+// ============================================================================
+// Melhoria #7 — Retorno do ERP (fechar o ciclo)
+// Processa o CSV de retorno do ERP: preço de custo atualizado, estoque e status
+// do pedido. É o que traz valor de volta para o sistema.
+// ============================================================================
+
+export interface CsvReturnRow {
+  sku: string;
+  /** Preço de custo atualizado informado pelo ERP. */
+  cost_price?: number;
+  /** Estoque disponível informado pelo ERP. */
+  stock?: number;
+  /** Status do pedido no ERP (ex.: faturado, separado, entregue). */
+  order_status?: string;
+  /** Observação livre do ERP. */
+  note?: string;
+}
+
+export interface CsvReturnResult {
+  ok: boolean;
+  rows: CsvReturnRow[];
+  errors: string[];
+  report: {
+    total: number;
+    withCost: number;
+    withStock: number;
+    withStatus: number;
+  };
+}
+
+const RETURN_COLUMN_ALIASES: Record<
+  keyof CsvReturnRow,
+  string[]
+> = {
+  sku: ["sku", "codigo", "codigoproduto", "codigodoproduto", "produto"],
+  cost_price: ["custo", "custoatualizado", "custonovo", "precocusto"],
+  stock: ["estoque", "saldo", "disponivel", "qtdestoque"],
+order_status: [
+    "status",
+    "statuspedido",
+    "statusdopedido",
+    "situacao",
+    "situacaopedido",
+  ],
+  note: ["obs", "observacao", "nota"],
+};
+
+/** Normaliza um cabeçalho para chave (sem acentos, minúsculas, sem espaços). */
+function normalizeHeaderKey(h: string): string {
+  return normalizeHeader(h);
+}
+
+/**
+ * Interpreta colunas de um CSV de retorno do ERP usando aliases flexíveis.
+ * Aceita cabeçalhos como "Custo Atualizado", "Estoque", "Status do Pedido", etc.
+ */
+export function parseCsvReturn(csv: string): CsvReturnResult {
+  const rows = parseCsv(csv);
+  if (rows.length < 2) {
+    return {
+      ok: false,
+      rows: [],
+      errors: ["CSV de retorno vazio ou sem dados."],
+      report: { total: 0, withCost: 0, withStock: 0, withStatus: 0 },
+    };
+  }
+
+  const headers = rows[0];
+  const idx = new Map<string, number>();
+  headers.forEach((h, i) => idx.set(normalizeHeaderKey(h), i));
+
+  // Mapa de coluna destino -> índice real (via aliases).
+  const colIdx: Partial<Record<keyof CsvReturnRow, number>> = {};
+  (Object.keys(RETURN_COLUMN_ALIASES) as (keyof CsvReturnRow)[]).forEach((key) => {
+    for (const alias of RETURN_COLUMN_ALIASES[key]) {
+      const norm = normalizeHeaderKey(alias);
+      if (idx.has(norm)) {
+        colIdx[key] = idx.get(norm);
+        break;
+      }
+    }
+  });
+
+  // Ao menos o SKU é obrigatório.
+  if (colIdx.sku == null) {
+    return {
+      ok: false,
+      rows: [],
+      errors: ["Coluna de SKU não encontrada no CSV de retorno."],
+      report: { total: 0, withCost: 0, withStock: 0, withStatus: 0 },
+    };
+  }
+
+  const errors: string[] = [];
+  const parsed: CsvReturnRow[] = [];
+  let withCost = 0;
+  let withStock = 0;
+  let withStatus = 0;
+
+  for (let r = 1; r < rows.length; r++) {
+    const line = rows[r];
+    const getCell = (key: keyof CsvReturnRow): string => {
+      const i = colIdx[key];
+      return i == null ? "" : (line[i] ?? "").trim();
+    };
+
+    const sku = getCell("sku");
+    if (!sku) {
+      errors.push(`Linha ${r + 1}: SKU ausente, linha ignorada.`);
+      continue;
+    }
+
+    const costRaw = getCell("cost_price");
+    const stockRaw = getCell("stock");
+    const status = getCell("order_status");
+
+    const row: CsvReturnRow = { sku };
+    if (costRaw) {
+      row.cost_price = num(costRaw);
+      withCost++;
+    }
+    if (stockRaw) {
+      row.stock = num(stockRaw);
+      withStock++;
+    }
+    if (status) {
+      row.order_status = status;
+      withStatus++;
+    }
+    const note = getCell("note");
+    if (note) row.note = note;
+
+    parsed.push(row);
+  }
+
+  if (parsed.length === 0) {
+    return {
+      ok: false,
+      rows: [],
+      errors: errors.length ? errors : ["Nenhuma linha válida no CSV de retorno."],
+      report: { total: 0, withCost: 0, withStock: 0, withStatus: 0 },
+    };
+  }
+
+  return {
+    ok: true,
+    rows: parsed,
+    errors,
+    report: { total: parsed.length, withCost, withStock, withStatus },
+  };
+}
+
+export interface CsvReturnApplyItem {
+  sku: string;
+  cost_price?: number;
+  stock?: number;
+  order_status?: string;
+  note?: string;
+}
+
+export interface CsvReturnApplyResult {
+  updatedItems: number;
+  /** Novos valores aplicados por SKU (para log/auditoria). */
+  applied: {
+    sku: string;
+    cost_price?: number;
+    stock?: number;
+    order_status?: string;
+  }[];
+  updatedStatuses: { from: QuoteStatus; to: QuoteStatus }[];
+}
+
+const STATUS_MAP: Record<string, QuoteStatus> = {
+  faturado: "ganho",
+  "faturado parcial": "em_negociacao",
+  entregue: "ganho",
+  separado: "enviado",
+  "em separacao": "enviado",
+  enviado: "enviado",
+  cotacao: "em_negociacao",
+  "em cotacao": "em_negociacao",
+  perdido: "perdido",
+  cancelado: "perdido",
+  aprovado: "ganho",
+};
+
+/**
+ * Aplica o retorno do ERP a uma cotação (atualiza custo, estoque e status).
+ * Retorna os itens atualizados e as transições de status para auditoria.
+ */
+export function applyReturnToQuote(
+  quote: Quote,
+  returns: CsvReturnApplyItem[],
+): CsvReturnApplyResult {
+  const skuIndex = new Map<string, CsvReturnApplyItem>();
+  for (const r of returns) skuIndex.set(r.sku, r);
+
+  const applied: CsvReturnApplyResult["applied"] = [];
+  let updatedItems = 0;
+
+  for (const item of quote.items) {
+    const ret = skuIndex.get(item.sku);
+    if (!ret) continue;
+    updatedItems++;
+    if (ret.cost_price != null) item.cost_price = ret.cost_price;
+    applied.push({
+      sku: item.sku,
+      cost_price: ret.cost_price,
+      stock: ret.stock,
+      order_status: ret.order_status,
+    });
+  }
+
+  const updatedStatuses: CsvReturnApplyResult["updatedStatuses"] = [];
+  // Determina um status de pedido agregado a partir das linhas que o citam.
+  const statusSeen = returns.map((r) => r.order_status).filter(Boolean) as string[];
+  if (statusSeen.length > 0) {
+    const canonical = statusSeen[0].toLowerCase().trim();
+    const target = STATUS_MAP[canonical];
+    if (target && target !== quote.status) {
+      updatedStatuses.push({ from: quote.status, to: target });
+      quote.status = target;
+    }
+  }
+
+  return { updatedItems, applied, updatedStatuses };
 }

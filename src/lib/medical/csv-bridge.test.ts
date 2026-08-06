@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyReturnToQuote,
   csvEscape,
   detectTemplate,
   exportQuotesToCsv,
   generateCsv,
   parseCsv,
+  parseCsvReturn,
   parseCsvToQuoteDraft,
 } from "./csv-bridge";
 import type { Quote } from "./types";
@@ -106,10 +108,78 @@ describe("csv-bridge", () => {
     expect(res.report.importedItems).toBe(1);
   });
 
-  it("parseCsvToQuoteDraft returns error on empty CSV", () => {
+it("parseCsvToQuoteDraft returns error on empty CSV", () => {
     const res = parseCsvToQuoteDraft("");
     expect(res.ok).toBe(false);
     expect(res.errors.length).toBeGreaterThan(0);
+  });
+
+  // ================= Melhoria #7 — Retorno do ERP =================
+
+  it("parseCsvReturn parses updated cost, stock and status", () => {
+    const csv = [
+      "SKU,Custo Atualizado,Estoque,Status do Pedido",
+      "S1,55,120,Faturado",
+      "S2,28,80,Em separação",
+    ].join("\n");
+    const res = parseCsvReturn(csv);
+    expect(res.ok).toBe(true);
+    expect(res.rows).toHaveLength(2);
+    expect(res.report.total).toBe(2);
+    expect(res.report.withCost).toBe(2);
+    expect(res.report.withStock).toBe(2);
+    expect(res.report.withStatus).toBe(2);
+    expect(res.rows[0]).toMatchObject({ sku: "S1", cost_price: 55, stock: 120, order_status: "Faturado" });
+  });
+
+it("parseCsvReturn handles Brazilian decimal format", () => {
+    // Vírgula dentro de campo exige aspas (delimitador CSV).
+    const csv = ["Código,Custo", 'S1,"1.234,56"', "S2,5,50"].join("\n");
+    // "Código" normaliza para "codigo" → alias de sku; "Custo" → cost_price.
+    // "1.234,56" → 1234.56
+    const res = parseCsvReturn(csv);
+    expect(res.ok).toBe(true);
+    expect(res.rows[0].cost_price).toBe(1234.56);
+  });
+
+  it("parseCsvReturn returns error when SKU column missing", () => {
+    const csv = ["Custo,Estoque", "55,120"].join("\n");
+    const res = parseCsvReturn(csv);
+    expect(res.ok).toBe(false);
+    expect(res.errors.length).toBeGreaterThan(0);
+  });
+
+  it("parseCsvReturn returns error on empty CSV", () => {
+    const res = parseCsvReturn("");
+    expect(res.ok).toBe(false);
+  });
+
+  it("applyReturnToQuote updates cost prices and reports applied items", () => {
+    const quote = q();
+    const res = applyReturnToQuote(quote, [
+      { sku: "S1", cost_price: 55, stock: 120 },
+    ]);
+    expect(res.updatedItems).toBe(1);
+    expect(quote.items[0].cost_price).toBe(55);
+    expect(res.applied[0]).toMatchObject({ sku: "S1", cost_price: 55, stock: 120 });
+  });
+
+  it("applyReturnToQuote transitions status when ERP says faturado", () => {
+    const quote = q(); // status: em_negociacao
+    const res = applyReturnToQuote(quote, [
+      { sku: "S1", order_status: "Faturado" },
+      { sku: "S2", order_status: "Faturado" },
+    ]);
+    expect(res.updatedStatuses).toHaveLength(1);
+    expect(res.updatedStatuses[0]).toEqual({ from: "em_negociacao", to: "ganho" });
+    expect(quote.status).toBe("ganho");
+  });
+
+  it("applyReturnToQuote ignores return rows for unknown SKUs", () => {
+    const quote = q();
+    const res = applyReturnToQuote(quote, [{ sku: "NAO_EXISTE", cost_price: 1 }]);
+    expect(res.updatedItems).toBe(0);
+    expect(quote.items[0].cost_price).toBe(60); // inalterado
   });
 });
 

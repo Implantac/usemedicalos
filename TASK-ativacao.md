@@ -42,3 +42,12 @@
 - [x] Docs atualizados: TODO.md, PLANO-MELHORIAS.md, TASK-retomada-melhoria1.md
 - [ ] Commit da Melhoria #1 + refinamentos #6
 
+## Passo 8 — Melhoria #7 (Retorno do ERP — fechar o ciclo do CSV bridge)
+- [x] `csv-bridge.ts`: `parseCsvReturn()` (SKU → custo, estoque, status) + `applyReturnToQuote()`
+- [x] `csv-bridge.test.ts`: testes de retorno (17 testes no total)
+- [x] `csv-import-dialog.tsx`: nova aba "Retorno do ERP" + prop `onApplyReturn`
+- [x] `integracoes.tsx`: `handleCsvApplyReturn` + `onApplyReturn` conectado ao dialog
+- [x] Verificação: tsc (0 erros), vitest (155/155)
+- [x] Docs atualizados: TODO.md, PLANO-MELHORIAS.md, TASK-melhoria7.md
+- [ ] Commit da Melhoria #7
+
