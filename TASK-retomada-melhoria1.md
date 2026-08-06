@@ -8,7 +8,7 @@
 ## Passo 2 — Atualizar docs
 - [x] `TODO.md`: marcar Melhoria #6 como completa (refinamentos) e Melhoria #1 como implementada (client-side)
 - [x] `PLANO-MELHORIAS.md`: marcar Melhoria #1 implementada + nota sobre disparo server-side (Cloud)
-- [ ] `TASK-ativacao.md`: registrar conclusão da Melhoria #1
+- [x] `TASK-ativacao.md`: registrar conclusão da Melhoria #1
 
 ## Passo 3 — Commit
-- [ ] Commit das mudanças (Melhoria #1 + refinamentos #6)
+- [x] Commit das mudanças (Melhoria #1 + refinamentos #6) — `7e18234`
