@@ -1,9 +1,10 @@
-import { Bell, BellOff, BellRing } from "lucide-react";
+import { Bell, BellOff, BellRing, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useQuotes } from "@/hooks/use-quotes";
 import { useSlaNotifications } from "@/hooks/use-sla-notifications";
+import { useSlaTitleBadge } from "@/hooks/use-sla-title-badge";
 import { slaBucketOf } from "@/lib/medical/pipeline";
 import { formatBRL, quoteTotals } from "@/lib/medical/pricing";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ export function SlaAlertBell() {
 
   const total = mounted ? alerts.overdue + alerts.risk : 0;
   const tone = alerts.overdue > 0 ? "danger" : "warning";
+  useSlaTitleBadge(total);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -79,6 +81,29 @@ export function SlaAlertBell() {
               ) : (
                 <>
                   <BellOff className="h-3 w-3" /> Notificar
+                </>
+              )}
+            </button>
+          )}
+          {notif.permission !== "unsupported" && (
+            <button
+              type="button"
+              onClick={notif.toggleSound}
+              className={cn(
+                "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold transition-colors",
+                notif.soundEnabled
+                  ? "border-border text-muted-foreground hover:bg-muted"
+                  : "border-border text-muted-foreground/50 hover:bg-muted",
+              )}
+              title={notif.soundEnabled ? "Som ligado" : "Som desligado"}
+            >
+              {notif.soundEnabled ? (
+                <>
+                  <Volume2 className="h-3 w-3" /> Som
+                </>
+              ) : (
+                <>
+                  <VolumeX className="h-3 w-3" /> Som off
                 </>
               )}
             </button>

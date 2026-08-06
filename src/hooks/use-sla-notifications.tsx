@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuotes } from "@/hooks/use-quotes";
 import { slaBucketOf } from "@/lib/medical/pipeline";
+import {
+  getPushState,
+  playAlertSound,
+  setSoundEnabled as persistSound,
+  subscribePush,
+  unsubscribePush,
+  type PushState,
+} from "@/lib/medical/push-notifications";
 
 const STORAGE_KEY = "use-medical:notif-enabled";
 const SEEN_KEY = "use-medical:notif-seen";
@@ -28,6 +36,8 @@ export function useSlaNotifications() {
   const { quotes } = useQuotes();
   const [permission, setPermission] = useState<Permission>("default");
   const [enabled, setEnabled] = useState(false);
+  const [soundEnabled, setSoundEnabledState] = useState(true);
+  const [pushSubscribed, setPushSubscribed] = useState(false);
   const seenRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -39,6 +49,9 @@ export function useSlaNotifications() {
     setPermission(Notification.permission as Permission);
     setEnabled(localStorage.getItem(STORAGE_KEY) === "1");
     seenRef.current = readSeen();
+    const ps = getPushState();
+    setSoundEnabledState(ps.soundEnabled);
+    setPushSubscribed(ps.subscribed);
   }, []);
 
   const request = useCallback(async () => {
@@ -48,6 +61,9 @@ export function useSlaNotifications() {
     if (res === "granted") {
       localStorage.setItem(STORAGE_KEY, "1");
       setEnabled(true);
+      // Tenta registrar push subscription (best-effort; SW do VitePWA).
+      const ok = await subscribePush();
+      setPushSubscribed(ok);
       return true;
     }
     return false;
@@ -56,6 +72,16 @@ export function useSlaNotifications() {
   const disable = useCallback(() => {
     localStorage.setItem(STORAGE_KEY, "0");
     setEnabled(false);
+    void unsubscribePush();
+    setPushSubscribed(false);
+  }, []);
+
+  const toggleSound = useCallback(() => {
+    setSoundEnabledState((prev) => {
+      const next = !prev;
+      persistSound(next);
+      return next;
+    });
   }, []);
 
   useEffect(() => {
@@ -81,8 +107,10 @@ export function useSlaNotifications() {
       }
       seen.add(q.id);
     });
+    // Alerta sonoro quando há SLA crítico novo.
+    playAlertSound();
     writeSeen(seen);
   }, [quotes, enabled, permission]);
 
-  return { permission, enabled, request, disable };
+  return { permission, enabled, request, disable, soundEnabled, toggleSound, pushSubscribed };
 }

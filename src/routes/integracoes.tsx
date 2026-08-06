@@ -6,6 +6,7 @@ import {
   Bell,
   CheckCircle2,
   Copy,
+  FileSpreadsheet,
   Gauge,
   KeyRound,
   Plug,
@@ -62,6 +63,7 @@ import {
   sendSimulatedQuote,
   type SimulablePartnerId,
 } from "@/lib/medical/ecosystem/simulator";
+import { CsvImportDialog } from "@/components/medical/csv-import-dialog";
 
 export const Route = createFileRoute("/integracoes")({
   head: () => ({
@@ -84,12 +86,13 @@ export const Route = createFileRoute("/integracoes")({
 function IntegrationsPage() {
   const navigate = useNavigate();
   const { mappings, saveMapping, deleteMapping } = useErpMappings();
-  const { addQuote, ingestPortalQuote } = useQuotes();
+  const { addQuote, ingestPortalQuote, quotes } = useQuotes();
   const { tenant, scope } = useActiveTenant();
   const [payload, setPayload] = useState(() => JSON.stringify(SAMPLE_ERP_PAYLOAD, null, 2));
   const [mapping, setMapping] = useState(() => JSON.stringify(SAMPLE_MAPPING, null, 2));
   const [name, setName] = useState("");
   const [result, setResult] = useState<null | ReturnType<typeof applyMapping>>(null);
+  const [csvOpen, setCsvOpen] = useState(false);
 
   function sendToQuarantine() {
     let parsedPayload: unknown = payload;
@@ -165,6 +168,30 @@ function IntegrationsPage() {
     navigate({ to: "/inbox", search: { open: q.id } });
   }
 
+  function handleCsvImport(input: {
+    customer_name: string;
+    customer_segment: string;
+    items: {
+      product_id: string;
+      sku: string;
+      name: string;
+      quantity: number;
+      unit_price: number;
+      cost_price: number;
+    }[];
+  }) {
+    const q = addQuote({
+      owner_id: OWNERS[0].id,
+      customer_name: input.customer_name,
+      customer_segment: input.customer_segment,
+      source_type: "edi",
+      original_payload: JSON.stringify(input),
+      items: input.items,
+    });
+    toast.success(`Cotação ${q.id} criada a partir do CSV do ERP.`);
+    navigate({ to: "/inbox", search: { open: q.id } });
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader onReset={() => {}} />
@@ -185,6 +212,14 @@ function IntegrationsPage() {
             </Button>
             <Button size="sm" onClick={ingest} disabled={!result?.ok} className="gap-1.5">
               <Send className="h-4 w-4" /> Ingerir como cotação
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setCsvOpen(true)}
+              className="gap-1.5"
+            >
+              <FileSpreadsheet className="h-4 w-4" /> Bridge ERP (CSV)
             </Button>
           </div>
         </div>
@@ -339,6 +374,12 @@ function IntegrationsPage() {
         </div>
         <EcosystemSimulatorCard onIngest={ingestPortalQuote} />
       </main>
+      <CsvImportDialog
+        open={csvOpen}
+        onClose={() => setCsvOpen(false)}
+        quotes={quotes}
+        onImport={handleCsvImport}
+      />
       <Toaster position="top-right" richColors />
     </div>
   );

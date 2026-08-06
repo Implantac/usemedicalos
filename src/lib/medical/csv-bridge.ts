@@ -154,9 +154,7 @@ export function csvEscape(v: unknown): string {
 /** Converte um array de objetos em CSV (com BOM UTF-8). */
 export function generateCsv(rows: Record<string, unknown>[], columns: CsvColumn[]): string {
   const header = columns.map((c) => c.label).join(",");
-  const body = rows
-    .map((r) => columns.map((c) => csvEscape(r[c.key])).join(","))
-    .join("\n");
+  const body = rows.map((r) => columns.map((c) => csvEscape(r[c.key])).join(",")).join("\n");
   return "\uFEFF" + [header, body].filter(Boolean).join("\n");
 }
 
@@ -167,7 +165,10 @@ export function parseCsv(text: string): string[][] {
   let row: string[] = [];
   let field = "";
   let inQuotes = false;
-  const src = text.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  const src = text
+    .replace(/^\uFEFF/, "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n");
 
   for (let i = 0; i < src.length; i++) {
     const ch = src[i];
@@ -252,7 +253,17 @@ function headerIndex(headers: string[]): Map<string, number> {
 
 function num(v: string | undefined): number {
   if (v == null) return 0;
-  const n = parseFloat(String(v).replace(/\./g, "").replace(",", "."));
+  const raw = String(v).trim();
+  if (!raw) return 0;
+  let normalized: string;
+  if (raw.includes(",")) {
+    // Formato brasileiro: "1.000,50" → "1000.50"
+    normalized = raw.replace(/\./g, "").replace(",", ".");
+  } else {
+    // Formato com ponto decimal: "5.5", "3.0" ou milhar "1000"
+    normalized = raw;
+  }
+  const n = parseFloat(normalized);
   return Number.isFinite(n) ? n : 0;
 }
 
@@ -278,7 +289,13 @@ export interface CsvImportResult {
 /** Converte o conteúdo de um CSV do ERP em um rascunho de cotação opinável. */
 export function parseCsvToQuoteDraft(csv: string, templateId?: CsvTemplateId): CsvImportResult {
   const rows = parseCsv(csv);
-  if (rows.length < 2) return { ok: false, templateId: templateId ?? "generic", errors: ["CSV vazio ou sem dados."], report: { rows: 0, importedItems: 0, skipped: 0 } };
+  if (rows.length < 2)
+    return {
+      ok: false,
+      templateId: templateId ?? "generic",
+      errors: ["CSV vazio ou sem dados."],
+      report: { rows: 0, importedItems: 0, skipped: 0 },
+    };
 
   const headers = rows[0];
   const id = templateId ?? detectTemplate(headers);
@@ -301,7 +318,7 @@ export function parseCsvToQuoteDraft(csv: string, templateId?: CsvTemplateId): C
 
     const sku = get(im.sku) || get("sku");
     const name = get(im.name) || get("descricao") || sku;
-    const qty = num(get(im.quantity) || get("qtd"));
+    const qty = num(get(im.quantity) || get("qtd") || get("quantidade"));
     const price = num(get(im.unit_price) || get("preco"));
     const cost = im.cost_price ? num(get(im.cost_price) || get("custo")) : 0;
 
@@ -325,7 +342,12 @@ export function parseCsvToQuoteDraft(csv: string, templateId?: CsvTemplateId): C
 
   if (items.length === 0) {
     errors.push("Nenhum item válido encontrado no CSV (SKU ausente).");
-    return { ok: false, templateId: id, errors, report: { rows: rows.length - 1, importedItems: 0, skipped } };
+    return {
+      ok: false,
+      templateId: id,
+      errors,
+      report: { rows: rows.length - 1, importedItems: 0, skipped },
+    };
   }
 
   return {

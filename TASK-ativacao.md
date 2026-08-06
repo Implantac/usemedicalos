@@ -25,6 +25,20 @@
 - [x] Docs atualizados: TODO.md, PLANO-MELHORIAS.md, TASK-melhoria4.md, TASK-ativacao.md
 - [x] Commit da Melhoria #4 (ce7a17c)
 
-## Passo 6 — Próxima melhoria
-- [ ] Iniciar Melhoria #6 (Bridge ERP Offline via CSV)
+## Passo 6 — Melhoria #6 (Bridge ERP Offline via CSV)
+- [x] Implementar `csv-bridge.ts` (import/export, parse, templates Protheus/Sankhya/Use/Genérico)
+- [x] Implementar `csv-bridge.test.ts` (10 testes) + refinamentos pós-commit (parser numérico BR/decimal)
+- [x] Criar `csv-import-dialog.tsx` (dialog de importação/exportação)
+- [x] Seção "Bridge ERP (CSV)" + `handleCsvImport` em `integracoes.tsx`
+- [x] Label `csv_imported` em `auditoria.tsx` + ícone em `quote-timeline.tsx`
+- [x] Commit da Melhoria #6 (a8f71a2)
+
+## Passo 7 — Melhoria #1 (Notificações SLA reais)
+- [x] Criar `src/lib/medical/push-notifications.ts` — Push API subscription + alerta sonoro (Web Audio)
+- [x] Criar `src/hooks/use-sla-title-badge.ts` — badge de contagem no title/favicon
+- [x] Integrar Push + som em `use-sla-notifications.tsx`
+- [x] Badge de contagem + toggle de som em `sla-alert-bell.tsx`
+- [x] Verificação: tsc (0 erros), vitest (148/148), eslint (arquivos novos limpos; 1127 erros prettier pré-existentes no restante do código, não relacionados)
+- [x] Docs atualizados: TODO.md, PLANO-MELHORIAS.md, TASK-retomada-melhoria1.md
+- [ ] Commit da Melhoria #1 + refinamentos #6
 

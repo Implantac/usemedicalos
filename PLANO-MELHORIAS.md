@@ -2,7 +2,7 @@
 
 Com base na análise completa do código-fonte, manifesto do produto e roadmap, proponho
 
-## 1. 🚨 Notificações SLA Reais (Push + WhatsApp)
+## 1. 🚨 Notificações SLA Reais (Push + WhatsApp) ✅ IMPLEMENTADO (client-side)
 
 **Problema:** O SLA watchdog monitora prazos atrasados (`use-sla-notifications.tsx`), mas a notificação é apenas via `Notification API` do navegador. Não há fallback para quando o usuário está com a aba fechada ou no celular.
 
