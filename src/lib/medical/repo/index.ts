@@ -12,10 +12,11 @@
  */
 
 import { localStorageRepo } from "./local-storage";
-import { supabaseRepo } from "./supabase.stub";
+import { cloudRepo } from "./cloud";
 import type { Backend, Repo } from "./types";
 
 export * from "./types";
+export { cloudAvailable } from "./cloud";
 
 const CLOUD_FLAG = (import.meta.env.VITE_USE_CLOUD ?? "false") === "true";
 
@@ -27,7 +28,10 @@ export function setRepoOverride(next: Repo | null) {
 
 export function getRepo(): Repo {
   if (override) return override;
-  return CLOUD_FLAG ? supabaseRepo : localStorageRepo;
+  // Usa o cloudRepo (que faz lazy-import do Supabase e cai no localStorage
+  // quando o Cloud não está disponível). Assim o mesmo código funciona local
+  // e em produção Lovable Cloud.
+  return CLOUD_FLAG ? cloudRepo : localStorageRepo;
 }
 
 export function currentBackend(): Backend {

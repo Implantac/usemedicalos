@@ -49,11 +49,15 @@
 - [x] integracoes.tsx: `handleCsvApplyReturn` + `onApplyReturn` conectado ao dialog
 - [x] Testes: 155/155 passando, tsc 0 erros
 
-### 8. Sincronização multi-usuário (Supabase) — Melhoria #2
-- [ ] src/lib/medical/repo/supabase.ts (implementação real)
-- [ ] src/hooks/use-repo.tsx (context provider)
-- [ ] Documentar server functions + seed
-- [ ] Migração gradual dos hooks (pós-estrutura)
+### 8. Sincronização multi-usuário (Supabase/Cloud) — Melhoria #8
+- [x] src/lib/medical/repo/auth-middleware.ts — middleware `requireSupabaseAuth`
+- [x] src/lib/medical/repo/cloud.ts — implementação com client Supabase opcional + fallback localStorage
+- [x] src/lib/medical/repo/cloud.server.ts — server functions (quotes + inbox views serializáveis)
+- [x] src/lib/medical/repo/seed.ts — seed do tenant piloto + produtos + tenant_members
+- [x] src/hooks/use-repo.tsx — context provider (troca de backend em runtime)
+- [x] Integrado no provider raiz (`__root.tsx`)
+- [x] Testes: 155/155 passando, tsc 0 erros
+- [ ] Migração gradual dos hooks (pós-estrutura — quando Cloud ativo)
 
 ### 9. Roadmap Fase 2 — Data Flywheel + Regulated AI
 - [ ] Data Flywheel / Benchmarking

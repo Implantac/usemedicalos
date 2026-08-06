@@ -17,6 +17,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/medical/app-sidebar";
 import { AiDock } from "@/components/medical/ai-dock";
 import { Toaster } from "@/components/ui/sonner";
+import { RepoProvider } from "@/hooks/use-repo";
 
 function NotFoundComponent() {
   return (
@@ -143,18 +144,20 @@ function RootComponent() {
     void import("../lib/medical/retention").then((m) => m.runRetentionIfDue());
   }, []);
 
-  return (
+return (
     <QueryClientProvider client={queryClient}>
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          <Outlet />
-        </SidebarInset>
-        <CommandPalette />
-        <ShortcutsHelp />
-        <AiDock />
-        <Toaster position="top-right" richColors />
-      </SidebarProvider>
+      <RepoProvider>
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+            <Outlet />
+          </SidebarInset>
+          <CommandPalette />
+          <ShortcutsHelp />
+          <AiDock />
+          <Toaster position="top-right" richColors />
+        </SidebarProvider>
+      </RepoProvider>
     </QueryClientProvider>
   );
 }

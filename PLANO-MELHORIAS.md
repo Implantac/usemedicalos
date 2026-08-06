@@ -28,7 +28,7 @@ Com base na análise completa do código-fonte, manifesto do produto e roadmap, 
 
 ---
 
-## 2. 🔄 Sincronização Multi-usuário (Supabase)
+## 2. 🔄 Sincronização Multi-usuário (Supabase) ✅ IMPLEMENTADO (estrutura pronta)
 
 **Problema:** Tudo está em `localStorage` — `useQuotes`, `useActivities`, `useTenderParticipation`, etc. Um distribuidor com múltiplos vendedores não pode compartilhar dados.
 
@@ -38,21 +38,24 @@ Com base na análise completa do código-fonte, manifesto do produto e roadmap, 
 - `src/lib/medical/repo/` — camada de abstração de dados (index.ts, local-storage.ts, supabase.stub.ts, types.ts)
 - `src/lib/medical/repo/repo.test.ts` — testes da camada de repositório
 
-**O que implementar:**
-- **Camada `supabase.ts` real no repo:** implementar `SupabaseRepository` usando `createServerFn` + TanStack Query
-- **Middleware de autenticação:** `requireSupabaseAuth` para proteger server functions
-- **Migração gradual:** hook por hook, substituir `localStorage.getItem` por query TanStack Query
-- **Ordem de migração:** `useQuotes` → `useActivities` → `useTenderParticipation` → `useTenantConfig` → `useErpMappings` → `useApiKeys` → `useInboxViews`
-- **Seed data:** script para popular tenant piloto + usuário admin + produtos mock
+**O que foi implementado (Melhoria #8):**
+- **Middleware de autenticação:** `requireSupabaseAuth` (`src/lib/medical/repo/auth-middleware.ts`) para proteger server functions
+- **Camada cloud com fallback:** `src/lib/medical/repo/cloud.ts` — client Supabase opcional (lazy import) + fallback ao `localStorageRepo` quando Cloud não está ativo
+- **Server functions:** `src/lib/medical/repo/cloud.server.ts` — `createServerFn` (quotes + inbox views serializáveis)
+- **Seed data:** `src/lib/medical/repo/seed.ts` — tenant piloto + produtos + tenant_members
+- **Context provider:** `src/hooks/use-repo.tsx` — troca de backend em runtime, integrado no `__root.tsx`
 
-**Arquivos a criar/modificar:**
-- `src/lib/medical/repo/supabase.ts` — novo (implementação real Supabase)
-- `src/lib/medical/repo/index.ts` — adicionar `SupabaseRepository`
-- `src/lib/medical/repo/supabase.stub.ts` — manter como fallback dev
-- `src/hooks/use-quotes.tsx` — migrar para TanStack Query
-- `src/hooks/use-active-tenant.tsx` — migrar
-- `src/hooks/use-repo.tsx` — novo hook de contexto do repositório
-- `src/server.ts` — adicionar server functions
+**Próximos passos (quando Cloud ativo):**
+- Instalar `@supabase/supabase-js` + configurar `VITE_USE_CLOUD=true`/`SUPABASE_URL`/`SUPABASE_ANON_KEY`
+- Migração gradual dos hooks: `useQuotes` → `useActivities` → `useTenderParticipation` → `useTenantConfig` → `useErpMappings` → `useApiKeys` → `useInboxViews`
+
+**Arquivos criados/modificados:**
+- `src/lib/medical/repo/auth-middleware.ts` — novo
+- `src/lib/medical/repo/cloud.ts` — novo
+- `src/lib/medical/repo/cloud.server.ts` — novo
+- `src/lib/medical/repo/seed.ts` — novo
+- `src/hooks/use-repo.tsx` — novo
+- `src/routes/__root.tsx` — integrado `RepoProvider`
 
 ---
 
