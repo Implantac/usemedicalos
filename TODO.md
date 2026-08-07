@@ -68,7 +68,7 @@
 - [x] B. Autopreenchimento de itens repetidos — `quote-history.ts` (6 testes) + botão "Reusar última cotação"
 - [x] C. Métricas de conversão por fonte — `sourceConversion()` + card no dashboard
 - [x] D. Margem deixada na mesa — `marginLeftOnTable()` + card no dashboard + métrica no executivo
-- [x] E. Leaderboard de equipe — `teamLeaderboard()` + ranking no dashboard
+- [x] E. Leaderboard de equipe — `teamLeaderboard()` + ranking no dashboard + "Ranking da equipe" no vendedor.$ownerId.tsx
 - [x] F. Automação por regras — `auto-rules.ts` (7 testes) + selo no quote-drawer
+- [x] F (pipeline): botão "Responder automaticamente" no quote-drawer — aplica `autoMarkup` da regra que disparou e envia a proposta
 - [x] Verificação: tsc --noEmit 0 erros, vitest run (17 novos testes), eslint limpo nos arquivos novos
-- [ ] F (pipeline): aplicar `evaluateAutoRules` / `shouldAutoRespond` na resposta automática real

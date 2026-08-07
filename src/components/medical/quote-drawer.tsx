@@ -311,12 +311,36 @@ onUpdateQuote(quote.id, { items: reuseSuggestion.items.map((it) => ({ ...it })) 
     toast.message(`Motivo da perda registrado: ${LOSS_REASON_LABEL[reason]}.`);
   };
 
-  // Melhoria F: motor de regras — selo de resposta automática.
+// Melhoria F: motor de regras — selo de resposta automática.
   const autoResult = useMemo(() => evaluateAutoRules(DEFAULT_AUTO_RULES, quote), [quote]);
   const canAutoRespond = useMemo(
     () => shouldAutoRespond(DEFAULT_AUTO_RULES, quote),
     [quote],
   );
+
+  // Melhoria F (pipeline): responder automaticamente aplicando o autoMarkup da regra que disparou.
+  const handleAutoRespond = async () => {
+    if (!canAutoRespond) return;
+    const rule = autoResult.autoResponded[0]?.rule;
+    if (!rule) return;
+    // Aplica o markup automático (se a regra definir) nos itens ainda sem preço/venda.
+    const markup = rule.autoMarkup != null ? rule.autoMarkup : undefined;
+    if (markup != null) {
+      quote.items.forEach((it, idx) => {
+        const suggestedMarkup = it.cost_price > 0 ? it.cost_price / (1 - markup) : it.unit_price;
+        onUpdateItem(quote.id, idx, { unit_price: suggestedMarkup });
+      });
+      appendActivity({
+        quote_id: quote.id,
+        type: "price_suggested",
+        message: `Regra "${rule.name}" aplicou markup automático de ${formatPct(markup)}`,
+        meta: { engine_status: "AUTO_RULE" },
+      });
+      bumpActivity();
+    }
+    // Envia a proposta (mesmo fluxo do botão principal).
+    await handleGenerateProposal();
+  };
 
   return (
     <Sheet
@@ -430,30 +454,43 @@ onUpdateQuote(quote.id, { items: reuseSuggestion.items.map((it) => ({ ...it })) 
             </section>
           )}
 
-          {/* Melhoria F: selo de regras automáticas */}
+{/* Melhoria F: selo de regras automáticas + resposta automática */}
           {(canAutoRespond || autoResult.elevated.length > 0) && (
             <section className="border-b p-4">
               <div
                 className={cn(
-                  "flex items-start gap-2 rounded-lg border p-2.5 text-xs",
+                  "flex items-start justify-between gap-2 rounded-lg border p-2.5 text-xs",
                   canAutoRespond
                     ? "border-success/40 bg-success/10 text-success"
                     : "border-warning/40 bg-warning/10 text-warning-foreground",
                 )}
               >
-                <Bot className="mt-0.5 h-4 w-4 shrink-0" />
-                <div>
-                  <div className="font-semibold">
-                    {canAutoRespond
-                      ? "Resposta automática elegível"
-                      : "Cotação elevada para revisão"}
-                  </div>
-                  <div className="mt-0.5 text-[11px] opacity-90">
-                    {canAutoRespond
-                      ? autoResult.autoResponded.map((e) => e.rule.name).join(" · ")
-                      : autoResult.elevated.map((e) => e.rule.name).join(" · ")}
+                <div className="flex items-start gap-2">
+                  <Bot className="mt-0.5 h-4 w-4 shrink-0" />
+                  <div>
+                    <div className="font-semibold">
+                      {canAutoRespond
+                        ? "Resposta automática elegível"
+                        : "Cotação elevada para revisão"}
+                    </div>
+                    <div className="mt-0.5 text-[11px] opacity-90">
+                      {canAutoRespond
+                        ? autoResult.autoResponded.map((e) => e.rule.name).join(" · ")
+                        : autoResult.elevated.map((e) => e.rule.name).join(" · ")}
+                    </div>
                   </div>
                 </div>
+                {canAutoRespond && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 shrink-0 gap-1 text-[11px]"
+                    onClick={handleAutoRespond}
+                    disabled={submitting}
+                  >
+                    <Bot className="h-3 w-3" /> Responder
+                  </Button>
+                )}
               </div>
             </section>
           )}

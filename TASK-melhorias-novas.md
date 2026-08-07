@@ -32,16 +32,16 @@ Baseado no feedback, implementar as melhorias sugeridas. Prioridade por impacto 
 ### F. Automação por regras (nível automático) ✅ lógica
 - [x] `lib/medical/auto-rules.ts`: motor de regras "se cliente Tier X e margem ≥ Y → responder automaticamente" (com suporte `marginOperator` gte/lt)
 - [x] `src/lib/medical/auto-rules.test.ts`: 7 testes unitários
-- [ ] integração no pipeline de resposta — PENDENTE (UI)
+- [x] `quote-drawer.tsx`: selo de regras automáticas + botão "Responder automaticamente" (aplica `autoMarkup` da regra que disparou e envia a proposta) ✅
 
 ## Verificação (lote de lógica + UI)
 - [x] `tsc --noEmit` 0 erros
 - [x] `vitest run` — todos os novos testes passando (quote-history 6, auto-rules 7, analytics-novas 4 = 17 novos)
 - [ ] `eslint` 0 erros
 - [x] docs TODO.md / PLANO-MELHORIAS.md atualizadas
-- [ ] commit do lote de lógica + UI
+- [x] commit do lote de lógica + UI
 
 ## Integração pendente (próximo lote)
-- `quote-drawer.tsx`: selo de regras automáticas já exibido; aplicar `evaluateAutoRules` / `shouldAutoRespond` no pipeline de resposta automática (auto-resposta real)
-- `executivo.tsx`: card "Margem deixada na mesa" (já no dashboard)
+- Nenhuma pendente de UI — todos os itens A–F implementados (lógica + UI client-side + PWA).
+- Cloud/Supabase: migração gradual dos hooks de storage para o backend cloud quando ativo.
 

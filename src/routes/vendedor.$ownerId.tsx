@@ -27,7 +27,12 @@ import { useQuotes } from "@/hooks/use-quotes";
 import { useOwnerGoals } from "@/hooks/use-owner-goals";
 import { OWNERS, ownerById } from "@/lib/medical/mock-data";
 import { computeAchievements } from "@/lib/medical/achievements";
-import { computeKpis, leaderboard, performanceTrend } from "@/lib/medical/analytics";
+import {
+  computeKpis,
+  leaderboard,
+  performanceTrend,
+  teamLeaderboard,
+} from "@/lib/medical/analytics";
 import { formatBRL, formatPct, quoteTotals } from "@/lib/medical/pricing";
 import { summarizeForOwner } from "@/lib/medical/commission";
 import { benchmarkFor, type Region } from "@/lib/medical/benchmarks";
@@ -84,6 +89,11 @@ function OwnerPage() {
     const idx = board.findIndex((r) => r.owner.id === ownerId);
     return idx >= 0 ? idx + 1 : null;
   }, [board, ownerId]);
+  const teamBoard = useMemo(() => teamLeaderboard(quotes), [quotes]);
+  const teamRanking = useMemo(() => {
+    const idx = teamBoard.findIndex((r) => r.ownerId === ownerId);
+    return idx >= 0 ? idx + 1 : null;
+  }, [teamBoard, ownerId]);
   const sorted = useMemo(
     () => [...mine].sort((a, b) => (a.received_at < b.received_at ? 1 : -1)),
     [mine],
@@ -323,13 +333,78 @@ function OwnerPage() {
           </div>
         </div>
 
-        <RegionBenchmarkCard
+<RegionBenchmarkCard
           region={owner.territory as Region}
           quotes={mine}
           selfAvgMargin={kpis.avgMargin}
           selfAvgTicket={kpis.avgTicket}
           selfWinRate={kpis.winRate}
         />
+
+        {/* Melhoria E: leaderboard de equipe (tenant) */}
+        <div className="rounded-lg border bg-card p-3 card-shadow">
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              Ranking da equipe
+            </h3>
+            {teamRanking !== null && (
+              <span className="rounded bg-brand/15 px-2 py-0.5 text-[11px] font-bold text-brand">
+                Você: #{teamRanking}
+              </span>
+            )}
+          </div>
+          {teamBoard.length === 0 ? (
+            <div className="p-4 text-center text-xs text-muted-foreground">
+              Sem dados de equipe no escopo atual.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead className="border-b bg-muted/20 text-[10px] uppercase text-muted-foreground">
+                  <tr>
+                    <th className="px-2 py-1 text-left font-semibold">#</th>
+                    <th className="px-2 py-1 text-left font-semibold">Vendedor</th>
+                    <th className="px-2 py-1 text-right font-semibold">Cotações</th>
+                    <th className="px-2 py-1 text-right font-semibold">Pipeline</th>
+                    <th className="px-2 py-1 text-right font-semibold">Ganhas</th>
+                    <th className="px-2 py-1 text-right font-semibold">Comissão</th>
+                    <th className="px-2 py-1 text-right font-semibold">Win rate</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {teamBoard.map((r, i) => {
+                    const me = r.ownerId === ownerId;
+                    return (
+                      <tr
+                        key={r.ownerId}
+                        className={
+                          me ? "bg-brand/5 font-semibold" : "hover:bg-accent/40"
+                        }
+                      >
+                        <td className="px-2 py-1 num">{i + 1}</td>
+                        <td className="px-2 py-1">
+                          <div className="flex items-center gap-2">
+                            <span className="grid h-5 w-5 place-items-center rounded-full bg-muted text-[9px] font-bold text-muted-foreground">
+                              {r.initialization}
+                            </span>
+                            <span className="truncate">{r.ownerName}</span>
+                          </div>
+                        </td>
+                        <td className="px-2 py-1 text-right num">{r.quotes}</td>
+                        <td className="px-2 py-1 text-right num">{formatBRL(r.pipeline)}</td>
+                        <td className="px-2 py-1 text-right num">{formatBRL(r.wonRevenue)}</td>
+                        <td className="px-2 py-1 text-right num font-semibold text-success">
+                          {formatBRL(r.commissionWon)}
+                        </td>
+                        <td className="px-2 py-1 text-right num">{formatPct(r.winRate)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
 
         <div className="overflow-hidden rounded-lg border bg-card card-shadow">
           <div className="border-b bg-muted/40 px-2 py-1">
