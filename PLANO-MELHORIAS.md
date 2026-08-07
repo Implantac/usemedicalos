@@ -213,9 +213,13 @@ Com base na análise completa do código-fonte, manifesto do produto e roadmap, 
 
 **Status: ✅ Lógica + UI implementados** — tsc 0 erros, vitest (17 novos testes) passando
 
-**Pendente (próximo lote):**
-- F (pipeline de resposta): aplicar `evaluateAutoRules` / `shouldAutoRespond` na resposta automática real (auto-envio)
-- E no vendedor: ranking de equipe detalhado por vendedor
+**Refinamentos finais (lote fechado):**
+- F (pipeline): `handleAutoRespond` no quote-drawer aplica o `autoMarkup` consolidado em um único `onUpdateQuote` (em vez de N `onUpdateItem`, evitando re-renders/atualizações parciais) e envia a proposta via `handleGenerateProposal` (que valida margem/compliance)
+- A (consistência de dados): ao mudar o status de uma cotação para um que não seja "perdido", o `loss_reason` é removido automaticamente (só deve existir em cotações perdidas)
+- D (dashboard): card "Margem deixada na mesa" redesenhado com barras comparativas da margem realizada vs sugerida + legenda explicando a diferença (R$ deixados na mesa)
+- E no vendedor: ranking de equipe detalhado por vendedor integrado no `vendedor.$ownerId.tsx`
+
+**Verificação final:** tsc --noEmit 0 erros, vitest 172/172 passando
 
 ---
 

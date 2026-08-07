@@ -288,7 +288,7 @@ function QuoteDrawerInner({
 
   const handleReuse = () => {
     if (!reuseSuggestion) return;
-onUpdateQuote(quote.id, { items: reuseSuggestion.items.map((it) => ({ ...it })) });
+    onUpdateQuote(quote.id, { items: reuseSuggestion.items.map((it) => ({ ...it })) });
     appendActivity({
       quote_id: quote.id,
       type: "item_updated",
@@ -311,25 +311,23 @@ onUpdateQuote(quote.id, { items: reuseSuggestion.items.map((it) => ({ ...it })) 
     toast.message(`Motivo da perda registrado: ${LOSS_REASON_LABEL[reason]}.`);
   };
 
-// Melhoria F: motor de regras — selo de resposta automática.
+  // Melhoria F: motor de regras — selo de resposta automática.
   const autoResult = useMemo(() => evaluateAutoRules(DEFAULT_AUTO_RULES, quote), [quote]);
-  const canAutoRespond = useMemo(
-    () => shouldAutoRespond(DEFAULT_AUTO_RULES, quote),
-    [quote],
-  );
+  const canAutoRespond = useMemo(() => shouldAutoRespond(DEFAULT_AUTO_RULES, quote), [quote]);
 
   // Melhoria F (pipeline): responder automaticamente aplicando o autoMarkup da regra que disparou.
   const handleAutoRespond = async () => {
     if (!canAutoRespond) return;
     const rule = autoResult.autoResponded[0]?.rule;
     if (!rule) return;
-    // Aplica o markup automático (se a regra definir) nos itens ainda sem preço/venda.
+    // Aplica o markup automático (se a regra definir) nos itens ainda sem preço/venda,
+    // consolidando em um único update (evita N re-renders e atualizações parciais).
     const markup = rule.autoMarkup != null ? rule.autoMarkup : undefined;
     if (markup != null) {
-      quote.items.forEach((it, idx) => {
-        const suggestedMarkup = it.cost_price > 0 ? it.cost_price / (1 - markup) : it.unit_price;
-        onUpdateItem(quote.id, idx, { unit_price: suggestedMarkup });
-      });
+      const items = quote.items.map((it) =>
+        it.cost_price > 0 ? { ...it, unit_price: it.cost_price / (1 - markup) } : it,
+      );
+      onUpdateQuote(quote.id, { items });
       appendActivity({
         quote_id: quote.id,
         type: "price_suggested",
@@ -338,7 +336,7 @@ onUpdateQuote(quote.id, { items: reuseSuggestion.items.map((it) => ({ ...it })) 
       });
       bumpActivity();
     }
-    // Envia a proposta (mesmo fluxo do botão principal).
+    // Envia a proposta (mesmo fluxo do botão principal). O handleGenerateProposal valida margem/compliance.
     await handleGenerateProposal();
   };
 
@@ -429,32 +427,33 @@ onUpdateQuote(quote.id, { items: reuseSuggestion.items.map((it) => ({ ...it })) 
             )}
           </section>
 
-{/* Melhoria B: reusar última cotação */}
-          {reuseSuggestion && (quote.status === "aguardando_precificacao" || quote.status === "em_negociacao") && (
-            <section className="border-b p-4">
-              <div className="flex items-center justify-between gap-2 rounded-lg border border-dashed border-brand/40 bg-brand/5 p-2.5">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-brand">
-                    <History className="h-3.5 w-3.5" /> Última cotação de {quote.customer_name}
+          {/* Melhoria B: reusar última cotação */}
+          {reuseSuggestion &&
+            (quote.status === "aguardando_precificacao" || quote.status === "em_negociacao") && (
+              <section className="border-b p-4">
+                <div className="flex items-center justify-between gap-2 rounded-lg border border-dashed border-brand/40 bg-brand/5 p-2.5">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-brand">
+                      <History className="h-3.5 w-3.5" /> Última cotação de {quote.customer_name}
+                    </div>
+                    <div className="mt-0.5 text-[11px] text-muted-foreground">
+                      {reuseSuggestion.items.length} item(ns) · {formatBRL(reuseSuggestion.revenue)}{" "}
+                      · {new Date(reuseSuggestion.receivedAt).toLocaleDateString("pt-BR")}
+                    </div>
                   </div>
-                  <div className="mt-0.5 text-[11px] text-muted-foreground">
-                    {reuseSuggestion.items.length} item(ns) · {formatBRL(reuseSuggestion.revenue)} ·{" "}
-                    {new Date(reuseSuggestion.receivedAt).toLocaleDateString("pt-BR")}
-                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 shrink-0 gap-1 text-[11px]"
+                    onClick={handleReuse}
+                  >
+                    <History className="h-3 w-3" /> Reusar
+                  </Button>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 shrink-0 gap-1 text-[11px]"
-                  onClick={handleReuse}
-                >
-                  <History className="h-3 w-3" /> Reusar
-                </Button>
-              </div>
-            </section>
-          )}
+              </section>
+            )}
 
-{/* Melhoria F: selo de regras automáticas + resposta automática */}
+          {/* Melhoria F: selo de regras automáticas + resposta automática */}
           {(canAutoRespond || autoResult.elevated.length > 0) && (
             <section className="border-b p-4">
               <div
@@ -749,7 +748,7 @@ onUpdateQuote(quote.id, { items: reuseSuggestion.items.map((it) => ({ ...it })) 
             </div>
           </div>
 
-{!marginOk && (
+          {!marginOk && (
             <div className="mb-2 flex items-start gap-2 rounded-md border border-danger/30 bg-danger/10 p-2 text-xs text-danger">
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               <span>
@@ -799,7 +798,11 @@ onUpdateQuote(quote.id, { items: reuseSuggestion.items.map((it) => ({ ...it })) 
                   message: `Status: ${STATUS_LABEL[quote.status]} → ${STATUS_LABEL[to]}`,
                   meta: { from: quote.status, to },
                 });
-                onUpdateQuote(quote.id, { status: to });
+                // Consistência: loss_reason só deve existir em cotações perdidas.
+                onUpdateQuote(quote.id, {
+                  status: to,
+                  ...(to !== "perdido" && quote.loss_reason ? { loss_reason: undefined } : {}),
+                });
                 bumpActivity();
               }}
             >

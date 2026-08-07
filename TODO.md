@@ -72,3 +72,4 @@
 - [x] F. Automação por regras — `auto-rules.ts` (7 testes) + selo no quote-drawer
 - [x] F (pipeline): botão "Responder automaticamente" no quote-drawer — aplica `autoMarkup` da regra que disparou e envia a proposta
 - [x] Verificação: tsc --noEmit 0 erros, vitest run (17 novos testes), eslint limpo nos arquivos novos
+- [x] Refinamentos finais da Roda 2: `handleAutoRespond` consolida o markup em um único update (evita N re-renders) + consistência de `loss_reason` (só existe em cotações perdidas) no quote-drawer; card "Margem deixada na mesa" no dashboard com barras comparativas (realizada vs sugerida) — tsc 0 erros, 172/172 testes passando
