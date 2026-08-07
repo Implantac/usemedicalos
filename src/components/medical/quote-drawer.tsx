@@ -30,8 +30,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import type { ClientTier, Quote, QuoteStatus } from "@/lib/medical/types";
-import { CLIENT_TIER_DISCOUNT, STATUS_LABEL } from "@/lib/medical/types";
+import type { ClientTier, LossReason, Quote, QuoteStatus } from "@/lib/medical/types";
+import { CLIENT_TIER_DISCOUNT, LOSS_REASON_LABEL, STATUS_LABEL } from "@/lib/medical/types";
 import {
   basePrice,
   formatBRL,
@@ -76,6 +76,9 @@ import {
   storeSnapshot,
 } from "@/lib/medical/snapshot";
 import { VersionDiff } from "./version-diff";
+import { suggestReuseForCustomer } from "@/lib/medical/quote-history";
+import { DEFAULT_AUTO_RULES, evaluateAutoRules, shouldAutoRespond } from "@/lib/medical/auto-rules";
+import { History, Bot } from "lucide-react";
 
 interface Props {
   quote: Quote | null;
@@ -277,6 +280,44 @@ function QuoteDrawerInner({
     toast.success("Itens restaurados para a versão enviada.");
   };
 
+  // Melhoria B: sugestão da última cotação do mesmo cliente.
+  const reuseSuggestion = useMemo(
+    () => suggestReuseForCustomer(allQuotes, quote.customer_name, quote.id),
+    [allQuotes, quote.customer_name, quote.id],
+  );
+
+  const handleReuse = () => {
+    if (!reuseSuggestion) return;
+onUpdateQuote(quote.id, { items: reuseSuggestion.items.map((it) => ({ ...it })) });
+    appendActivity({
+      quote_id: quote.id,
+      type: "item_updated",
+      message: `Itens reaproveitados da cotação #${reuseSuggestion.quoteId.toUpperCase()} (${formatBRL(reuseSuggestion.revenue)})`,
+    });
+    bumpActivity();
+    toast.success(`Itens da última cotação aplicados (${formatBRL(reuseSuggestion.revenue)}).`);
+  };
+
+  // Melhoria A: captura de motivo de perda.
+  const handleSetLossReason = (reason: LossReason) => {
+    onUpdateQuote(quote.id, { loss_reason: reason });
+    appendActivity({
+      quote_id: quote.id,
+      type: "quote_lost",
+      message: `Cotação marcada como perdida — motivo: ${LOSS_REASON_LABEL[reason]}`,
+      meta: { reason },
+    });
+    bumpActivity();
+    toast.message(`Motivo da perda registrado: ${LOSS_REASON_LABEL[reason]}.`);
+  };
+
+  // Melhoria F: motor de regras — selo de resposta automática.
+  const autoResult = useMemo(() => evaluateAutoRules(DEFAULT_AUTO_RULES, quote), [quote]);
+  const canAutoRespond = useMemo(
+    () => shouldAutoRespond(DEFAULT_AUTO_RULES, quote),
+    [quote],
+  );
+
   return (
     <Sheet
       open
@@ -363,6 +404,59 @@ function QuoteDrawerInner({
               </div>
             )}
           </section>
+
+{/* Melhoria B: reusar última cotação */}
+          {reuseSuggestion && (quote.status === "aguardando_precificacao" || quote.status === "em_negociacao") && (
+            <section className="border-b p-4">
+              <div className="flex items-center justify-between gap-2 rounded-lg border border-dashed border-brand/40 bg-brand/5 p-2.5">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-brand">
+                    <History className="h-3.5 w-3.5" /> Última cotação de {quote.customer_name}
+                  </div>
+                  <div className="mt-0.5 text-[11px] text-muted-foreground">
+                    {reuseSuggestion.items.length} item(ns) · {formatBRL(reuseSuggestion.revenue)} ·{" "}
+                    {new Date(reuseSuggestion.receivedAt).toLocaleDateString("pt-BR")}
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 shrink-0 gap-1 text-[11px]"
+                  onClick={handleReuse}
+                >
+                  <History className="h-3 w-3" /> Reusar
+                </Button>
+              </div>
+            </section>
+          )}
+
+          {/* Melhoria F: selo de regras automáticas */}
+          {(canAutoRespond || autoResult.elevated.length > 0) && (
+            <section className="border-b p-4">
+              <div
+                className={cn(
+                  "flex items-start gap-2 rounded-lg border p-2.5 text-xs",
+                  canAutoRespond
+                    ? "border-success/40 bg-success/10 text-success"
+                    : "border-warning/40 bg-warning/10 text-warning-foreground",
+                )}
+              >
+                <Bot className="mt-0.5 h-4 w-4 shrink-0" />
+                <div>
+                  <div className="font-semibold">
+                    {canAutoRespond
+                      ? "Resposta automática elegível"
+                      : "Cotação elevada para revisão"}
+                  </div>
+                  <div className="mt-0.5 text-[11px] opacity-90">
+                    {canAutoRespond
+                      ? autoResult.autoResponded.map((e) => e.rule.name).join(" · ")
+                      : autoResult.elevated.map((e) => e.rule.name).join(" · ")}
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* Items */}
           <section className="p-4">
@@ -618,12 +712,41 @@ function QuoteDrawerInner({
             </div>
           </div>
 
-          {!marginOk && (
+{!marginOk && (
             <div className="mb-2 flex items-start gap-2 rounded-md border border-danger/30 bg-danger/10 p-2 text-xs text-danger">
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               <span>
                 Margem abaixo de {formatPct(minMargin)}. Ajuste antes de enviar a proposta.
               </span>
+            </div>
+          )}
+
+          {/* Melhoria A: motivo de perda ao marcar como perdida */}
+          {quote.status === "perdido" && (
+            <div className="mb-2 rounded-lg border border-warning/40 bg-warning/10 p-2.5">
+              <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-warning-foreground">
+                Motivo da perda
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {(Object.keys(LOSS_REASON_LABEL) as LossReason[]).map((r) => {
+                  const active = quote.loss_reason === r;
+                  return (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => handleSetLossReason(r)}
+                      className={cn(
+                        "rounded-md border px-2 py-1 text-[11px] font-semibold transition",
+                        active
+                          ? "border-danger bg-danger text-danger-foreground"
+                          : "border-border bg-card text-muted-foreground hover:bg-muted",
+                      )}
+                    >
+                      {LOSS_REASON_LABEL[r]}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 

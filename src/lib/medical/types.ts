@@ -14,6 +14,32 @@ export type Priority = "baixa" | "normal" | "alta" | "urgente";
 
 export type SourcePlatform = "bionexo" | "apoio" | "clickmed" | "portal_gov" | "outro";
 
+export type LossReason =
+  | "preco"
+  | "prazo"
+  | "estoque"
+  | "concorrente"
+  | "qualidade"
+  | "outro";
+
+export const LOSS_REASON_LABEL: Record<LossReason, string> = {
+  preco: "Preço",
+  prazo: "Prazo",
+  estoque: "Estoque",
+  concorrente: "Concorrente",
+  qualidade: "Qualidade",
+  outro: "Outro",
+};
+
+export const LOSS_REASONS: LossReason[] = [
+  "preco",
+  "prazo",
+  "estoque",
+  "concorrente",
+  "qualidade",
+  "outro",
+];
+
 export interface PortalMeta {
   source_platform: SourcePlatform;
   portal_reference: string;
@@ -99,6 +125,7 @@ export interface Quote {
   platform?: string; // Para compatibilidade com UI operacional
   pinned?: boolean;
   snoozed_until?: string; // ISO — cotação some da inbox até essa data
+  loss_reason?: LossReason; // motivo da perda (preenchido ao marcar perdido)
 }
 
 export interface SlaTracking {

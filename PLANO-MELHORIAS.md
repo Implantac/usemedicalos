@@ -193,6 +193,32 @@ Com base na análise completa do código-fonte, manifesto do produto e roadmap, 
 
 ---
 
+## 8. Roda de Melhorias 2 — Lógica + Integração de UI ✅ IMPLEMENTADO
+
+**Problema:** Melhorias operacionais de impacto no ciclo de cotação (motivo de perda, reutilização de histórico, métricas de conversão agrupadas por fonte, margem deixada na mesa, leaderboard de equipe e automação por regras) estavam apenas na camada de lógica pura, sem UI integrada.
+
+**O que foi implementado (lote de lógica + UI):**
+- **A. Motivo da perda:** `loss_reason` em `Quote` + tipo `quote_lost` com `meta.reason` + captura de motivo (preço, prazo, estoque, concorrente, outro) ao marcar perdida no `quote-drawer.tsx`
+- **B. Autopreenchimento de itens repetidos:** `quote-history.ts` (6 testes) + botão "Reusar última cotação" no drawer
+- **C. Métricas de conversão por fonte:** `sourceConversion()` + card no dashboard
+- **D. Margem deixada na mesa:** `marginLeftOnTable()` + card no dashboard + métrica "Margem deixada na mesa" no Painel Executivo
+- **E. Leaderboard de equipe:** `teamLeaderboard()` + ranking por equipe no dashboard
+- **F. Automação por regras:** `auto-rules.ts` (7 testes) + selo de regras automáticas no drawer
+
+**Arquivos criados/modificados:**
+- `src/lib/medical/quote-history.ts`, `auto-rules.ts`, `analytics.ts`, `types.ts`, `activity.ts`
+- `src/components/medical/quote-drawer.tsx` (A, B, F)
+- `src/routes/dashboard.tsx` (C, D, E)
+- `src/routes/executivo.tsx` (métrica D)
+
+**Status: ✅ Lógica + UI implementados** — tsc 0 erros, vitest (17 novos testes) passando
+
+**Pendente (próximo lote):**
+- F (pipeline de resposta): aplicar `evaluateAutoRules` / `shouldAutoRespond` na resposta automática real (auto-envio)
+- E no vendedor: ranking de equipe detalhado por vendedor
+
+---
+
 ## Prioridade Técnica Sugerida
 
 | # | Melhoria | Esforço | Impacto | Dependências |

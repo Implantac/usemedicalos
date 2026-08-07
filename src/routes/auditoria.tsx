@@ -51,6 +51,7 @@ const TYPE_LABEL: Record<ActivityType, string> = {
   snapshot_sent: "Versão enviada registrada",
   quote_restored: "Preços restaurados do envio",
   csv_imported: "Importação CSV",
+  quote_lost: "Cotação perdida",
 };
 
 const HIGH_RISK: ActivityType[] = [

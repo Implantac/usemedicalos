@@ -45,6 +45,7 @@ const ICONS: Record<ActivityType, typeof ActivityIcon> = {
   snapshot_sent: History,
   quote_restored: RotateCcw,
   csv_imported: TableIcon,
+  quote_lost: ShieldOff,
 };
 
 function formatRelative(iso: string): string {

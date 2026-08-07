@@ -20,7 +20,8 @@ export type ActivityType =
 | "product_quick_created"
   | "snapshot_sent"
   | "quote_restored"
-  | "csv_imported";
+  | "csv_imported"
+  | "quote_lost";
 
 export interface Activity {
   id: string;

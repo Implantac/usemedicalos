@@ -1,4 +1,5 @@
 import type { Quote, QuoteStatus, SourceType } from "./types";
+import { MIN_MARGIN } from "./types";
 import { OWNERS, ownerById } from "./mock-data";
 import { quoteTotals } from "./pricing";
 import { computeCommission } from "./commission";
@@ -183,6 +184,135 @@ export interface PricePoint {
   margin: number;
 }
 
+export interface SourceConversion {
+  source: SourceType;
+  count: number;
+  responded: number;
+  won: number;
+  lost: number;
+  responseRate: number; // 0..1
+  avgResponseHours: number | null;
+  winRate: number; // 0..1 (ganho / fechadas)
+}
+
+/**
+ * Métricas de conversão por fonte (me lhoria #C):
+ * taxa de resposta, prazo médio de resposta e taxa de vitória por fonte.
+ */
+export function sourceConversion(quotes: Quote[]): SourceConversion[] {
+  const bySource = new Map<SourceType, Quote[]>();
+  for (const q of quotes) {
+    const list = bySource.get(q.source_type) ?? [];
+    list.push(q);
+    bySource.set(q.source_type, list);
+  }
+  const now = Date.now();
+  const out: SourceConversion[] = [];
+  for (const [source, list] of bySource) {
+    const responded = list.filter(
+      (q) => q.status !== "aguardando_precificacao" && q.status !== "pending_review",
+    );
+    const closed = list.filter((q) => q.status === "ganho" || q.status === "perdido");
+    const won = closed.filter((q) => q.status === "ganho");
+    const respHours: (number | null)[] = list.map((q) => {
+      const received = new Date(q.received_at).getTime();
+      if (q.status === "aguardando_precificacao" || q.status === "pending_review")
+        return (now - received) / 3_600_000;
+      const deadline = new Date(q.sla_deadline).getTime();
+      const window = deadline - received;
+      return Math.max(0, window * 0.5) / 3_600_000;
+    });
+    const positiveHours = respHours.filter((h): h is number => h != null);
+    const sumHours = positiveHours.reduce((s, h) => s + (h as number), 0);
+    const avgResponseHours = positiveHours.length > 0 ? sumHours / positiveHours.length : null;
+    out.push({
+      source,
+      count: list.length,
+      responded: responded.length,
+      won: won.length,
+      lost: closed.length - won.length,
+      responseRate: list.length ? responded.length / list.length : 0,
+      avgResponseHours,
+      winRate: closed.length ? won.length / closed.length : 0,
+    });
+  }
+  return out.sort((a, b) => b.count - a.count);
+}
+
+export interface MarginOnTable {
+  totalRevenue: number;
+  totalCost: number;
+  realizedMargin: number; // 0..1 margem do preço fechado
+  suggestedMargin: number; // 0..1 margem do preço sugerido
+  marginLeftOnTableBRL: number; // R$ de margem "deixada na mesa" (ganhas + em negociação)
+  quoteCount: number;
+}
+
+const OPEN_OR_WON: QuoteStatus[] = ["ganho", "enviado", "em_negociacao"];
+
+/**
+ * Calcula a margem "deixada na mesa": diferença entre a margem obtida no preço
+ * fechado e a margem que o preço sugerido (via pricing) teria entregue (me lhoria #D).
+ */
+export function marginLeftOnTable(quotes: Quote[]): MarginOnTable {
+  let totalRevenue = 0;
+  let totalCost = 0;
+  let marginLeft = 0;
+  let realizedMargin = 0;
+  let suggestedMargin = 0;
+  for (const q of quotes) {
+    if (!OPEN_OR_WON.includes(q.status)) continue;
+    for (const it of q.items) {
+      totalRevenue += it.unit_price * it.quantity;
+      totalCost += it.cost_price * it.quantity;
+    }
+  }
+  // Margem sugerida aproximada por item usando custo + markup padrão (piso de 12%).
+  const markup = 1 / (1 - MIN_MARGIN);
+  for (const q of quotes) {
+    if (!OPEN_OR_WON.includes(q.status)) continue;
+    for (const it of q.items) {
+      const suggested = it.cost_price > 0 ? it.cost_price * markup : it.unit_price;
+      const realizedMarginItem =
+        it.unit_price > 0 ? (it.unit_price - it.cost_price) / it.unit_price : 0;
+      const suggestedMarginItem =
+        suggested > 0 ? (suggested - it.cost_price) / suggested : 0;
+      marginLeft += (suggestedMarginItem - realizedMarginItem) * suggested;
+    }
+  }
+  const closed = quotes.filter((q) => q.status === "ganho");
+  const closedTotals = closed.map((q) => ({
+    revenue: q.items.reduce((s, it) => s + it.unit_price * it.quantity, 0),
+    cost: q.items.reduce((s, it) => s + it.cost_price * it.quantity, 0),
+  }));
+  const realizedRev = closedTotals.reduce((s, t) => s + t.revenue, 0);
+  const realizedCost = closedTotals.reduce((s, t) => s + t.cost, 0);
+  realizedMargin = realizedRev > 0 ? (realizedRev - realizedCost) / realizedRev : 0;
+  // Margem sugerida sobre ganhas
+  const suggRev = closed.reduce(
+    (s, q) =>
+      s +
+      q.items.reduce(
+        (sum, it) => sum + (it.cost_price > 0 ? it.cost_price * markup : it.unit_price) * it.quantity,
+        0,
+      ),
+    0,
+  );
+  const suggCost = closed.reduce(
+    (s, q) => s + q.items.reduce((sum, it) => sum + it.cost_price * it.quantity, 0),
+    0,
+  );
+  suggestedMargin = suggRev > 0 ? (suggRev - suggCost) / suggRev : 0;
+  return {
+    totalRevenue,
+    totalCost,
+    realizedMargin,
+    suggestedMargin,
+    marginLeftOnTableBRL: Math.max(0, marginLeft),
+    quoteCount: quotes.filter((q) => OPEN_OR_WON.includes(q.status)).length,
+  };
+}
+
 export function priceHistory(quotes: Quote[], productId: string): PricePoint[] {
   const rows: PricePoint[] = [];
   for (const q of quotes) {
@@ -201,4 +331,51 @@ export function priceHistory(quotes: Quote[], productId: string): PricePoint[] {
     }
   }
   return rows.sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+export interface TeamRow {
+  ownerId: string;
+  ownerName: string;
+  initialization: string;
+  quotes: number;
+  pipeline: number;
+  wonRevenue: number;
+  commissionWon: number;
+  winRate: number; // 0..1
+}
+
+/**
+ * Leaderboard de equipe (Melhoria E): agrega owners por tenant.
+ * Cada owner é representado em uma linha com métricas de performance.
+ */
+export function teamLeaderboard(quotes: Quote[]): TeamRow[] {
+  const rows: TeamRow[] = [];
+  for (const o of OWNERS) {
+    const mine = quotes.filter((q) => q.owner_id === o.id);
+    if (mine.length === 0) continue;
+    const closed = mine.filter((q) => q.status === "ganho" || q.status === "perdido");
+    const won = mine.filter((q) => q.status === "ganho");
+    const pipeline = mine
+      .filter((q) => OPEN.includes(q.status))
+      .reduce((s, q) => s + quoteTotals(q.items).revenue, 0);
+    let commissionWon = 0;
+    let wonRevenue = 0;
+    for (const q of won) {
+      commissionWon += computeCommission(q).total;
+      wonRevenue += quoteTotals(q.items).revenue;
+    }
+    rows.push({
+      ownerId: o.id,
+      ownerName: o.name,
+      initialization: o.initials,
+      quotes: mine.length,
+      pipeline,
+      wonRevenue,
+      commissionWon,
+      winRate: closed.length ? won.length / closed.length : 0,
+    });
+  }
+  return rows.sort(
+    (a, b) => b.commissionWon + b.pipeline - (a.commissionWon + a.pipeline),
+  );
 }

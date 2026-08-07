@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { AppHeader } from "@/components/medical/app-header";
 import { useQuotes } from "@/hooks/use-quotes";
-import { computeKpis, leaderboard } from "@/lib/medical/analytics";
+import { computeKpis, leaderboard, marginLeftOnTable } from "@/lib/medical/analytics";
 import { computeCommission } from "@/lib/medical/commission";
 import { quoteTotals } from "@/lib/medical/pricing";
 import { slaState } from "@/components/medical/sla-indicator";
@@ -70,8 +70,9 @@ function ExecutivePanel() {
     const overrides = listAllActiveOverrides().filter((o) => quotes.some((q) => q.id === o.quote_id));
 
     const lb = leaderboard(quotes).slice(0, 5);
+    const marginOnTable = marginLeftOnTable(quotes);
 
-    return { kpis, revenueAtRisk, atRiskCount: atRisk.length, commissionProjected, commissionWon, topClients, integrity, chain, overrides, lb, openQuotes: open };
+    return { kpis, revenueAtRisk, atRiskCount: atRisk.length, commissionProjected, commissionWon, topClients, integrity, chain, overrides, lb, openQuotes: open, marginOnTable };
   }, [quotes, tenant]);
 
   return (
@@ -159,8 +160,9 @@ function ExecutivePanel() {
               <MetricRow label="Win rate" value={pct(data.kpis.winRate)} />
               <MetricRow label="Margem média" value={pct(data.kpis.avgMargin)} tone={data.kpis.avgMargin < 0.12 ? "danger" : "ok"} />
               <MetricRow label="Saúde SLA" value={pct(data.kpis.slaHealth)} tone={data.kpis.slaHealth < 0.7 ? "danger" : "ok"} />
-              <MetricRow label="Overrides ativos" value={String(data.overrides.length)} tone={data.overrides.length > 3 ? "warn" : "ok"} />
+<MetricRow label="Overrides ativos" value={String(data.overrides.length)} tone={data.overrides.length > 3 ? "warn" : "ok"} />
               <MetricRow label="Cotações abertas" value={String(data.openQuotes.length)} />
+              <MetricRow label="Margem deixada na mesa" value={brl(data.marginOnTable.marginLeftOnTableBRL)} tone={data.marginOnTable.marginLeftOnTableBRL > 0 ? "warn" : "ok"} />
             </CardContent>
           </Card>
         </section>
