@@ -21,4 +21,4 @@ A Roda 2 (itens A–F) foi concluída e commitada. Este lote fecha os refinament
 - [x] `PLANO-MELHORIAS.md`: seção 8 com "Refinamentos finais (lote fechado)" + verificação final
 
 ## Passo 5 — Commit
-- [ ] Commit das mudanças (refinamentos finais Roda 2)
+- [x] Commit das mudanças (refinamentos finais Roda 2) — `8ce1246`
