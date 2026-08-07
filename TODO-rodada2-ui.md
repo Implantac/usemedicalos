@@ -10,4 +10,4 @@
 - [x] 8. quote-drawer.tsx: selo auto-rules (F)
 - [x] 9. Verificação: tsc --noEmit (0 erros), vitest run, eslint
 - [x] 10. Atualizar TASK-melhorias-novas.md e TODO.md
-- [ ] 11. Commit
+- [x] 11. Commit (`efd4282`) + push para o GitHub (`main`)
